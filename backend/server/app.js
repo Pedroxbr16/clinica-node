@@ -9,12 +9,15 @@ const port = 5000;
 // Middlewares
 app.use(bodyParser.json()); // Middleware para processar JSON
 app.use(bodyParser.urlencoded({ extended: true })); // Para processar dados de formulários
+const cors = require('cors');
+app.use(cors());
+
 
 // Servir arquivos estáticos, como fotos enviadas
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); 
 
 // Rotas
-app.use('/api', pacienteRoutes); // Usar as rotas definidas no arquivo pacienteRoutes
+app.use('/pacientes', pacienteRoutes); // Usar as rotas definidas no arquivo pacienteRoutes
 
 // Iniciar o servidor
 app.listen(port, () => {
