@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const pacienteRoutes = require('./routes/pacienteRoutes'); // Importar as rotas dos pacientes
+const pacienteRoutes = require('../routes/pacienteRoutes'); // Importar as rotas dos pacientes
 const path = require('path');
 
 const app = express();
