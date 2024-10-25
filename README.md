@@ -27,3 +27,4 @@ GRANT ALL PRIVILEGES ON nome_do_banco.* TO 'usuario'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
+**ℹ️não se esqueça de alterar no codigo o usuário e senha que colocou**
