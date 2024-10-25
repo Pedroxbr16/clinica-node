@@ -1,0 +1,5 @@
+# Ignore tudo dentro da pasta uploads
+*
+
+# Não ignore este próprio arquivo .gitignore
+!.gitignore

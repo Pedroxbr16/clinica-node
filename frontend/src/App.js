@@ -42,7 +42,7 @@ const PacienteForm = () => {
     });
 
     try {
-      const response = await axios.post('http://localhost:5000/pacientes', data, {
+      const response = await axios.post('http://localhost:5000/pacientes/pacientes', data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
