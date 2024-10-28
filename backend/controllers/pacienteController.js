@@ -1,37 +1,104 @@
 const connection = require('../config/database');
 
+// Função auxiliar para remover caracteres não numéricos
+const removeNonNumeric = (value) => value.replace(/\D/g, '');
+
+// Método para criar um paciente
 exports.createPaciente = (req, res) => {
-  const { nome, cep, numero, bairro, cidade, estado, cpf, cnpj, nascimento, genero, email, telefone, celular } = req.body;
+  const {
+    nome,
+    cep,
+    numero,
+    bairro,
+    cidade,
+    estado,
+    cpf,
+    cnpj,
+    nascimento,
+    genero,
+    email,
+    telefone,
+    celular
+  } = req.body;
+
   const foto = req.file ? req.file.filename : null; // Foto enviada
 
+  // Remover caracteres não numéricos
+  const cleanCpf = cpf ? removeNonNumeric(cpf) : null;
+  const cleanCnpj = cnpj ? removeNonNumeric(cnpj) : null;
+  const cleanCep = cep ? removeNonNumeric(cep) : null;
+  const cleanTelefone = telefone ? removeNonNumeric(telefone) : null;
+  const cleanCelular = celular ? removeNonNumeric(celular) : null;
+
   // Validação simples para verificar se o CPF foi informado e tem o tamanho correto
-  if (!cpf || cpf.length !== 11) {
-    return res.status(400).json({ error: 'CPF inválido' });
+  if (!cleanCpf || cleanCpf.length !== 11) {
+    return res.status(400).json({ error: 'CPF inválido. Deve conter 11 dígitos.' });
+  }
+
+  // Opcional: Validar CNPJ se fornecido
+  if (cleanCnpj && cleanCnpj.length !== 14) {
+    return res.status(400).json({ error: 'CNPJ inválido. Deve conter 14 dígitos.' });
   }
 
   // Verificar duplicação de CPF ou CNPJ
   const checkQuery = 'SELECT id FROM pacientes WHERE cpf = ? OR cnpj = ?';
-  connection.query(checkQuery, [cpf, cnpj], (err, results) => {
+  connection.query(checkQuery, [cleanCpf, cleanCnpj], (err, results) => {
     if (err) {
+      console.error('Erro ao verificar duplicação de CPF ou CNPJ:', err);
       return res.status(500).json({ error: 'Erro ao verificar duplicação de CPF ou CNPJ' });
     }
-    
+
     if (results.length > 0) {
       return res.status(400).json({ error: 'CPF ou CNPJ já cadastrado' });
     }
 
     // Se não houver duplicação, insere o paciente
     const insertQuery = `
-      INSERT INTO pacientes (nome, cep, numero, bairro, cidade, estado, cpf, cnpj, nascimento, genero, email, telefone, celular, foto)
+      INSERT INTO pacientes 
+      (nome, cep, numero, bairro, cidade, estado, cpf, cnpj, nascimento, genero, email, telefone, celular, foto)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    connection.query(insertQuery, [nome, cep, numero, bairro, cidade, estado, cpf, cnpj, nascimento, genero, email, telefone, celular, foto], (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: 'Erro ao cadastrar paciente' });
-      }
+    connection.query(
+      insertQuery,
+      [
+        nome,
+        cleanCep,
+        numero,
+        bairro,
+        cidade,
+        estado,
+        cleanCpf,
+        cleanCnpj,
+        nascimento,
+        genero,
+        email,
+        cleanTelefone,
+        cleanCelular,
+        foto
+      ],
+      (err, results) => {
+        if (err) {
+          console.error('Erro ao cadastrar paciente:', err);
+          return res.status(500).json({ error: 'Erro ao cadastrar paciente' });
+        }
 
-      res.status(201).json({ message: 'Paciente cadastrado com sucesso!', id: results.insertId });
-    });
+        res.status(201).json({ message: 'Paciente cadastrado com sucesso!', id: results.insertId });
+      }
+    );
+  });
+};
+
+// Método para listar todos os pacientes
+exports.getPacientes = (req, res) => {
+  const selectQuery = 'SELECT * FROM pacientes'; // Ajuste o campo de data conforme seu banco
+
+  connection.query(selectQuery, (err, results) => {
+    if (err) {
+      console.error('Erro ao listar pacientes:', err);
+      return res.status(500).json({ error: 'Erro ao listar pacientes' });
+    }
+
+    res.status(200).json(results);
   });
 };

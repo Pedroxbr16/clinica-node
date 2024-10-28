@@ -1,0 +1,24 @@
+.app {
+  display: flex;
+  min-height: 100vh; /* Garante que o App ocupe toda a altura da tela */
+  background-image: url('../assets/fundo_login.png'); /* Substitua pelo caminho correto */
+  background-size: cover; /* Faz com que a imagem cubra toda a área */
+  background-position: center; /* Centraliza a imagem */
+  background-repeat: no-repeat; /* Evita a repetição da imagem */
+}
+.content {
+  flex: 1;
+  padding: 20px;
+}
+.content h1{
+  font-size: 100px;
+  display: flex;
+  margin-left: 550px;
+  margin-top: 300px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; /* Certifica-se de que o HTML e o corpo tenham 100% da altura */
+}

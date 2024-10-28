@@ -1,0 +1,84 @@
+/* Ajusta a largura da sidebar e adiciona cor de fundo */
+.sidebar {
+  width: 260px; /* Aumenta a largura da sidebar */
+  background-color: #82b9f3; /* Cor de fundo azul (pode personalizar) */
+  color: #fff; /* Cor do texto */
+  padding: 20px;
+  height: 100vh; /* Altura total da viewport */
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilo para o título */
+.sidebar h2 {
+  text-align: center;
+  font-size: 30px;
+  color: white;
+}
+
+/* Estilo dos links principais */
+.sidebar ul li a {
+  color: #fff; /* Cor do texto dos links */
+  text-decoration: none;
+  display: block;
+  font-size: 22px; /* Aumenta o tamanho da fonte */
+  padding: 10px 0;
+}
+
+.nav-link text-white {
+  font-size: 10px;
+}
+
+.sidebar ul li a:hover {
+  background-color: #5ea9fa; /* Cor de fundo ao passar o mouse */
+  border-radius: 5px;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Efeito de clareamento do texto */
+}
+
+/* Transição suave para as listas aninhadas */
+.nested-list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+/* Quando a lista aninhada está visível */
+.nested-list.show {
+  max-height: 200px; /* Ajuste o valor conforme necessário */
+  transition: max-height 0.3s ease-in;
+}
+
+/* Links da lista aninhada (submenu) */
+.nested-list li a {
+  font-size: 18px;
+  color: #fff; /* Cor mais clara para submenu */
+  padding-left: 10px; /* Recuo para submenu */
+}
+
+.nested-list li a:hover {
+  color: #fff;
+}
+
+/* Estilo do botão de logout */
+.logout-button {
+  background-color: #dc3545; /* Cor de fundo vermelha */
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #c82333; /* Altera a cor no hover */
+}
+
+/* Para garantir que o botão de logout fique na parte inferior */
+.sidebar-footer {
+  margin-top: auto;
+  margin-bottom: 50px;
+}

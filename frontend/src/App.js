@@ -1,80 +1,66 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import Login from './Login';
+import Register from './Register'; // Importando o componente de registro
+import ListagemPacientes from './ListagemPacientes';
+import CadastroPacientes from './CadastroPacientes';
+import Agenda from './Agenda';
+import CreateEvent from './CreateEvent'; 
+import Config from './ConfigADM';
+import PedidoExames from './PedidoExames'; // Importando o componente de pedidos de exames
+import './css/App.css';
 
-const PacienteForm = () => {
-  const [formData, setFormData] = useState({
-    nome: '',
-    cep: '',
-    numero: '',
-    bairro: '',
-    cidade: '',
-    estado: '',
-    cpf: '',
-    cnpj: '',
-    nascimento: '',
-    genero: '',
-    email: '',
-    telefone: '',
-    celular: '',
-    foto: null, // Inicializar como null
-  });
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  useEffect(() => {
+    const authStatus = localStorage.getItem('isAuthenticated');
+    setIsAuthenticated(authStatus === 'true');
+  }, []);
+
+  const handleLogin = () => {
+    localStorage.setItem('isAuthenticated', 'true');
+    setIsAuthenticated(true);
   };
 
-  const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      foto: e.target.files[0], // Lida com o upload de arquivo
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const data = new FormData(); // Usar FormData para incluir arquivos
-    Object.keys(formData).forEach((key) => {
-      data.append(key, formData[key]);
-    });
-
-    try {
-      const response = await axios.post('http://localhost:5000/pacientes/pacientes', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      console.log(response.data);
-      alert('Paciente cadastrado com sucesso!');
-    } catch (error) {
-      console.error(error);
-      alert('Erro ao cadastrar paciente.');
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    setIsAuthenticated(false);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input type="text" name="nome" placeholder="Nome" value={formData.nome} onChange={handleChange} required />
-      <input type="text" name="cep" placeholder="CEP" value={formData.cep} onChange={handleChange} required />
-      <input type="text" name="numero" placeholder="Número" value={formData.numero} onChange={handleChange} required />
-      <input type="text" name="bairro" placeholder="Bairro" value={formData.bairro} onChange={handleChange} required />
-      <input type="text" name="cidade" placeholder="Cidade" value={formData.cidade} onChange={handleChange} required />
-      <input type="text" name="estado" placeholder="Estado" value={formData.estado} onChange={handleChange} required />
-      <input type="text" name="cpf" placeholder="CPF" value={formData.cpf} onChange={handleChange} required />
-      <input type="text" name="cnpj" placeholder="CNPJ" value={formData.cnpj} onChange={handleChange} />
-      <input type="date" name="nascimento" value={formData.nascimento} onChange={handleChange} required />
-      <input type="text" name="genero" placeholder="Gênero" value={formData.genero} onChange={handleChange} />
-      <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-      <input type="text" name="telefone" placeholder="Telefone" value={formData.telefone} onChange={handleChange} />
-      <input type="text" name="celular" placeholder="Celular" value={formData.celular} onChange={handleChange} required />
-      <input type="file" name="foto" onChange={handleFileChange} />
+    <Router>
+      <div className="app">
+        {isAuthenticated && <Sidebar onLogout={handleLogout} />}
+        <div className="content">
+          <Routes>
+            {/* Rota de Login */}
+            <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
+            
+            {/* Rota de Cadastro (Register) */}
+            <Route path="/register" element={<Register />} /> 
 
-      <button type="submit">Cadastrar Paciente</button>
-    </form>
+            {/* Outras rotas protegidas */}
+            <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
+            <Route path="/listagemPaciente" element={isAuthenticated ? <ListagemPacientes /> : <Navigate to="/login" />} />
+            <Route path="/cadastro" element={isAuthenticated ? <CadastroPacientes /> : <Navigate to="/login" />} />
+            <Route path="/agenda" element={isAuthenticated ? <Agenda /> : <Navigate to="/login" />} />
+            <Route path="/create-event" element={isAuthenticated ? <CreateEvent /> : <Navigate to="/login" />} />
+            <Route path="/config" element={isAuthenticated ? <Config /> : <Navigate to="/login" />} />
+            
+            {/* Rota de Pedido de Exames */}
+            <Route path="/pedido-exames" element={isAuthenticated ? <PedidoExames /> : <Navigate to="/login" />} />
+          </Routes>
+        </div>
+      </div>
+    </Router>
   );
-};
+} 
 
-export default PacienteForm;
+function Home() {
+
+
+}
+
+export default App;

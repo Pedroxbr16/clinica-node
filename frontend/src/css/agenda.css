@@ -1,0 +1,68 @@
+.calendar-container {
+  padding: 20px;
+  background-color: white;
+  height: calc(100vh - 120px);
+  width: calc(100% - 35px); 
+  margin: 0;
+}
+
+
+.rbc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.rbc-toolbar button {
+  background-color: #2d4360;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.rbc-month-view {
+  border: 1px solid #e4e4e4;
+}
+
+.rbc-event {
+  background-color: #0d6efd;
+  color: white;
+  padding: 3px 5px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.rbc-event:hover {
+  background-color: #0056b3;
+}
+
+.rbc-header {
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.rbc-date-cell {
+  text-align: center;
+  padding: 5px;
+}
+
+.rbc-today {
+  background-color: #f0f8ff;
+}
+
+.rbc-off-range {
+  background-color: #f9f9f9;
+}
+
+.content {
+  margin-left: 250px; 
+  min-height: 100vh;
+  padding: 20px;
+}
+
+
+.calendar-container .rbc-calendar {
+  height: 100%;
+}

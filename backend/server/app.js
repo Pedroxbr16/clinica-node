@@ -1,25 +1,28 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const pacienteRoutes = require('../routes/pacienteRoutes'); // Importar as rotas dos pacientes
 const path = require('path');
+const pacienteRoutes = require('../routes/pacienteRoutes'); 
+const cors = require('cors');
 
 const app = express();
-const port = 5000;
 
-// Middlewares
-app.use(bodyParser.json()); // Middleware para processar JSON
-app.use(bodyParser.urlencoded({ extended: true })); // Para processar dados de formulários
-const cors = require('cors');
-app.use(cors());
+// Middleware para parsear JSON
+app.use(express.json());
 
+// Configuração do CORS 
+app.use(cors({
+  origin: 'http://localhost:3000', // URL do seu frontend
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// Servir arquivos estáticos, como fotos enviadas
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); 
+// Middleware para servir arquivos estáticos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rotas
-app.use('/pacientes', pacienteRoutes); // Usar as rotas definidas no arquivo pacienteRoutes
+app.use('/pacientes', pacienteRoutes);
 
 // Iniciar o servidor
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });

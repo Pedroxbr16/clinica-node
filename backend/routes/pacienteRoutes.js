@@ -19,4 +19,7 @@ const upload = multer({ storage: storage });
 // Rota POST para criar paciente (com upload de foto)
 router.post('/pacientes', upload.single('foto'), pacienteController.createPaciente);
 
+// Rota GET para listar pacientes
+router.get('/pacientes', pacienteController.getPacientes);
+
 module.exports = router;

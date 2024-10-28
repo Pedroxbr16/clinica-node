@@ -1,0 +1,32 @@
+/* Register.css */
+.register-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+ 
+.register-container {
+  max-width: 800px; 
+  width: 500%;
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-right: 300px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.btn-success,
+.btn-primary {
+  padding: 10px;
+  font-size: 16px;
+}
