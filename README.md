@@ -1,4 +1,4 @@
-# Progrma pra Clínicas
+# Programa pra Clínicas
 
 ## Sobre o Projeto
 aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e agendamento, com integração com uma aplicação [mobile](https://github.com/Pedroxbr16/clinica-mobiile).
