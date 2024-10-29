@@ -5,18 +5,18 @@ aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e
 
 ## estrutura de pastas
 
-/backend
-    /config         # Onde fica localizado o arquivo de conexão com o banco de dados
-    /controlers     # Funções de controle das rotas
-    /models         # Modelo de dados no Mysql
-    /routes         # Definição das rotas
-    /server         # Localização do arquivo responsável pro rodar o servidor node
-    /uploads        # Onde sobe os arquivos de imagem da aplicação 
-/frontend
-    /public         # Arquivos públicos 
-    /src            # Onde se localiza o codigo-fonte principal 
-        /assets     # Arquivos estaticos
-        /css        # Arquivos de estilização
+/backend <br/>
+    /config         # Onde fica localizado o arquivo de conexão com o banco de dados <br/>
+    /controlers     # Funções de controle das rotas <br/>
+    /models         # Modelo de dados no Mysql <br/>
+    /routes         # Definição das rotas <br/>
+    /server         # Localização do arquivo responsável pro rodar o servidor node <br/>
+    /uploads        # Onde sobe os arquivos de imagem da aplicação <br/>
+/frontend <br/>
+    /public         # Arquivos públicos <br/>
+    /src            # Onde se localiza o codigo-fonte principal  <br/>
+        /assets     # Arquivos estaticos <br/>
+        /css        # Arquivos de estilização <br/>
 
 
 
