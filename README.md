@@ -1,3 +1,41 @@
+# Progrma pra Clínicas
+
+## Sobre o Projeto
+aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e agendamento, com integração com uma aplicação [mobile](https://github.com/Pedroxbr16/clinica-mobiile).
+
+## estrutura de pastas
+
+/backend
+    /config         # Onde fica localizado o arquivo de conexão com o banco de dados
+    /controlers     # Funções de controle das rotas
+    /models         # Modelo de dados no Mysql
+    /routes         # Definição das rotas
+    /server         # Localização do arquivo responsável pro rodar o servidor node
+    /uploads        # Onde sobe os arquivos de imagem da aplicação 
+/frontend
+    /public         # Arquivos públicos 
+    /src            # Onde se localiza o codigo-fonte principal 
+        /assets     # Arquivos estaticos
+        /css        # Arquivos de estilização
+
+
+
+
+## Tecnologias Utilizadas
+
+- **Node.js**:Ambiente de execução Javascript no lado do servidor.
+- **Express.js**:Framework para Node.js que facilita a criação de servidores HTTP.
+- **Mysql**: Banco de dados relacional, ideal para dados robustos.
+- **React**: Biblioteca do Javascript pra facilitar na criação de interfaces.
+
+## Funcionalidades
+
+- **Cadastrar Pacientes**
+- **Excluir Pacientes**
+- **alteração de Pacientes**
+- **Agendamento de Consulta**
+- **Pedido de exames**
+
 # Requisitos
 
 node 20.14.0 ou superior </br>
@@ -25,6 +63,37 @@ GRANT ALL PRIVILEGES ON nome_do_banco.* TO 'usuario'@'localhost';
 
 ```bash
 FLUSH PRIVILEGES;
+```
+
+# Rodando localmente
+
+Clone o repositório:
+```bash
+git clone https://github.com/Pedroxbr16/clinica-node.git
+```
+
+Instale as dependencias tanto do backend como do frontend:
+
+```bash
+cd backend
+npm install
+```
+```bash
+cd ..
+cd frontend
+npm install
+```
+
+Rode o servidor node e o react:
+
+```bash
+cd backend
+node server/app.js
+```
+
+```bash
+cd frontend
+npm start
 ```
 
 **ℹ️não se esqueça de alterar no codigo o usuário e senha que colocou**
