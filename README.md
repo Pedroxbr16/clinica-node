@@ -1,10 +1,11 @@
-# Progrma pra Clínicas
+# Programa pra Clínicas
 
 ## Sobre o Projeto
 aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e agendamento, com integração com uma aplicação [mobile](https://github.com/Pedroxbr16/clinica-mobiile).
 
 ## estrutura de pastas
 
+<<<<<<< HEAD
 /backend 
     /config         # Onde fica localizado o arquivo de conexão com o banco de dados
     /controlers     # Funções de controle das rotas
@@ -17,6 +18,20 @@ aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e
     /src            # Onde se localiza o codigo-fonte principal 
         /assets     # Arquivos estaticos
         /css        # Arquivos de estilização
+=======
+/backend <br/>
+    /config         # Onde fica localizado o arquivo de conexão com o banco de dados <br/>
+    /controlers     # Funções de controle das rotas <br/>
+    /models         # Modelo de dados no Mysql <br/>
+    /routes         # Definição das rotas <br/>
+    /server         # Localização do arquivo responsável pro rodar o servidor node <br/>
+    /uploads        # Onde sobe os arquivos de imagem da aplicação <br/>
+/frontend <br/>
+    /public         # Arquivos públicos <br/>
+    /src            # Onde se localiza o codigo-fonte principal  <br/>
+        /assets     # Arquivos estaticos <br/>
+        /css        # Arquivos de estilização <br/>
+>>>>>>> ad4eb0b28b65561b25ab9138096d6b7ce2ec49db
 
 
 
