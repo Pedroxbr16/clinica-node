@@ -42,12 +42,12 @@ function Register() {
     navigate('/login');
   };
 
-  const handleBackToLogin = () => {
-    navigate('/login');
+  const handleBackToConfigADM = () => {
+    navigate('/config'); // Redireciona para a página ConfigADM
   };
 
   const handleCepBlur = async () => {
-    if (cep.length === 9) { // Verifica se o CEP está completo
+    if (cep.length === 9) {
       try {
         const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
         if (response.data && !response.data.erro) {
@@ -64,7 +64,6 @@ function Register() {
     }
   };
 
-  // Estados brasileiros
   const estadosBrasileiros = [
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
     'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
@@ -73,8 +72,19 @@ function Register() {
 
   return (
     <div className="register-page d-flex justify-content-center align-items-center vh-100">
-      <div className="register-container bg-light p-4 shadow-sm rounded">
+      <div className="register-container bg-light p-4 shadow-sm rounded position-relative">
+        
+        {/* Botão "Voltar" na parte superior esquerda */}
+        <button
+          onClick={handleBackToConfigADM}
+          className="btn btn-outline-secondary position-absolute"
+          style={{ top: '10px', left: '10px' }}
+        >
+          Voltar
+        </button>
+
         <h2 className="text-center mb-4">Registrar</h2>
+        
         <form onSubmit={handleSubmit}>
           <div className="form-group mb-3">
             <label htmlFor="role">Função</label>
@@ -123,7 +133,7 @@ function Register() {
                   type='text'
                   id='email'
                   className='form-control'
-                  placeholder='digite seu email...'
+                  placeholder='Digite seu email...'
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -288,7 +298,7 @@ function Register() {
 
           <button type="submit" className="btn btn-success w-100 mb-3">Cadastrar</button>
         </form>
-        <button onClick={handleBackToLogin} className="btn btn-primary w-100">Voltar ao Login</button>
+
       </div>
     </div>
   );

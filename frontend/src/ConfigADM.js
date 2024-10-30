@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Importando Bootstrap
+import { useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/ConfigADM.css';
 
 const ConfigADM = () => {
   const [types, setTypes] = useState(['Consulta Geral', 'Exame', 'Retorno']);
   const [newType, setNewType] = useState('');
+  const navigate = useNavigate(); // Hook para navegação
 
   const handleAddType = () => {
     if (newType.trim()) {
@@ -14,7 +16,12 @@ const ConfigADM = () => {
   };
 
   const handleRemoveType = (indexToRemove) => {
-    setTypes(types.filter((_, index) => index !== indexToRemove)); // Remove o tipo de consulta
+    setTypes(types.filter((_, index) => index !== indexToRemove));
+  };
+
+  // Função para redirecionar para a página de registro
+  const handleNavigateToRegister = () => {
+    navigate('/register'); // Caminho para a página Register
   };
 
   return (
@@ -33,17 +40,21 @@ const ConfigADM = () => {
       </ul>
 
       <div className="input-group mb-3">
-  <input
-    type="text"
-    className="form-control"
-    value={newType}
-    onChange={(e) => setNewType(e.target.value)}
-    placeholder="Digite o novo tipo de consulta..."
-  />
-  <button onClick={handleAddType} className="btn btn-success">
-    Adicionar
-  </button>
-</div>
+        <input
+          type="text"
+          className="form-control"
+          value={newType}
+          onChange={(e) => setNewType(e.target.value)}
+          placeholder="Digite o novo tipo de consulta..."
+        />
+        <button onClick={handleAddType} className="btn btn-success">
+          Adicionar
+        </button>
+      </div>
+
+      <button onClick={handleNavigateToRegister} className="btn btn-primary">
+        Ir para Registro
+      </button>
     </div>
   );
 };

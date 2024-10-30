@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Importando Bootstrap
+import 'bootstrap/dist/css/bootstrap.min.css'; 
 import './css/Login.css';
 
 function Login({ onLogin }) {

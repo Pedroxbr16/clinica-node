@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const pacienteRoutes = require('../routes/pacienteRoutes'); 
+const medicoRoutes = require('../routes/medicoRoutes');
 const cors = require('cors');
 
 const app = express();
@@ -20,6 +21,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rotas
 app.use('/pacientes', pacienteRoutes);
+app.use('/medicos', medicoRoutes);
 
 // Iniciar o servidor
 const PORT = process.env.PORT || 5000;

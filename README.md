@@ -5,7 +5,7 @@ aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e
 
 ## estrutura de pastas
 
-/backend
+/backend 
     /config         # Onde fica localizado o arquivo de conexão com o banco de dados
     /controlers     # Funções de controle das rotas
     /models         # Modelo de dados no Mysql
