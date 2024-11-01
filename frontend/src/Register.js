@@ -22,24 +22,25 @@ function Register() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Usuário registrado:', {
-      username,
-      password,
-      role,
-      crm,
-      nascimento,
-      email,
-      celular,
-      cpf,
-      cep,
-      numero,
-      bairro,
-      cidade,
-      estado
-    });
-    navigate('/login');
+
+    try {
+      const endpoint = role === 'medico' ? '/medicos/medicos' : '/atendente/atendente';
+      const payload = role === 'medico'
+        ? { username, password, crm, nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado }
+        : { username, password, email };
+
+      const response = await axios.post(`http://localhost:5000${endpoint}`, payload);
+
+      if (response.status === 200) {
+        console.log(response.data.message);
+        navigate('/login'); // Redireciona para a página de login após o cadastro bem-sucedido
+      }
+    } catch (error) {
+      console.error(`Erro ao registrar o ${role}:`, error);
+      alert(`Erro ao registrar o ${role}.`);
+    }
   };
 
   const handleBackToConfigADM = () => {
@@ -101,62 +102,47 @@ function Register() {
             </select>
           </div>
 
-          {role === 'atendente' && (
-            <>
-              <div className="form-group mb-3">
-                <label htmlFor="username">Usuário</label>
-                <input
-                  type="text"
-                  id="username"
-                  className="form-control"
-                  placeholder="Escolha um nome de usuário..."
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group mb-3">
-                <label htmlFor="password">Senha</label>
-                <input
-                  type="password"
-                  id="password"
-                  className="form-control"
-                  placeholder="Escolha uma senha..."
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <div className='form-group mb-3'>
-                <label htmlFor='email'>Email</label>
-                <input
-                  type='text'
-                  id='email'
-                  className='form-control'
-                  placeholder='Digite seu email...'
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </>
-          )}
+          {/* Campos comuns para ambas as funções */}
+          <div className="form-group mb-3">
+            <label htmlFor="username">Usuário</label>
+            <input
+              type="text"
+              id="username"
+              className="form-control"
+              placeholder="Escolha um nome de usuário..."
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group mb-3">
+            <label htmlFor="password">Senha</label>
+            <input
+              type="password"
+              id="password"
+              className="form-control"
+              placeholder="Escolha uma senha..."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group mb-3">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              className="form-control"
+              placeholder="Digite seu email..."
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
           {role === 'medico' && (
             <>
               <div className="row">
-                <div className="col-md-4 mb-3">
-                  <label htmlFor="username">Usuário</label>
-                  <input
-                    type="text"
-                    id="username"
-                    className="form-control"
-                    placeholder="Escolha um nome de usuário..."
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                  />
-                </div>
                 <div className="col-md-4 mb-3">
                   <label htmlFor="crm">CRM</label>
                   <input
@@ -180,21 +166,6 @@ function Register() {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-4 mb-3">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    className="form-control"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
                 <div className="col-md-4 mb-3">
                   <label htmlFor="celular">Celular</label>
                   <InputMask
@@ -208,6 +179,9 @@ function Register() {
                     required
                   />
                 </div>
+              </div>
+
+              <div className="row">
                 <div className="col-md-4 mb-3">
                   <label htmlFor="cpf">CPF</label>
                   <InputMask
@@ -221,9 +195,6 @@ function Register() {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="row">
                 <div className="col-md-4 mb-3">
                   <label htmlFor="cep">CEP</label>
                   <InputMask
@@ -250,7 +221,10 @@ function Register() {
                     required
                   />
                 </div>
-                <div className="col-md-4 mb-3">
+              </div>
+
+              <div className="row">
+                <div className="col-md-6 mb-3">
                   <label htmlFor="bairro">Bairro</label>
                   <input
                     type="text"
@@ -262,9 +236,6 @@ function Register() {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="row">
                 <div className="col-md-6 mb-3">
                   <label htmlFor="cidade">Cidade</label>
                   <input
@@ -277,28 +248,28 @@ function Register() {
                     required
                   />
                 </div>
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="estado">Estado</label>
-                  <select
-                    id="estado"
-                    className="form-select"
-                    value={estado}
-                    onChange={(e) => setEstado(e.target.value)}
-                    required
-                  >
-                    <option value="">Selecione um Estado</option>
-                    {estadosBrasileiros.map(estado => (
-                      <option key={estado} value={estado}>{estado}</option>
-                    ))}
-                  </select>
-                </div>
+              </div>
+
+              <div className="form-group mb-3">
+                <label htmlFor="estado">Estado</label>
+                <select
+                  id="estado"
+                  className="form-select"
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value)}
+                  required
+                >
+                  <option value="">Selecione um Estado</option>
+                  {estadosBrasileiros.map(estado => (
+                    <option key={estado} value={estado}>{estado}</option>
+                  ))}
+                </select>
               </div>
             </>
           )}
 
           <button type="submit" className="btn btn-success w-100 mb-3">Cadastrar</button>
         </form>
-
       </div>
     </div>
   );

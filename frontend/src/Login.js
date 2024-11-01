@@ -20,9 +20,6 @@ function Login({ onLogin }) {
     }
   };
 
-  const handleRegister = () => {
-    navigate('/register');
-  };
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -64,9 +61,8 @@ function Login({ onLogin }) {
           </div>
           <button type="submit" className="btn btn-success w-100 mb-3">Entrar</button>
         </form>
-        <button onClick={handleRegister} className="btn btn-primary w-100">
-          Cadastra-se
-        </button>
+
+
       </div>
     </div>
   );

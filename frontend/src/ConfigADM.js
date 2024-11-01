@@ -26,7 +26,7 @@ const ConfigADM = () => {
 
   return (
     <div className="container config-adm-container mt-5">
-      <h2 className="text-center mb-4">Gerenciar Tipos de Consulta</h2>
+      <h2 className="text-center mb-4">Configurações de Administrador</h2>
       
       <ul className="list-group mb-4">
         {types.map((type, index) => (
