@@ -1,103 +1,85 @@
-const connection = require('../config/database');
+// controllers/medicoController.js
+const bcrypt = require('bcryptjs');
+const medicoModel = require('../models/medicoModels');
 
-// Função auxiliar para remover caracteres não numéricos
-const removeNonNumeric = (value) => value.replace(/\D/g, '');
+// Criação de um novo médico
+exports.createMedico = async (req, res) => {
+  try {
+    const { senha, ...medicoData } = req.body;
 
-// Método para criar um médico
-exports.createMedico = (req, res) => {
-  const {
-    usuario,
-    crm,
-    cep,
-    numero,
-    bairro,
-    cidade,
-    estado,
-    cpf,
-    nascimento,
-    genero,
-    email,
-    telefone,
-    celular
-  } = req.body;
+    // Criptografar a senha antes de enviar ao modelo
+    const hashedPassword = await bcrypt.hash(senha, 10);
 
-  const foto = req.file ? req.file.filename : null; // Foto enviada
-
-  // Remover caracteres não numéricos
-  const cleanCpf = cpf ? removeNonNumeric(cpf) : null;
-  const cleanCep = cep ? removeNonNumeric(cep) : null;
-  const cleanTelefone = telefone ? removeNonNumeric(telefone) : null;
-  const cleanCelular = celular ? removeNonNumeric(celular) : null;
-
-  // Validação simples para verificar se o CPF foi informado e tem o tamanho correto
-  if (!cleanCpf || cleanCpf.length !== 11) {
-    return res.status(400).json({ error: 'CPF inválido. Deve conter 11 dígitos.' });
-  }
-
-  // Opcional: Validar CNPJ se fornecido
-  // if (cleanCnpj && cleanCnpj.length !== 14) {
-  //   return res.status(400).json({ error: 'CNPJ inválido. Deve conter 14 dígitos.' });
-  // }
-
-  // Verificar duplicação de CPF ou CNPJ
-  const checkQuery = 'SELECT id FROM medicos WHERE cpf = ?'
-  connection.query(checkQuery, [cleanCpf], (err, results) => {
-    if (err) {
-      console.error('Erro ao verificar duplicação de CPF ', err);
-      return res.status(500).json({ error: 'Erro ao verificar duplicação de CPF ' });
-    }
-
-    if (results.length > 0) {
-      return res.status(400).json({ error: 'CPF  já cadastrado' });
-    }
-
-    // Se não houver duplicação, insere o médico
-    const insertQuery = `
-      INSERT INTO medicos 
-      (nome, crm, cep, numero, bairro, cidade, estado, cpf,nascimento, genero, email, telefone, celular, foto)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    connection.query(
-      insertQuery,
-      [
-        nome,
-        crm,
-        cleanCep,
-        numero,
-        bairro,
-        cidade,
-        estado,
-        cleanCpf,
-        nascimento,
-        genero,
-        email,
-        cleanTelefone,
-        cleanCelular,
-        foto
-      ],
-      (err, results) => {
-        if (err) {
-          console.error('Erro ao cadastrar médico:', err);
-          return res.status(500).json({ error: 'Erro ao cadastrar médico' });
-        }
-
-        res.status(201).json({ message: 'Médico cadastrado com sucesso!', id: results.insertId });
+    // Passar todos os dados do médico, incluindo a senha criptografada
+    medicoModel.createMedico({ ...medicoData, senha: hashedPassword }, (err, results) => {
+      if (err) {
+        console.error('Erro ao cadastrar médico:', err);
+        return res.status(500).json({ error: 'Erro ao cadastrar médico' });
       }
-    );
+      res.status(201).json({ message: 'Médico cadastrado com sucesso!', id: results.insertId });
+    });
+  } catch (error) {
+    console.error('Erro interno:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
+// Obter todos os médicos
+exports.getAllMedicos = (req, res) => {
+  medicoModel.getAllMedicos((err, results) => {
+    if (err) {
+      console.error('Erro ao buscar médicos:', err);
+      return res.status(500).json({ error: 'Erro ao buscar médicos' });
+    }
+    res.status(200).json(results);
   });
 };
 
-// Método para listar todos os médicos
-exports.getMedicos = (req, res) => {
-  const selectQuery = 'SELECT * FROM medicos';
-
-  connection.query(selectQuery, (err, results) => {
+// Obter um médico pelo ID
+exports.getMedicoById = (req, res) => {
+  const { id } = req.params;
+  medicoModel.getMedicoById(id, (err, results) => {
     if (err) {
-      console.error('Erro ao listar médicos:', err);
-      return res.status(500).json({ error: 'Erro ao listar médicos' });
+      console.error('Erro ao buscar médico:', err);
+      return res.status(500).json({ error: 'Erro ao buscar médico' });
+    }
+    if (results.length === 0) return res.status(404).json({ error: 'Médico não encontrado' });
+    res.status(200).json(results[0]);
+  });
+};
+
+// Atualizar um médico pelo ID
+exports.updateMedico = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { senha, ...medicoData } = req.body;
+
+    // Se uma nova senha foi enviada, criptografe-a; caso contrário, mantenha a antiga
+    if (senha) {
+      medicoData.senha = await bcrypt.hash(senha, 10);
     }
 
-    res.status(200).json(results);
+    medicoModel.updateMedico(id, medicoData, (err) => {
+      if (err) {
+        console.error('Erro ao atualizar médico:', err);
+        return res.status(500).json({ error: 'Erro ao atualizar médico' });
+      }
+      res.status(200).json({ message: 'Médico atualizado com sucesso!' });
+    });
+  } catch (error) {
+    console.error('Erro interno:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
+// Excluir um médico pelo ID
+exports.deleteMedico = (req, res) => {
+  const { id } = req.params;
+  medicoModel.deleteMedico(id, (err) => {
+    if (err) {
+      console.error('Erro ao excluir médico:', err);
+      return res.status(500).json({ error: 'Erro ao excluir médico' });
+    }
+    res.status(200).json({ message: 'Médico excluído com sucesso!' });
   });
 };

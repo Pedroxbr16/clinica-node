@@ -1,72 +1,81 @@
-const connection = require('../config/database'); // Importe a conexão com o banco de dados
+// models/medicoModel.js
+const connection = require('../config/database');
 
-// Função para criar um novo médico no banco de dados
-exports.create = (medicoData, callback) => {
-  const { username, password, crm, nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado } = medicoData;
+// Função para inserir um novo médico
+exports.createMedico = (medicoData, callback) => {
+  const {
+    usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado, senha
+  } = medicoData;
 
   const query = `
-    INSERT INTO medicos (usuario, password, crm, nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado)
+    INSERT INTO medicos (usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado, senha)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
+  
+  const values = [
+    usuario,
+    crm,
+    data_nascimento,
+    email,
+    celular,
+    cpf,
+    cep,
+    numero,
+    bairro,
+    cidade,
+    estado,
+    senha
+  ];
 
-  connection.query(query, [username, password, crm, nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado], (err, results) => {
-    if (err) {
-      return callback(err, null);
-    }
-    callback(null, results);
-  });
+  connection.query(query, values, callback);
 };
 
 // Função para buscar todos os médicos
-exports.getAll = (callback) => {
+exports.getAllMedicos = (callback) => {
   const query = 'SELECT * FROM medicos';
-
-  connection.query(query, (err, results) => {
-    if (err) {
-      return callback(err, null);
-    }
-    callback(null, results);
-  });
+  connection.query(query, callback);
 };
 
-// Função para buscar um médico por ID
-exports.getById = (id, callback) => {
+// Função para buscar um médico pelo ID
+exports.getMedicoById = (id, callback) => {
   const query = 'SELECT * FROM medicos WHERE id = ?';
-
-  connection.query(query, [id], (err, results) => {
-    if (err) {
-      return callback(err, null);
-    }
-    callback(null, results[0]); // Retorna o primeiro (e único) resultado
-  });
+  connection.query(query, [id], callback);
 };
 
-// Função para atualizar um médico
-exports.update = (id, medicoData, callback) => {
-  const { username, password, crm, nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado } = medicoData;
+// Função para atualizar um médico pelo ID
+exports.updateMedico = (id, medicoData, callback) => {
+  const {
+    usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado, senha
+  } = medicoData;
 
   const query = `
     UPDATE medicos 
-    SET username = ?, password = ?, crm = ?, nascimento = ?, email = ?, celular = ?, cpf = ?, cep = ?, numero = ?, bairro = ?, cidade = ?, estado = ?
+    SET usuario = ?, crm = ?, data_nascimento = ?, email = ?, celular = ?, cpf = ?, 
+        cep = ?, numero = ?, bairro = ?, cidade = ?, estado = ?, senha = ? 
     WHERE id = ?
   `;
+  
+  const values = [
+    usuario,
+    crm,
+    data_nascimento,
+    email,
+    celular,
+    cpf,
+    cep,
+    numero,
+    bairro,
+    cidade,
+    estado,
+    senha,
+    id
+  ];
 
-  connection.query(query, [username, password, crm, nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado, id], (err, results) => {
-    if (err) {
-      return callback(err, null);
-    }
-    callback(null, results);
-  });
+  connection.query(query, values, callback);
 };
 
-// Função para deletar um médico
-exports.delete = (id, callback) => {
+// Função para excluir um médico pelo ID
+exports.deleteMedico = (id, callback) => {
   const query = 'DELETE FROM medicos WHERE id = ?';
-
-  connection.query(query, [id], (err, results) => {
-    if (err) {
-      return callback(err, null);
-    }
-    callback(null, results);
-  });
+  connection.query(query, [id], callback);
 };

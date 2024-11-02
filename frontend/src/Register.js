@@ -6,11 +6,11 @@ import InputMask from 'react-input-mask';
 import axios from 'axios';
 
 function Register() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [usuario, setUsername] = useState('');
+  const [senha, setPassword] = useState('');
   const [role, setRole] = useState('');
   const [crm, setCrm] = useState('');
-  const [nascimento, setNascimento] = useState('');
+  const [data_nascimento, setNascimento] = useState('');
   const [email, setEmail] = useState('');
   const [celular, setCelular] = useState('');
   const [cpf, setCpf] = useState('');
@@ -19,6 +19,7 @@ function Register() {
   const [bairro, setBairro] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
+  const [feedback, setFeedback] = useState(''); // Estado para mensagens de sucesso/erro
 
   const navigate = useNavigate();
 
@@ -28,18 +29,21 @@ function Register() {
     try {
       const endpoint = role === 'medico' ? '/medicos/medicos' : '/atendente/atendente';
       const payload = role === 'medico'
-        ? { username, password, crm, nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado }
-        : { username, password, email };
+        ? { usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado, senha }
+        : { usuario, senha, email };
 
       const response = await axios.post(`http://localhost:5000${endpoint}`, payload);
 
-      if (response.status === 200) {
-        console.log(response.data.message);
-        navigate('/login'); // Redireciona para a página de login após o cadastro bem-sucedido
+      if (response.status === 200 || response.status === 201) {
+        setFeedback('Cadastro realizado com sucesso!'); // Define a mensagem de sucesso
+        setTimeout(() => {
+          setFeedback(''); // Limpa a mensagem após 3 segundos
+          navigate('/login'); // Redireciona para a página de login
+        }, 3000);
       }
     } catch (error) {
       console.error(`Erro ao registrar o ${role}:`, error);
-      alert(`Erro ao registrar o ${role}.`);
+      setFeedback(`Erro ao registrar o ${role}.`); // Define a mensagem de erro
     }
   };
 
@@ -86,6 +90,13 @@ function Register() {
 
         <h2 className="text-center mb-4">Registrar</h2>
         
+        {/* Exibe o feedback de sucesso/erro */}
+        {feedback && (
+          <div className={`alert ${feedback.includes('sucesso') ? 'alert-success' : 'alert-danger'}`} role="alert">
+            {feedback}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="form-group mb-3">
             <label htmlFor="role">Função</label>
@@ -110,7 +121,7 @@ function Register() {
               id="username"
               className="form-control"
               placeholder="Escolha um nome de usuário..."
-              value={username}
+              value={usuario}
               onChange={(e) => setUsername(e.target.value)}
               required
             />
@@ -122,7 +133,7 @@ function Register() {
               id="password"
               className="form-control"
               placeholder="Escolha uma senha..."
-              value={password}
+              value={senha}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
@@ -142,6 +153,7 @@ function Register() {
 
           {role === 'medico' && (
             <>
+              {/* Linha de 3 colunas para CRM, Nascimento e Celular */}
               <div className="row">
                 <div className="col-md-4 mb-3">
                   <label htmlFor="crm">CRM</label>
@@ -161,7 +173,7 @@ function Register() {
                     type="date"
                     id="nascimento"
                     className="form-control"
-                    value={nascimento}
+                    value={data_nascimento}
                     onChange={(e) => setNascimento(e.target.value)}
                     required
                   />
@@ -181,6 +193,7 @@ function Register() {
                 </div>
               </div>
 
+              {/* Linha de 3 colunas para CPF, CEP e Número */}
               <div className="row">
                 <div className="col-md-4 mb-3">
                   <label htmlFor="cpf">CPF</label>
@@ -223,8 +236,9 @@ function Register() {
                 </div>
               </div>
 
+              {/* Linha de 3 colunas para Bairro, Cidade e Estado */}
               <div className="row">
-                <div className="col-md-6 mb-3">
+                <div className="col-md-4 mb-3">
                   <label htmlFor="bairro">Bairro</label>
                   <input
                     type="text"
@@ -236,7 +250,7 @@ function Register() {
                     required
                   />
                 </div>
-                <div className="col-md-6 mb-3">
+                <div className="col-md-4 mb-3">
                   <label htmlFor="cidade">Cidade</label>
                   <input
                     type="text"
@@ -248,22 +262,21 @@ function Register() {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="form-group mb-3">
-                <label htmlFor="estado">Estado</label>
-                <select
-                  id="estado"
-                  className="form-select"
-                  value={estado}
-                  onChange={(e) => setEstado(e.target.value)}
-                  required
-                >
-                  <option value="">Selecione um Estado</option>
-                  {estadosBrasileiros.map(estado => (
-                    <option key={estado} value={estado}>{estado}</option>
-                  ))}
-                </select>
+                <div className="col-md-4 mb-3">
+                  <label htmlFor="estado">Estado</label>
+                  <select
+                    id="estado"
+                    className="form-select"
+                    value={estado}
+                    onChange={(e) => setEstado(e.target.value)}
+                    required
+                  >
+                    <option value="">Selecione um Estado</option>
+                    {estadosBrasileiros.map(estado => (
+                      <option key={estado} value={estado}>{estado}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </>
           )}
