@@ -115,12 +115,12 @@ function Register() {
 
           {/* Campos comuns para ambas as funções */}
           <div className="form-group mb-3">
-            <label htmlFor="username">Usuário</label>
+            <label htmlFor="username">Nome</label>
             <input
               type="text"
               id="username"
               className="form-control"
-              placeholder="Escolha um nome de usuário..."
+              placeholder="Insira seu Nome.."
               value={usuario}
               onChange={(e) => setUsername(e.target.value)}
               required
