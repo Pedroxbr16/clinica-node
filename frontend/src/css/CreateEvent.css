@@ -40,3 +40,10 @@
 .create-event-container button:hover {
   background-color: #0056b3;
 }
+.list-group {
+  position: absolute;
+  z-index: 1000; /* Coloca a lista de sugestões em uma camada superior */
+  max-height: 150px; /* Limita a altura para evitar que ocupe muito espaço */
+  overflow-y: auto; /* Adiciona rolagem se houver muitas sugestões */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para destacar */
+}

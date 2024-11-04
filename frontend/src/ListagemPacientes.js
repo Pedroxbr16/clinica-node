@@ -1,42 +1,56 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './css/listagemPaciente.css';
 
 function Pacientes() {
   const [pacientes, setPacientes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true); // Estado de carregamento
-  const [error, setError] = useState(null);     // Estado de erro
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Hook para redirecionamento
 
   useEffect(() => {
-    // Função para buscar os pacientes
     const fetchPacientes = async () => {
       try {
-        // Fazendo a requisição GET usando Axios
         const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-        setPacientes(response.data); // Atualiza o estado com os dados recebidos
-        setLoading(false);           // Finaliza o carregamento
+        setPacientes(response.data);
+        setLoading(false);
       } catch (err) {
         console.error('Erro ao buscar pacientes:', err);
         setError('Erro ao buscar pacientes. Por favor, tente novamente mais tarde.');
-        setLoading(false);           // Finaliza o carregamento mesmo em caso de erro
+        setLoading(false);
       }
     };
 
     fetchPacientes();
-  }, []); // O array vazio [] garante que o useEffect execute apenas uma vez após a montagem do componente
+  }, []);
 
-  // Filtrar os pacientes com base no termo de busca
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm('Tem certeza que deseja excluir este paciente?');
+    if (confirmDelete) {
+      try {
+        await axios.delete(`http://localhost:5000/pacientes/${id}`);
+        setPacientes(prevPacientes => prevPacientes.filter(paciente => paciente.id !== id));
+      } catch (err) {
+        console.error('Erro ao excluir paciente:', err);
+        setError('Erro ao excluir paciente. Por favor, tente novamente.');
+      }
+    }
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/pacientes/editar/${id}`); // Redireciona para a tela de edição com o ID do paciente
+  };
+
   const filteredPacientes = pacientes.filter(paciente =>
     paciente.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Renderizar diferentes estados (carregando, erro, lista de pacientes)
   return (
     <div className="container">
       <h2>Pacientes Cadastrados</h2>
 
-      {/* Campo de busca */}
       <input
         type="text"
         placeholder="Buscar paciente..."
@@ -45,13 +59,9 @@ function Pacientes() {
         className="search-input"
       />
 
-      {/* Estado de carregamento */}
       {loading && <p>Carregando pacientes...</p>}
-
-      {/* Estado de erro */}
       {error && <p className="error">{error}</p>}
 
-      {/* Tabela de pacientes */}
       {!loading && !error && (
         <table>
           <thead>
@@ -60,23 +70,26 @@ function Pacientes() {
               <th>CPF</th>
               <th>E-mail</th>
               <th>Celular</th>
-              {/* Adicione mais colunas conforme necessário */}
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             {filteredPacientes.length > 0 ? (
               filteredPacientes.map((paciente) => (
-                <tr key={paciente.id}> {/* Use um identificador único, como ID */}
+                <tr key={paciente.id}>
                   <td>{paciente.nome}</td>
-                  <td>{formatCPF(paciente.cpf)}</td> {/* Formatar CPF para melhor visualização */}
+                  <td>{formatCPF(paciente.cpf)}</td>
                   <td>{paciente.email}</td>
                   <td>{formatTelefone(paciente.celular)}</td>
-                  {/* Adicione mais campos conforme necessário */}
+                  <td>
+                    <button onClick={() => handleEdit(paciente.id)} className="edit-button">Editar</button>
+                    <button onClick={() => handleDelete(paciente.id)} className="delete-button">Excluir</button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="4">Nenhum paciente encontrado.</td>
+                <td colSpan="5">Nenhum paciente encontrado.</td>
               </tr>
             )}
           </tbody>
@@ -86,16 +99,13 @@ function Pacientes() {
   );
 }
 
-// Função para formatar CPF (opcional)
 const formatCPF = (cpf) => {
   if (!cpf) return '';
   return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 };
 
-// Função para formatar telefone/celular (opcional)
 const formatTelefone = (telefone) => {
   if (!telefone) return '';
-  // Exemplo para celular com 11 dígitos: (XX) XXXXX-XXXX
   return telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
 };
 
