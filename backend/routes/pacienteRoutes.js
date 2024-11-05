@@ -7,10 +7,10 @@ const router = express.Router();
 // Configuração do multer para armazenar imagens na pasta 'uploads'
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Diretório onde as fotos serão armazenadas
+    cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname); // Nome do arquivo com timestamp
+    cb(null, Date.now() + '-' + file.originalname);
   }
 });
 
@@ -21,5 +21,8 @@ router.post('/pacientes', upload.single('foto'), pacienteController.createPacien
 
 // Rota GET para listar pacientes
 router.get('/pacientes', pacienteController.getPacientes);
+
+// Rota DELETE para excluir um paciente pelo ID
+router.delete('/:id', pacienteController.deletePaciente);
 
 module.exports = router;
