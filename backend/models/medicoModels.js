@@ -4,12 +4,12 @@ const connection = require('../config/database');
 // Função para inserir um novo médico
 exports.createMedico = (medicoData, callback) => {
   const {
-    usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado, senha
+    usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado
   } = medicoData;
 
   const query = `
-    INSERT INTO medicos (usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado, senha)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO medicos (usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const values = [
@@ -23,8 +23,7 @@ exports.createMedico = (medicoData, callback) => {
     numero,
     bairro,
     cidade,
-    estado,
-    senha
+    estado
   ];
 
   connection.query(query, values, callback);
@@ -45,13 +44,13 @@ exports.getMedicoById = (id, callback) => {
 // Função para atualizar um médico pelo ID
 exports.updateMedico = (id, medicoData, callback) => {
   const {
-    usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado, senha
+    usuario, crm, data_nascimento, email, celular, cpf, cep, numero, bairro, cidade, estado
   } = medicoData;
 
   const query = `
     UPDATE medicos 
     SET usuario = ?, crm = ?, data_nascimento = ?, email = ?, celular = ?, cpf = ?, 
-        cep = ?, numero = ?, bairro = ?, cidade = ?, estado = ?, senha = ? 
+        cep = ?, numero = ?, bairro = ?, cidade = ?, estado = ? 
     WHERE id = ?
   `;
   
@@ -67,7 +66,6 @@ exports.updateMedico = (id, medicoData, callback) => {
     bairro,
     cidade,
     estado,
-    senha,
     id
   ];
 

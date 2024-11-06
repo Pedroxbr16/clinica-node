@@ -1,0 +1,56 @@
+/* RegisterMedico.css */
+
+/* Center the registration page */
+.register-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+ 
+  }
+  
+  /* Container styling */
+  .register-container {
+    width: 80%;
+    max-width: 700px;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Title styling */
+  .register-container h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Two-column layout */
+  .form-group {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  /* Make form display in two columns on larger screens */
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .form-row .form-group {
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+  
+  @media (max-width: 768px) {
+    /* Stack fields in one column on smaller screens */
+    .form-row .form-group {
+      flex: 1 1 100%;
+    }
+  }
+  
+  /* Submit button */
+  button[type="submit"] {
+    margin-top: 1rem;
+  }
+  

@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Login from './Login';
-import Register from './Register'; 
+import RegisterMedico from './RegisterMedico'; // Separate component for Medico registration
+import RegisterUsuario from './RegisterUsuario.js'; // Separate component for Atendente registration
 import ListagemPacientes from './ListagemPacientes';
 import CadastroPacientes from './CadastroPacientes';
 import EditarPaciente from './EditarPaciente'; // Tela de edição de paciente
 import Agenda from './Agenda';
-import CreateEvent from './CreateEvent'; 
+import CreateEvent from './CreateEvent';
 import Config from './ConfigADM';
-import PedidoExames from './PedidoExames'; 
+import PedidoExames from './PedidoExames';
 import './css/App.css';
 
 function App() {
@@ -39,8 +40,9 @@ function App() {
             {/* Rota de Login */}
             <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
             
-            {/* Rota de Cadastro (Register) */}
-            <Route path="/register" element={<Register />} /> 
+            {/* Rotas de Cadastro para Medico e Atendente */}
+            <Route path="/register/medico" element={<RegisterMedico />} />
+            <Route path="/register/usuario" element={<RegisterUsuario />} />
 
             {/* Rota de Home */}
             <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
@@ -62,11 +64,11 @@ function App() {
       </div>
     </Router>
   );
-} 
+}
 
 // Página inicial (Home)
 function Home() {
-  
+ 
 }
 
 export default App;

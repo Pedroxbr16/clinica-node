@@ -1,4 +1,3 @@
-const bcrypt = require('bcryptjs');
 const medicoModel = require('../models/medicoModels');
 
 // Função auxiliar para responder com erro
@@ -8,16 +7,11 @@ const handleError = (res, message, statusCode = 500) => {
 };
 
 // Criação de um novo médico
-exports.createMedico = async (req, res) => {
+exports.createMedico = (req, res) => {
   try {
-    const { senha, ...medicoData } = req.body;
-    if (!senha || senha.length < 6) {
-      return handleError(res, 'A senha deve ter pelo menos 6 caracteres', 400);
-    }
+    const medicoData = req.body; // Todos os dados, exceto senha
 
-    const hashedPassword = await bcrypt.hash(senha, 10);
-
-    medicoModel.createMedico({ ...medicoData, senha: hashedPassword }, (err, results) => {
+    medicoModel.createMedico(medicoData, (err, results) => {
       if (err) return handleError(res, 'Erro ao cadastrar médico');
       res.status(201).json({ success: true, message: 'Médico cadastrado com sucesso!', id: results.insertId });
     });
@@ -47,19 +41,12 @@ exports.getMedicoById = (req, res) => {
 };
 
 // Atualizar um médico pelo ID
-exports.updateMedico = async (req, res) => {
+exports.updateMedico = (req, res) => {
   try {
     const { id } = req.params;
     if (isNaN(id)) return handleError(res, 'ID inválido', 400);
 
-    const { senha, ...medicoData } = req.body;
-    if (senha && senha.length < 6) {
-      return handleError(res, 'A nova senha deve ter pelo menos 6 caracteres', 400);
-    }
-
-    if (senha) {
-      medicoData.senha = await bcrypt.hash(senha, 10);
-    }
+    const medicoData = req.body; // Dados do médico sem senha
 
     medicoModel.updateMedico(id, medicoData, (err) => {
       if (err) return handleError(res, 'Erro ao atualizar médico');

@@ -1,12 +1,11 @@
-// models/AtendenteModel.js
 const connection = require('../config/database');
 
 // Função para criar um novo atendente no banco de dados
-const criarAtendente = (usuario, senha, email, callback) => {
-  const sql = 'INSERT INTO atendente (usuario, senha, email) VALUES (?, ?, ?)';
+const criarAtendente = (usuario, senha, email, funcao, callback) => {
+  const sql = 'INSERT INTO atendente (usuario, senha, email, funcao) VALUES (?, ?, ?, ?)';
   
-  // Executa a query diretamente na conexão única
-  connection.query(sql, [usuario, senha, email], (error, result) => {
+  // Executa a query passando todos os valores, incluindo o valor de funcao
+  connection.query(sql, [usuario, senha, email, funcao], (error, result) => {
     if (error) {
       console.error("Erro ao executar a query de inserção:", error);
       return callback(error, null);

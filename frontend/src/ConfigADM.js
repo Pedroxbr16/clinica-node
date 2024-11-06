@@ -8,7 +8,10 @@ const ConfigADM = () => {
 
   // Function to navigate to the registration page
   const handleNavigateToRegister = () => {
-    navigate('/register'); // Path to the Register page
+    navigate('/register/usuario'); // Path to the Register page
+  };
+  const handleNavigateToRegisterMedico = () => {
+    navigate('/register/medico'); // Path to the Register page
   };
 
   return (
@@ -16,7 +19,10 @@ const ConfigADM = () => {
       <h2 className="text-center mb-4">Configurações de Administrador</h2>
 
       <button onClick={handleNavigateToRegister} className="btn btn-primary">
-        Registrar Medico/Atendente
+        Registrar Usuario
+      </button>
+      <button onClick={handleNavigateToRegisterMedico} className="btn btn-primary">
+        Registrar Medico
       </button>
     </div>
   );
