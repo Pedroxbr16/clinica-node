@@ -5,20 +5,6 @@ aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e
 
 ## estrutura de pastas
 
-<<<<<<< HEAD
-/backend 
-    /config         # Onde fica localizado o arquivo de conexão com o banco de dados
-    /controlers     # Funções de controle das rotas
-    /models         # Modelo de dados no Mysql
-    /routes         # Definição das rotas
-    /server         # Localização do arquivo responsável pro rodar o servidor node
-    /uploads        # Onde sobe os arquivos de imagem da aplicação 
-/frontend
-    /public         # Arquivos públicos 
-    /src            # Onde se localiza o codigo-fonte principal 
-        /assets     # Arquivos estaticos
-        /css        # Arquivos de estilização
-=======
 /backend <br/>
     /config         # Onde fica localizado o arquivo de conexão com o banco de dados <br/>
     /controlers     # Funções de controle das rotas <br/>
@@ -31,7 +17,6 @@ aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e
     /src            # Onde se localiza o codigo-fonte principal  <br/>
         /assets     # Arquivos estaticos <br/>
         /css        # Arquivos de estilização <br/>
->>>>>>> ad4eb0b28b65561b25ab9138096d6b7ce2ec49db
 
 
 
@@ -45,15 +30,15 @@ aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e
 
 ## Funcionalidades
 
-- **Cadastrar Pacientes**
-- **Excluir Pacientes**
-- **alteração de Pacientes**
+- **CRUD de Pacientes**
+- **Cadastro de  Medicos**
+- **Cadastro de Atendentes**
 - **Agendamento de Consulta**
 - **Pedido de exames**
 
 # Requisitos
 
-node 20.14.0 ou superior </br>
+node 20.14.0  </br>
 xampp 8.0.30
 -------------
 # Banco de dados
@@ -68,6 +53,8 @@ logo após crie o banco de dados
 CREATE DATABASE clinica;
 ```
 depos crie o usuário e senha e dê todas as permissões
+altere os campos 'usuario' e 'senha' para oque desejar
+e lembre de alterar no codigo de conexão com o banco de dados
 
 ```bash
 CREATE USER 'usuario'@'localhost' IDENTIFIED BY 'senha';

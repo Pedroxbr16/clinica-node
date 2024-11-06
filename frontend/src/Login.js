@@ -1,25 +1,51 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css'; 
 import './css/Login.css';
 
 function Login({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [usuario, setUsuario] = useState(''); // Atualizando o nome do campo para "usuario"
+  const [senha, setSenha] = useState(''); // Atualizando o nome do campo para "senha"
+  const [userType, setUserType] = useState(''); // Estado para o tipo de usuário
+  const [showPassword, setShowPassword] = useState(false); // Estado para controle de visibilidade da senha
+  const [error, setError] = useState(null); // Estado para mensagens de erro
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (username && password) {
-      localStorage.setItem('isAuthenticated', 'true');
-      onLogin();
-      navigate('/');
+    if (usuario && senha && userType) {
+      try {
+        // Fazendo a requisição para o backend para autenticar o usuário
+        const response = await axios.post('http://localhost:5000/api/login', {
+          usuario,
+          senha,
+          userType
+        });
+
+        // Se a resposta for bem-sucedida, armazene os dados no localStorage
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userType', userType); 
+        onLogin();
+
+        // Redireciona com base no tipo de usuário
+        if (userType === 'medico') {
+          navigate('/dashboard-medico');
+        } else if (userType === 'atendente') {
+          navigate('/dashboard-atendente');
+        } else if (userType === 'usuario') {
+          navigate('/dashboard-adm');
+        }
+      } catch (error) {
+        console.error('Erro ao autenticar:', error);
+        setError('Erro de autenticação. Verifique suas credenciais.');
+      }
+    } else {
+      setError('Por favor, preencha todos os campos.');
     }
   };
-
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -31,27 +57,27 @@ function Login({ onLogin }) {
         <h2 className="text-center mb-4">P.E.M Tech</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group mb-3">
-            <label htmlFor="username">Usuário</label>
+            <label htmlFor="usuario">Usuário</label>
             <input
               type="text"
               className="form-control"
-              id="username"
+              id="usuario"
               placeholder="Insira seu usuário..."
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
               required
             />
           </div>
           <div className="form-group password-group mb-3">
-            <label htmlFor="password">Senha</label>
+            <label htmlFor="senha">Senha</label>
             <div className="password-container position-relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 className="form-control"
-                id="password"
+                id="senha"
                 placeholder="Sua senha"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
                 required
               />
               <span className="password-toggle position-absolute" onClick={toggleShowPassword}>
@@ -59,10 +85,28 @@ function Login({ onLogin }) {
               </span>
             </div>
           </div>
+
+          {/* Campo para selecionar o tipo de usuário */}
+          <div className="form-group mb-3">
+            <label htmlFor="userType">Tipo de Usuário</label>
+            <select
+              className="form-control"
+              id="userType"
+              value={userType}
+              onChange={(e) => setUserType(e.target.value)}
+              required
+            >
+              <option value="">Selecione o tipo de usuário</option>
+              <option value="medico">Médico</option>
+              <option value="atendente">Atendente</option>
+              <option value="usuario">ADM</option>
+            </select>
+          </div>
+
+          {error && <p className="text-danger">{error}</p>}
+
           <button type="submit" className="btn btn-success w-100 mb-3">Entrar</button>
         </form>
-
-
       </div>
     </div>
   );

@@ -17,14 +17,13 @@ function EditarPaciente() {
     estado: '',
     cpf: '',
     cnpj: '',
-    nascimento: '',
+    nascimento: '', // Certifique-se de que está vazio por padrão
     genero: '',
     email: '',
     telefone: '',
     celular: '',
   });
 
-  // Estados brasileiros para o campo de seleção de estado
   const estadosBrasileiros = [
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
     'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
@@ -34,8 +33,15 @@ function EditarPaciente() {
   useEffect(() => {
     const fetchPacienteData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/pacientes/pacientes${pacienteId}`);
-        setFormData(response.data);
+        const response = await axios.get(`http://localhost:5000/pacientes/pacientes/${pacienteId}`);
+        
+        // Converta a data de nascimento para o formato "YYYY-MM-DD"
+        const dataNascimento = response.data.nascimento
+          ? new Date(response.data.nascimento).toISOString().split('T')[0]
+          : '';
+
+        // Defina o estado com os dados recebidos e data de nascimento formatada
+        setFormData({ ...response.data, nascimento: dataNascimento });
       } catch (error) {
         console.error('Erro ao buscar dados do paciente:', error);
       }
@@ -55,20 +61,19 @@ function EditarPaciente() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Criação do FormData para upload de arquivo
     const data = new FormData();
     Object.keys(formData).forEach(key => {
       data.append(key, formData[key]);
     });
 
     try {
-      await axios.put(`http://localhost:5000/pacientes/pacientes${pacienteId}`, data, {
+      await axios.put(`http://localhost:5000/pacientes/pacientes/${pacienteId}`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       alert('Paciente atualizado com sucesso!');
-      navigate('/listagemPaciente'); // Redireciona para a listagem de pacientes após atualização
+      navigate('/listagemPaciente'); 
     } catch (error) {
       console.error('Erro ao atualizar paciente:', error);
       alert('Erro ao atualizar paciente. Por favor, tente novamente.');

@@ -104,6 +104,88 @@ exports.getPacientes = (req, res) => {
   });
 };
 
+// Método para obter um paciente pelo ID
+exports.getPacienteById = (req, res) => {
+  const { id } = req.params;
+
+  // Certifique-se de que o ID é válido (número inteiro)
+  if (!Number.isInteger(Number(id))) {
+    return res.status(400).json({ error: 'ID inválido. Deve ser um número inteiro.' });
+  }
+
+  Paciente.getById(id, (err, result) => {
+    if (err) {
+      console.error('Erro ao obter paciente pelo ID:', err);
+      return res.status(500).json({ error: 'Erro ao obter paciente' });
+    }
+
+    if (!result) {
+      return res.status(404).json({ error: 'Paciente não encontrado' });
+    }
+
+    res.status(200).json(result);
+  });
+};
+
+// Método para atualizar um paciente
+exports.updatePaciente = (req, res) => {
+  const { id } = req.params;
+  const {
+    nome,
+    cep,
+    numero,
+    bairro,
+    cidade,
+    estado,
+    cpf,
+    cnpj,
+    nascimento,
+    genero,
+    email,
+    telefone,
+    celular
+  } = req.body;
+
+  const foto = req.file ? req.file.filename : null; // Foto enviada (se existir)
+
+  // Remover caracteres não numéricos
+  const cleanCpf = cpf ? removeNonNumeric(cpf) : null;
+  const cleanCnpj = cnpj ? removeNonNumeric(cnpj) : null;
+  const cleanCep = cep ? removeNonNumeric(cep) : null;
+  const cleanTelefone = telefone ? removeNonNumeric(telefone) : null;
+  const cleanCelular = celular ? removeNonNumeric(celular) : null;
+
+  const pacienteData = {
+    nome,
+    cep: cleanCep,
+    numero,
+    bairro,
+    cidade,
+    estado,
+    cpf: cleanCpf,
+    cnpj: cleanCnpj,
+    nascimento,
+    genero,
+    email,
+    telefone: cleanTelefone,
+    celular: cleanCelular,
+    foto,
+  };
+
+  Paciente.update(id, pacienteData, (err, results) => {
+    if (err) {
+      console.error('Erro ao atualizar paciente:', err);
+      return res.status(500).json({ error: 'Erro ao atualizar paciente' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Paciente não encontrado' });
+    }
+
+    res.status(200).json({ message: 'Paciente atualizado com sucesso' });
+  });
+};
+
 // Função para excluir um paciente pelo ID
 exports.deletePaciente = (req, res) => {
   const { id } = req.params;

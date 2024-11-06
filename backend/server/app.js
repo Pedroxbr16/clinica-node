@@ -3,13 +3,14 @@ const path = require('path');
 const pacienteRoutes = require('../routes/pacienteRoutes'); 
 const medicoRoutes = require('../routes/medicoRoutes');
 const atendenteRoutes = require('../routes/atendenteRoutes');
+const authRoutes = require('../routes/authRoutes');
 const cors = require('cors');
 
 const app = express();
 
 // Middleware para parsear JSON
 app.use(express.json());
-
+  
 // Configuração do CORS 
 app.use(cors({
   origin: 'http://localhost:3000', // URL do seu frontend
@@ -24,7 +25,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/pacientes', pacienteRoutes);
 app.use('/medicos', medicoRoutes);
 app.use('/atendente', atendenteRoutes);
-
+app.use('/api', authRoutes);
 // Iniciar o servidor
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
