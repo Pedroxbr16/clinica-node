@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Select from 'react-select';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/CreateEvent.css';
 
@@ -14,80 +15,47 @@ const CreateEvent = ({ types = [] }) => {
   });
 
   const [patients, setPatients] = useState([]);
-  const [searchTermPatient, setSearchTermPatient] = useState('');
-  const [showPatientSuggestions, setShowPatientSuggestions] = useState(false);
-
   const [doctors, setDoctors] = useState([]);
-  const [searchTermDoctor, setSearchTermDoctor] = useState('');
-  const [showDoctorSuggestions, setShowDoctorSuggestions] = useState(false);
 
   // Função para buscar pacientes com base no termo de pesquisa
-  const fetchPatients = async (search = '') => {
+  const fetchPatients = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/pacientes/pacientes?search=${search}`);
-      setPatients(response.data);
+      const response = await axios.get(`http://localhost:5000/pacientes/pacientes`);
+      setPatients(response.data.map(patient => ({
+        label: patient.nome,
+        value: patient.id
+      })));
     } catch (error) {
       console.error('Erro ao buscar pacientes:', error);
     }
   };
 
-  // Função para buscar médicos com base no termo de pesquisa
-  const fetchDoctors = async (search = '') => {
-    try {
-      const response = await axios.get(`http://localhost:5000/medicos/medicos?search=${search}`);
-      setDoctors(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar médicos:', error);
-    }
-  };
+// Função para buscar médicos com base no termo de pesquisa
+const fetchDoctors = async () => {
+  try {
+    const response = await axios.get(`http://localhost:5000/medicos/medicos`);
+    const doctorsData = Array.isArray(response.data) ? response.data : [];
+    setDoctors(doctorsData.map(doctor => ({
+      label: doctor.nome,
+      value: doctor.id
+    })));
+  } catch (error) {
+    console.error('Erro ao buscar médicos:', error);
+  }
+};
 
-  // useEffect para atualizar a lista de pacientes conforme o usuário digita
   useEffect(() => {
-    if (searchTermPatient) {
-      fetchPatients(searchTermPatient);
-      setShowPatientSuggestions(true);
-    } else {
-      setPatients([]);
-      setShowPatientSuggestions(false);
-    }
-  }, [searchTermPatient]);
-
-  // useEffect para atualizar a lista de médicos conforme o usuário digita
-  useEffect(() => {
-    if (searchTermDoctor) {
-      fetchDoctors(searchTermDoctor);
-      setShowDoctorSuggestions(true);
-    } else {
-      setDoctors([]);
-      setShowDoctorSuggestions(false);
-    }
-  }, [searchTermDoctor]);
+    fetchPatients();
+    fetchDoctors();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEvent({ ...event, [name]: value });
   };
 
-  const handlePatientSearchChange = (e) => {
-    setSearchTermPatient(e.target.value);
-    setEvent({ ...event, patient: e.target.value });
-  };
-
-  const handleDoctorSearchChange = (e) => {
-    setSearchTermDoctor(e.target.value);
-    setEvent({ ...event, doctor: e.target.value });
-  };
-
-  const handlePatientSuggestionClick = (patientName) => {
-    setEvent({ ...event, patient: patientName });
-    setSearchTermPatient(patientName);
-    setShowPatientSuggestions(false);
-  };
-
-  const handleDoctorSuggestionClick = (doctorName) => {
-    setEvent({ ...event, doctor: doctorName });
-    setSearchTermDoctor(doctorName);
-    setShowDoctorSuggestions(false);
+  const handleSelectChange = (selectedOption, action) => {
+    setEvent({ ...event, [action.name]: selectedOption ? selectedOption.label : '' });
   };
 
   const handleSubmit = (e) => {
@@ -136,59 +104,35 @@ const CreateEvent = ({ types = [] }) => {
             />
           </div>
         </div>
-        <div className="mb-3 position-relative">
+        <div className="mb-3">
           <label>Paciente:</label>
-          <input
-            type="text"
+          <Select
             name="patient"
-            className="form-control"
+            options={patients}
+            value={patients.find(p => p.label === event.patient) || null}
+            onChange={handleSelectChange}
             placeholder="Buscar paciente..."
-            value={searchTermPatient}
-            onChange={handlePatientSearchChange}
-            onFocus={() => setShowPatientSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowPatientSuggestions(false), 200)}
-            required
+            isClearable
+            classNamePrefix="select"
+            styles={{
+              menu: (provided) => ({ ...provided, maxHeight: '150px', overflowY: 'auto' }),
+            }}
           />
-          {showPatientSuggestions && patients.length > 0 && (
-            <ul className="list-group position-absolute w-100 mt-1">
-              {patients.map((patient) => (
-                <li
-                  key={patient.id}
-                  className="list-group-item list-group-item-action"
-                  onMouseDown={() => handlePatientSuggestionClick(patient.nome)}
-                >
-                  {patient.nome}
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
-        <div className="mb-3 position-relative">
+        <div className="mb-3">
           <label>Médico:</label>
-          <input
-            type="text"
+          <Select
             name="doctor"
-            className="form-control"
+            options={doctors}
+            value={doctors.find(d => d.label === event.doctor) || null}
+            onChange={handleSelectChange}
             placeholder="Buscar médico..."
-            value={searchTermDoctor}
-            onChange={handleDoctorSearchChange}
-            onFocus={() => setShowDoctorSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowDoctorSuggestions(false), 200)}
-            required
+            isClearable
+            classNamePrefix="select"
+            styles={{
+              menu: (provided) => ({ ...provided, maxHeight: '150px', overflowY: 'auto' }),
+            }}
           />
-          {showDoctorSuggestions && doctors.length > 0 && (
-            <ul className="list-group position-absolute w-100 mt-1">
-              {doctors.map((doctor) => (
-                <li
-                  key={doctor.id}
-                  className="list-group-item list-group-item-action"
-                  onMouseDown={() => handleDoctorSuggestionClick(doctor.nome)}
-                >
-                  {doctor.nome}
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
         <div className="mb-4">
           <label>Tipo de Consulta:</label>

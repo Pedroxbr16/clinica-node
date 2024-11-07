@@ -7,19 +7,23 @@ exports.login = (req, res) => {
 
   // Selecionar a tabela correta com base no tipo de usuário
   let tableName;
-  if (userType === 'medico') {
-    tableName = 'medicos';
-  } else if (userType === 'atendente') {
-    tableName = 'atendente';
-  } else if (userType === 'usuario') {
-    tableName = 'usuarios';
-  } else {
-    return res.status(400).json({ error: 'Tipo de usuário inválido' });
+  switch (userType) {
+    case 'medico':
+      tableName = 'medicos';
+      break;
+    case 'atendente':
+      tableName = 'atendente';
+      break;
+    case 'usuario':
+      tableName = 'usuarios';
+      break;
+    default:
+      return res.status(400).json({ error: 'Tipo de usuário inválido' });
   }
 
   // Consulta para buscar o usuário na tabela correta
-  const query = `SELECT * FROM ${tableName} WHERE usuario = ?`;
-  connection.query(query, [usuario], (err, results) => {
+  const query = `SELECT * FROM ?? WHERE usuario = ?`;
+  connection.query(query, [tableName, usuario], (err, results) => {
     if (err) {
       console.error('Erro ao consultar o banco de dados:', err);
       return res.status(500).json({ error: 'Erro ao consultar o banco de dados' });
@@ -27,7 +31,7 @@ exports.login = (req, res) => {
 
     // Verificar se o usuário foi encontrado
     if (results.length === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado' });
+      return res.status(401).json({ error: 'Credenciais inválidas' }); // Resposta genérica
     }
 
     const user = results[0];
@@ -40,7 +44,7 @@ exports.login = (req, res) => {
       }
 
       if (!isMatch) {
-        return res.status(401).json({ error: 'Senha incorreta' });
+        return res.status(401).json({ error: 'Credenciais inválidas' }); // Resposta genérica
       }
 
       // Retornar o tipo de usuário em caso de sucesso

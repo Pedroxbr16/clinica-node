@@ -27,7 +27,7 @@ const Agenda = () => {
 
   return (
     <div className="calendar-container">
-      {/* <div className="filter-container">
+       <div className="filter-container">
         <label htmlFor="medico-select">Filtrar por Médico: </label>
         <select
           id="medico-select"
@@ -39,7 +39,7 @@ const Agenda = () => {
             <option key={medico} value={medico}>{medico}</option>
           ))}
         </select>
-      </div> */}
+      </div>
 
       <Calendar
         localizer={localizer}

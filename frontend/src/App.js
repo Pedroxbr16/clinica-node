@@ -12,6 +12,8 @@ import CreateEvent from './CreateEvent';
 import Config from './ConfigADM';
 import PedidoExames from './PedidoExames';
 import './css/App.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
