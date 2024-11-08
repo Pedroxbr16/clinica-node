@@ -11,7 +11,8 @@ import Agenda from './Agenda';
 import CreateEvent from './CreateEvent';
 import Config from './ConfigADM';
 import PedidoExames from './PedidoExames';
-import TiposConsulta from './AddTipoConsulta'; // Importa o novo componente
+import TiposConsulta from './AddTipoConsulta';
+import HistoricoPaciente from './HistoricoPaciente'; // Importa o componente de histórico
 import './css/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -41,28 +42,21 @@ function App() {
           <Routes>
             <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
             
-            {/* Rotas de Cadastro para Medico e Atendente */}
             <Route path="/register/medico" element={<RegisterMedico />} />
             <Route path="/register/usuario" element={<RegisterUsuario />} />
-
-            {/* Rota de Home */}
             <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
 
-            {/* Rotas Protegidas */}
             <Route path="/listagemPaciente" element={isAuthenticated ? <ListagemPacientes /> : <Navigate to="/login" />} />
             <Route path="/cadastro" element={isAuthenticated ? <CadastroPacientes /> : <Navigate to="/login" />} />
             <Route path="/agenda" element={isAuthenticated ? <Agenda /> : <Navigate to="/login" />} />
             <Route path="/create-event" element={isAuthenticated ? <CreateEvent /> : <Navigate to="/login" />} />
             <Route path="/config" element={isAuthenticated ? <Config /> : <Navigate to="/login" />} />
-            
-            {/* Rota de Pedido de Exames */}
             <Route path="/pedido-exames" element={isAuthenticated ? <PedidoExames /> : <Navigate to="/login" />} />
-
-            {/* Rota de Edição de Pacientes */}
             <Route path="/pacientes/editar/:id" element={isAuthenticated ? <EditarPaciente /> : <Navigate to="/login" />} />
-
-            {/* Nova Rota para Tipos de Consulta */}
             <Route path="/tipos-consulta" element={isAuthenticated ? <TiposConsulta /> : <Navigate to="/login" />} />
+
+            {/* Nova Rota para Histórico do Paciente */}
+            <Route path="/pacientes/:id/historico" element={isAuthenticated ? <HistoricoPaciente /> : <Navigate to="/login" />} />
           </Routes>
         </div>
       </div>

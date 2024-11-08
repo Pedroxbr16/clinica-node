@@ -40,4 +40,23 @@
   button:hover {
     background-color: #0056b3;
   }
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .pagination button {
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .pagination span {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
   

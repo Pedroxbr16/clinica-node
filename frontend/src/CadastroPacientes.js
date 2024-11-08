@@ -21,7 +21,8 @@ function CadastroPacientes() {
     telefone: '',
     celular: '',
   });
-
+  
+  const [fotoPreview, setFotoPreview] = useState(null); // Preview da foto
   const [historico, setHistorico] = useState([]);
   const [novoHistorico, setNovoHistorico] = useState('');
   const [activeTab, setActiveTab] = useState('cadastro');
@@ -36,10 +37,12 @@ function CadastroPacientes() {
   }, []);
 
   const handleFileChange = useCallback((e) => {
+    const file = e.target.files[0];
     setFormData(prevState => ({
       ...prevState,
-      foto: e.target.files[0],
+      foto: file,
     }));
+    setFotoPreview(URL.createObjectURL(file)); // URL para pré-visualização
   }, []);
 
   const handleCepBlur = useCallback(async () => {
@@ -75,10 +78,8 @@ function CadastroPacientes() {
       return;
     }
 
-    // Função para remover caracteres não numéricos
     const removeNonNumeric = (value) => value.replace(/\D/g, '');
 
-    // Processar os campos com máscara
     const processedData = { ...formData };
     const fieldsToClean = ['cpf', 'cnpj', 'cep', 'telefone', 'celular'];
     fieldsToClean.forEach(field => {
@@ -124,11 +125,11 @@ function CadastroPacientes() {
       telefone: '',
       celular: '',
     });
+    setFotoPreview(null); // Remove a pré-visualização da foto
     const fileInput = document.querySelector("input[name='foto']");
     if (fileInput) fileInput.value = null;
   };
 
-  // Gerenciar histórico
   const handleAddHistorico = () => {
     if (novoHistorico.trim() !== '') {
       setHistorico(prevState => [...prevState, novoHistorico]);
@@ -140,14 +141,9 @@ function CadastroPacientes() {
     setActiveTab(tab);
   };
 
-  // Mudar o título da página com base na aba ativa
   useEffect(() => {
-    if (activeTab === 'cadastro') {
-      document.title = 'Cadastro de Pacientes';
-    } else if (activeTab === 'historico') {
-      document.title = 'Histórico de Pacientes';
-    }
-  }, [activeTab]); // O título muda quando a aba ativa é alterada
+    document.title = activeTab === 'cadastro' ? 'Cadastro de Pacientes' : 'Histórico de Pacientes';
+  }, [activeTab]);
 
   return (
     <div className="container cadastro-pacientes">
@@ -186,13 +182,24 @@ function CadastroPacientes() {
 
           <div className="col-md-6">
             <label>Foto:</label>
-            <input 
-              type="file" 
-              name="foto" 
-              className="form-control"
-              onChange={handleFileChange} 
-              accept="image/png, image/jpeg, image/jpg, application/pdf" 
-            />
+            <div className="input-group">
+              <input 
+                type="file" 
+                name="foto" 
+                className="form-control"
+                onChange={handleFileChange} 
+                accept="image/png, image/jpeg, image/jpg, application/pdf" 
+              />
+              {fotoPreview && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => window.open(fotoPreview, '_blank')}
+                >
+                  Visualizar
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="col-md-4">

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import InputMask from 'react-input-mask';
+import { Navbar, Nav } from 'react-bootstrap';
 import './css/CadastroPacientes.css';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function EditarPaciente() {
-  const { id: pacienteId } = useParams(); // Captura o ID do paciente a partir da URL
-  const navigate = useNavigate(); // Hook para redirecionamento após atualização
+  const { id: pacienteId } = useParams();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nome: '', 
     foto: null,
@@ -17,12 +18,13 @@ function EditarPaciente() {
     estado: '',
     cpf: '',
     cnpj: '',
-    nascimento: '', // Certifique-se de que está vazio por padrão
+    nascimento: '',
     genero: '',
     email: '',
     telefone: '',
     celular: '',
   });
+  const [fotoPreview, setFotoPreview] = useState(null);
 
   const estadosBrasileiros = [
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
@@ -34,14 +36,13 @@ function EditarPaciente() {
     const fetchPacienteData = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/pacientes/pacientes/${pacienteId}`);
-        
-        // Converta a data de nascimento para o formato "YYYY-MM-DD"
         const dataNascimento = response.data.nascimento
           ? new Date(response.data.nascimento).toISOString().split('T')[0]
           : '';
-
-        // Defina o estado com os dados recebidos e data de nascimento formatada
         setFormData({ ...response.data, nascimento: dataNascimento });
+        if (response.data.fotoUrl) {
+          setFotoPreview(response.data.fotoUrl);
+        }
       } catch (error) {
         console.error('Erro ao buscar dados do paciente:', error);
       }
@@ -55,7 +56,9 @@ function EditarPaciente() {
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, foto: e.target.files[0] });
+    const file = e.target.files[0];
+    setFormData({ ...formData, foto: file });
+    setFotoPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
@@ -82,6 +85,14 @@ function EditarPaciente() {
 
   return (
     <div className="container">
+      <Navbar bg="light" expand="lg" className="mb-4">
+        <Navbar.Brand>Paciente</Navbar.Brand>
+        <Nav className="ml-auto">
+          <Nav.Link onClick={() => navigate(`/pacientes/editar/${pacienteId}`)}>Editar Paciente</Nav.Link>
+          <Nav.Link onClick={() => navigate(`/pacientes/historico/${pacienteId}`)}>Histórico</Nav.Link>
+        </Nav>
+      </Navbar>
+
       <h2>Editar Paciente</h2>
       <form onSubmit={handleSubmit} className="row g-3">
         <div className="col-md-6">
@@ -98,13 +109,24 @@ function EditarPaciente() {
 
         <div className="col-md-6">
           <label>Foto:</label>
-          <input 
-            type="file" 
-            name="foto" 
-            className="form-control"
-            onChange={handleFileChange} 
-            accept="image/png, image/jpeg, image/jpg, application/pdf" 
-          />
+          <div className="input-group">
+            <input 
+              type="file" 
+              name="foto" 
+              className="form-control"
+              onChange={handleFileChange} 
+              accept="image/png, image/jpeg, image/jpg, application/pdf" 
+            />
+            {fotoPreview && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => window.open(fotoPreview, '_blank')}
+              >
+                Visualizar
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="col-md-4">

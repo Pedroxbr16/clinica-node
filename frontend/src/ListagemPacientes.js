@@ -8,6 +8,9 @@ function Pacientes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Página atual
+  const patientsPerPage = 4; // Número de pacientes por página
+
   const navigate = useNavigate(); // Hook para redirecionamento
 
   useEffect(() => {
@@ -47,6 +50,28 @@ function Pacientes() {
     paciente.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Paginação
+  const totalPages = Math.ceil(filteredPacientes.length / patientsPerPage);
+  const indexOfLastPatient = currentPage * patientsPerPage;
+  const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
+  const currentPatients = filteredPacientes.slice(indexOfFirstPatient, indexOfLastPatient);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleFirstPage = () => {
+    setCurrentPage(1); // Vai para a primeira página
+  };
+
+  const handleLastPage = () => {
+    setCurrentPage(totalPages); // Vai para a última página
+  };
+
   return (
     <div className="container">
       <h2>Pacientes Cadastrados</h2>
@@ -63,37 +88,56 @@ function Pacientes() {
       {error && <p className="error">{error}</p>}
 
       {!loading && !error && (
-        <table>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>CPF</th>
-              <th>E-mail</th>
-              <th>Celular</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredPacientes.length > 0 ? (
-              filteredPacientes.map((paciente) => (
-                <tr key={paciente.id}>
-                  <td>{paciente.nome}</td>
-                  <td>{formatCPF(paciente.cpf)}</td>
-                  <td>{paciente.email}</td>
-                  <td>{formatTelefone(paciente.celular)}</td>
-                  <td>
-                    <button onClick={() => handleEdit(paciente.id)} className="edit-button">Editar</button>
-                    <button onClick={() => handleDelete(paciente.id)} className="delete-button">Excluir</button>
-                  </td>
-                </tr>
-              ))
-            ) : (
+        <>
+          <table>
+            <thead>
               <tr>
-                <td colSpan="5">Nenhum paciente encontrado.</td>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>E-mail</th>
+                <th>Celular</th>
+                <th>Ações</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentPatients.length > 0 ? (
+                currentPatients.map((paciente) => (
+                  <tr key={paciente.id}>
+                    <td>{paciente.nome}</td>
+                    <td>{formatCPF(paciente.cpf)}</td>
+                    <td>{paciente.email}</td>
+                    <td>{formatTelefone(paciente.celular)}</td>
+                    <td>
+                      <button onClick={() => handleEdit(paciente.id)} className="edit-button">Editar</button>
+                      <button onClick={() => handleDelete(paciente.id)} className="delete-button">Excluir</button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5">Nenhum paciente encontrado.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Paginação */}
+          <div className="pagination">
+            <button onClick={handleFirstPage} disabled={currentPage === 1}>
+              Primeira
+            </button>
+            <button onClick={handlePreviousPage} disabled={currentPage === 1}>
+              Anterior
+            </button>
+            <span>Página {currentPage} de {totalPages}</span>
+            <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+              Próxima
+            </button>
+            <button onClick={handleLastPage} disabled={currentPage === totalPages}>
+              Última
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function PedidoExames() {
   const [examesSelecionados, setExamesSelecionados] = useState([]);
   const [observacoes, setObservacoes] = useState('');
-  const [submitStatus, setSubmitStatus] = useState('');
   const [pacienteSelecionado, setPacienteSelecionado] = useState('');
 
-  // Lista de pacientes (pode ser carregada de uma API ou banco de dados)
   const pacientesDisponiveis = [
     'João Silva',
     'Maria Oliveira',
@@ -40,53 +40,55 @@ function PedidoExames() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!pacienteSelecionado) {
-      setSubmitStatus('Erro: Nenhum paciente foi selecionado.');
-      return;
-    }
-    if (examesSelecionados.length === 0) {
-      setSubmitStatus('Erro: Nenhum exame foi selecionado.');
-      return;
+  const generatePDF = () => {
+    const doc = new jsPDF();
+
+    // Cabeçalho
+    doc.setFontSize(12);
+    doc.text("Centro Clínico Duque de Caxias - RJ", 20, 20);
+    doc.setFontSize(10);
+    doc.text("CNPJ: 44.649.812/0206-78", 20, 25);
+    doc.text("Rua Prof. José de Souza Herdy - 1216 - Box 310 3º Andar", 20, 30);
+
+    // Informações do Paciente
+    doc.text(`Paciente: ${pacienteSelecionado}`, 20, 50);
+    doc.text(`Data do Atendimento: ${new Date().toLocaleDateString()}`, 20, 55);
+
+    // Observações
+    if (observacoes) {
+      doc.text("Observações:", 20, 70);
+      doc.text(observacoes, 20, 75);
     }
 
-    // Aqui você pode enviar o pedido para o servidor
-    const pedido = {
-      paciente: pacienteSelecionado,
-      exames: examesSelecionados,
-      observacoes: observacoes,
-    };
+    // Tabela de Exames com `autotable`
+    doc.autoTable({
+      startY: observacoes ? 85 : 70,
+      head: [['Exame']],
+      body: examesSelecionados.map(exame => [exame]),
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185] },
+      margin: { left: 20, right: 20 }
+    });
 
-    console.log('Pedido enviado:', pedido);
-    setSubmitStatus('Pedido de exames enviado com sucesso!');
-    resetForm();
+    // Assinatura do Médico
+    doc.text("Dr. (a) Nome do Médico", 20, doc.lastAutoTable.finalY + 20);
+    doc.text("CRM: 52544253", 20, doc.lastAutoTable.finalY + 25);
+    doc.text(`Data da Receita: ${new Date().toLocaleDateString()}`, 20, doc.lastAutoTable.finalY + 30);
+
+    // Salvar PDF
+    doc.save(`Pedido_Exames_${pacienteSelecionado}.pdf`);
   };
 
-  const resetForm = () => {
-    setExamesSelecionados([]);
-    setObservacoes('');
-    setPacienteSelecionado('');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    generatePDF();
   };
 
   return (
     <div className="container pedido-exames">
       <h2>Pedido de Exames</h2>
 
-      {submitStatus && (
-        <div
-          className={`alert ${
-            submitStatus.includes('sucesso') ? 'alert-success' : 'alert-danger'
-          }`}
-          role="alert"
-        >
-          {submitStatus}
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="row g-3">
-        
-        {/* Combobox de Seleção de Paciente */}
         <div className="col-md-12">
           <label>Selecione o Paciente:</label>
           <select
@@ -104,7 +106,6 @@ function PedidoExames() {
           </select>
         </div>
 
-        {/* Lista de Exames Disponíveis */}
         <div className="col-md-12">
           <h4>Exames Disponíveis:</h4>
           {examesDisponiveis.map((exame, index) => (
@@ -124,7 +125,6 @@ function PedidoExames() {
           ))}
         </div>
 
-        {/* Observações */}
         <div className="col-md-12">
           <label>Observações:</label>
           <textarea
@@ -135,10 +135,9 @@ function PedidoExames() {
           />
         </div>
 
-        {/* Botão de Enviar */}
         <div className="col-12">
           <button type="submit" className="btn btn-primary w-100">
-            Enviar Pedido de Exames
+            Gerar Pedido de Exames em PDF
           </button>
         </div>
       </form>
