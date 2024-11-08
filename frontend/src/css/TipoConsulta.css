@@ -1,0 +1,70 @@
+/* TipoConsulta.css */
+
+.tipo-consulta-container {
+    background-color: #e3f2fd;
+    border-radius: 8px;
+    max-width: 700px;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tipo-consulta-container h2,
+  .tipo-consulta-container h3 {
+    color: #0d6efd;
+  }
+  
+  .tipo-consulta-container .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .tipo-consulta-container .form-control {
+    border-radius: 5px;
+    padding: 0.5rem;
+  }
+  
+  .tipo-consulta-container .btn {
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .tipo-consulta-container .btn-primary {
+    background-color: #0d6efd;
+    color: #fff;
+  }
+  
+  .tipo-consulta-container .btn-primary:hover {
+    background-color: #0b5ed7;
+  }
+  
+  .tipo-consulta-container .btn-warning {
+    color: #fff;
+  }
+  
+  .tipo-consulta-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .table th,
+  .table td {
+    vertical-align: middle;
+    text-align: center;
+  }
+  
+  .table th {
+    background-color: #0d6efd;
+    color: #fff;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f1f1f1;
+  }
+  
