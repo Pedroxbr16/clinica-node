@@ -77,22 +77,24 @@ const CreateEvent = () => {
 
   // Função para enviar o evento para o backend
   const submitEvent = async () => {
+    console.log('tipo_consulta_id enviado:', event.type); // Confirme o valor
     try {
-      const response = await axios.post('http://localhost:5000/consultas/adiciona', {
-        titulo: event.title,
-        inicio: event.start,
-        fim: event.end,
-        paciente_id: event.patient,
-        medico_id: event.doctor,
-        tipo_consulta: event.type,
-      });
-      console.log('Evento criado com sucesso:', response.data);
-      alert('Consulta agendada com sucesso!');
+        const response = await axios.post('http://localhost:5000/consultas/adiciona', {
+            titulo: event.title,
+            inicio: event.start,
+            fim: event.end,
+            paciente_id: event.patient,
+            medico_id: event.doctor,
+            tipo_consulta_id: event.type,
+        });
+        console.log('Evento criado com sucesso:', response.data);
+        alert('Consulta agendada com sucesso!');
     } catch (error) {
-      console.error('Erro ao criar consulta:', error);
-      alert('Ocorreu um erro ao agendar a consulta. Tente novamente.');
+        console.error('Erro ao criar consulta:', error);
+        alert('Ocorreu um erro ao agendar a consulta. Tente novamente.');
     }
-  };
+};
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -149,13 +151,7 @@ const CreateEvent = () => {
             placeholder="Buscar paciente..."
             isClearable
             classNamePrefix="select"
-            styles={{
-              menu: (provided) => ({
-                ...provided,
-                maxHeight: '150px', // Limita a altura do menu dropdown
-                overflowY: 'auto',  // Adiciona scroll somente ao dropdown
-              }),
-            }}
+           
           />
         </div>
         <div className="mb-3">

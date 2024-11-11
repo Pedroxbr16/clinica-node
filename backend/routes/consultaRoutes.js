@@ -1,21 +1,21 @@
-// routes/tipoConsultaRoutes.js
+// routes/consultaRoutes.js
 const express = require('express');
 const router = express.Router();
-const tipoConsultaController = require('../controllers/tipoConsultaController');
+const consultaController = require('../controllers/consultaController');
 
-// Rota para criar um novo tipo de consulta
-router.post('/adiciona', tipoConsultaController.createTipoConsulta);
+// Rota para criar uma nova consulta
+router.post('/adiciona', consultaController.createConsulta);
 
-// Rota para listar todos os tipos de consulta
-router.get('/lista', tipoConsultaController.getTiposConsulta);
+// Rota para listar todas as consultas
+router.get('/lista', consultaController.getConsultas);
 
-// Rota para obter um tipo de consulta por ID
-router.get('/:id', tipoConsultaController.getTipoConsultaById);
+// Rota para obter uma consulta por ID
+router.get('/:id', consultaController.getConsultaById);
 
-// Rota para atualizar um tipo de consulta por ID
-router.put('/:id', tipoConsultaController.updateTipoConsulta);
+// Rota para atualizar uma consulta por ID
+router.put('/:id', consultaController.updateConsulta);
 
-// Rota para deletar um tipo de consulta por ID
-router.delete('/:id', tipoConsultaController.deleteTipoConsulta);
+// Rota para deletar uma consulta por ID
+router.delete('/:id', consultaController.deleteConsulta);
 
 module.exports = router;

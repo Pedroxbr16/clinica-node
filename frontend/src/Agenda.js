@@ -1,52 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import 'moment/locale/pt-br';  
+import axios from 'axios';
+import Modal from 'react-modal'; // Para criar o modal
+import 'moment/locale/pt-br';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import './css/agenda.css'; 
-import CreateEvent from './CreateEvent'; 
+import './css/agenda.css';
 
 moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
 
 const Agenda = () => {
-  // Define o estado para armazenar os eventos
-  const [events, setEvents] = useState([
-  ]);
+  const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
-  // Estado para o médico selecionado no filtro
-  const [selectedMedico, setSelectedMedico] = useState('');
+  // Função para buscar consultas
+  const fetchConsultas = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/consultas/lista');
+      const consultasData = Array.isArray(response.data) ? response.data : [];
+      setEvents(consultasData.map(consulta => ({
+        title: consulta.titulo,
+        start: new Date(consulta.inicio),
+        end: new Date(consulta.fim),
+        id: consulta.id // Supondo que você tenha um id único
+      })));
+    } catch (error) {
+      console.error('Erro ao buscar consultas:', error);
+    }
+  };
 
-  // Lista de médicos (pode ser obtida de um banco de dados ou API)
-  const medicos = ['Dr. Silva', 'Dr. Souza', 'Dr. Oliveira'];
+  // Chama as funções de busca ao carregar o componente
+  useEffect(() => {
+    fetchConsultas();
+  }, []);
 
-  // Função para filtrar eventos com base no médico selecionado
-  const filteredEvents = selectedMedico
-    ? events.filter(event => event.medico === selectedMedico)
-    : events;
+  // Manipulador para selecionar o evento
+  const handleEventClick = (event) => {
+    setSelectedEvent(event); // Armazena o evento selecionado
+    setShowModal(true); // Exibe o modal
+  };
+
+  // Função para excluir o evento
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`http://localhost:5000/consultas/${selectedEvent.id}`);
+      setEvents(events.filter(event => event.id !== selectedEvent.id)); // Remove o evento da lista
+      setShowModal(false); // Fecha o modal
+    } catch (error) {
+      console.error('Erro ao excluir evento:', error);
+    }
+  };
+
+  // Função para editar o evento
+  const handleEdit = () => {
+    // Aqui você pode implementar a lógica para editar o evento
+    alert('Função de edição ainda não implementada.');
+  };
 
   return (
     <div className="calendar-container">
-       <div className="filter-container">
-        <label htmlFor="medico-select">Filtrar por Médico: </label>
-        <select
-          id="medico-select"
-          value={selectedMedico}
-          onChange={(e) => setSelectedMedico(e.target.value)}
-        >
-          <option value="">Todos</option>
-          {medicos.map(medico => (
-            <option key={medico} value={medico}>{medico}</option>
-          ))}
-        </select>
-      </div>
-
       <Calendar
         localizer={localizer}
-        events={filteredEvents}
+        events={events}
         startAccessor="start"
         endAccessor="end"
-        style={{ height: '100%' }} 
+        style={{ height: '100%' }}
         views={['month', 'week', 'day']}
         defaultView="month"
         messages={{
@@ -58,7 +78,18 @@ const Agenda = () => {
           next: 'Próximo',
           showMore: total => `+ ver mais (${total})`,
         }}
+        onSelectEvent={handleEventClick} // Chamando a função quando o evento é clicado
       />
+
+      {/* Modal para editar ou excluir o evento */}
+      <Modal isOpen={showModal} onRequestClose={() => setShowModal(false)} contentLabel="Evento">
+        <h2>Evento: {selectedEvent && selectedEvent.title}</h2>
+        <p>Data: {selectedEvent && selectedEvent.start.toString()}</p>
+
+        <button onClick={handleEdit}>Editar</button>
+        <button onClick={handleDelete}>Excluir</button>
+        <button onClick={() => setShowModal(false)}>Fechar</button>
+      </Modal>
     </div>
   );
 };
