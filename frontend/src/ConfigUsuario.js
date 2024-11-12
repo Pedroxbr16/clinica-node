@@ -11,7 +11,7 @@ const Usuario = () => {
 
   const fetchUsuarios = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/usuarios');
+      const response = await axios.get('http://localhost:5000/atendente/atendente');
       setUsuarios(response.data);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
@@ -21,7 +21,7 @@ const Usuario = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
       try {
-        await axios.delete(`http://localhost:5000/usuarios/${id}`);
+        await axios.delete(`http://localhost:5000/atendente/${id}`);
         fetchUsuarios();
         alert('Usuário excluído com sucesso!');
       } catch (error) {
@@ -35,7 +35,7 @@ const Usuario = () => {
     const newNome = window.prompt('Digite o novo nome do usuário:');
     if (newNome && newNome.trim() !== '') {
       try {
-        await axios.put(`http://localhost:5000/usuarios/${id}`, { nome: newNome });
+        await axios.put(`http://localhost:5000/atendente/${id}`, { nome: newNome });
         fetchUsuarios();
         alert('Usuário atualizado com sucesso!');
       } catch (error) {

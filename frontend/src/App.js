@@ -7,14 +7,15 @@ import RegisterUsuario from './RegisterUsuario';
 import ListagemPacientes from './ListagemPacientes';
 import CadastroPacientes from './CadastroPacientes';
 import EditarPaciente from './EditarPaciente';
+import EditarMedico from './EditarMedico'; // Importa o componente de edição de médico
 import Agenda from './Agenda';
 import CreateEvent from './CreateEvent';
 import Config from './ConfigADM';
 import PedidoExames from './PedidoExames';
 import TiposConsulta from './AddTipoConsulta';
-import HistoricoPaciente from './HistoricoPaciente'; // Importa o componente de histórico
-import Medico from './ConfigMedicos'; // Componente de Médicos
-import Usuario from './ConfigUsuario'; // Componente de Usuários
+import HistoricoPaciente from './HistoricoPaciente';
+import Medico from './ConfigMedicos';
+import Usuario from './ConfigUsuario';
 import './css/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -43,7 +44,6 @@ function App() {
         <div className="content">
           <Routes>
             <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
-
             <Route path="/register/medico" element={<RegisterMedico />} />
             <Route path="/register/usuario" element={<RegisterUsuario />} />
             <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
@@ -63,6 +63,9 @@ function App() {
             {/* Rotas para Médicos e Usuários */}
             <Route path="/medicos" element={isAuthenticated ? <Medico /> : <Navigate to="/login" />} />
             <Route path="/usuarios" element={isAuthenticated ? <Usuario /> : <Navigate to="/login" />} />
+
+            {/* Rota para Editar Médico */}
+            <Route path="/medicos/editar/:id" element={isAuthenticated ? <EditarMedico /> : <Navigate to="/login" />} />
           </Routes>
         </div>
       </div>

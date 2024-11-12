@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import InputMask from 'react-input-mask';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/RegisterMedico.css';
 
-function RegisterMedico() {
+function EditarMedico() {
+  const { id: medicoId } = useParams();
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState('');
@@ -21,21 +22,42 @@ function RegisterMedico() {
   const [estado, setEstado] = useState('');
   const [feedback, setFeedback] = useState('');
 
+  useEffect(() => {
+    const fetchMedicoData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/medicos/${medicoId}`);
+        const data = response.data;
+        setUsuario(data.usuario);
+        setCrm(data.crm);
+        setDataNascimento(data.dataNascimento ? new Date(data.dataNascimento).toISOString().split('T')[0] : '');
+        setEmail(data.email);
+        setCelular(data.celular);
+        setCpf(data.cpf);
+        setCep(data.cep);
+        setNumero(data.numero);
+        setBairro(data.bairro);
+        setCidade(data.cidade);
+        setEstado(data.estado);
+      } catch (error) {
+        console.error('Erro ao buscar dados do médico:', error);
+      }
+    };
+    fetchMedicoData();
+  }, [medicoId]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const payload = { usuario, crm, dataNascimento, email, celular, cpf, cep, numero, bairro, cidade, estado };
-      const response = await axios.post('http://localhost:5000/medicos/medicos', payload);
-
-      if (response.status === 200 || response.status === 201) {
-        setFeedback('Cadastro realizado com sucesso!');
-        setTimeout(() => {
-          setFeedback('');
-          navigate('/login');
-        }, 3000);
-      }
+      await axios.put(`http://localhost:5000/medicos/${medicoId}`, payload);
+      setFeedback('Médico atualizado com sucesso!');
+      setTimeout(() => {
+        setFeedback('');
+        navigate('/listagemMedico');
+      }, 3000);
     } catch (error) {
-      setFeedback('Erro ao registrar o médico.');
+      console.error('Erro ao atualizar médico:', error);
+      setFeedback('Erro ao atualizar o médico. Por favor, tente novamente.');
     }
   };
 
@@ -73,7 +95,7 @@ function RegisterMedico() {
           Voltar
         </button>
 
-        <h2 className="text-center mb-4">Registrar Médico</h2>
+        <h2 className="text-center mb-4">Editar Médico</h2>
         {feedback && <div className="alert alert-success" role="alert">{feedback}</div>}
 
         <form onSubmit={handleSubmit}>
@@ -149,11 +171,11 @@ function RegisterMedico() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-success w-100">Cadastrar Médico</button>
+          <button type="submit" className="btn btn-success w-100">Atualizar Médico</button>
         </form>
       </div>
     </div>
   );
 }
 
-export default RegisterMedico;
+export default EditarMedico;
