@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Sidebar from './Sidebar';
 import Login from './Login';
 import RegisterMedico from './RegisterMedico';
-import RegisterUsuario from './RegisterUsuario.js';
+import RegisterUsuario from './RegisterUsuario';
 import ListagemPacientes from './ListagemPacientes';
 import CadastroPacientes from './CadastroPacientes';
 import EditarPaciente from './EditarPaciente';
@@ -13,6 +13,8 @@ import Config from './ConfigADM';
 import PedidoExames from './PedidoExames';
 import TiposConsulta from './AddTipoConsulta';
 import HistoricoPaciente from './HistoricoPaciente'; // Importa o componente de histórico
+import Medico from './ConfigMedicos'; // Componente de Médicos
+import Usuario from './ConfigUsuario'; // Componente de Usuários
 import './css/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -41,7 +43,7 @@ function App() {
         <div className="content">
           <Routes>
             <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
-            
+
             <Route path="/register/medico" element={<RegisterMedico />} />
             <Route path="/register/usuario" element={<RegisterUsuario />} />
             <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
@@ -57,6 +59,10 @@ function App() {
 
             {/* Nova Rota para Histórico do Paciente */}
             <Route path="/pacientes/:id/historico" element={isAuthenticated ? <HistoricoPaciente /> : <Navigate to="/login" />} />
+
+            {/* Rotas para Médicos e Usuários */}
+            <Route path="/medicos" element={isAuthenticated ? <Medico /> : <Navigate to="/login" />} />
+            <Route path="/usuarios" element={isAuthenticated ? <Usuario /> : <Navigate to="/login" />} />
           </Routes>
         </div>
       </div>
@@ -66,7 +72,7 @@ function App() {
 
 // Página inicial (Home)
 function Home() {
-  
+ 
 }
 
 export default App;

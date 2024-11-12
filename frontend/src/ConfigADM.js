@@ -8,12 +8,12 @@ const ConfigADM = () => {
 
   // Função para navegar até a página de registro de usuário
   const handleNavigateToRegister = () => {
-    navigate('/register/usuario');
+    navigate('/usuarios');
   };
 
   // Função para navegar até a página de registro de médico
   const handleNavigateToRegisterMedico = () => {
-    navigate('/register/medico');
+    navigate('/medicos');
   };
 
   // Função para navegar até a página de tipos de consulta
