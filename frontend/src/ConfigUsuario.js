@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-// import './css/Usuario.css';
 
 const Usuario = () => {
   const navigate = useNavigate();
@@ -12,16 +11,18 @@ const Usuario = () => {
   const fetchUsuarios = async () => {
     try {
       const response = await axios.get('http://localhost:5000/atendente/atendente');
+      console.log(response.data);
       setUsuarios(response.data);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
+      setUsuarios([]);
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
       try {
-        await axios.delete(`http://localhost:5000/atendente/${id}`);
+        await axios.delete(`http://localhost:5000/atendente/atendente/${id}`);
         fetchUsuarios();
         alert('Usuário excluído com sucesso!');
       } catch (error) {
@@ -31,18 +32,8 @@ const Usuario = () => {
     }
   };
 
-  const handleEdit = async (id) => {
-    const newNome = window.prompt('Digite o novo nome do usuário:');
-    if (newNome && newNome.trim() !== '') {
-      try {
-        await axios.put(`http://localhost:5000/atendente/${id}`, { nome: newNome });
-        fetchUsuarios();
-        alert('Usuário atualizado com sucesso!');
-      } catch (error) {
-        console.error('Erro ao editar usuário:', error);
-        alert('Erro ao editar usuário.');
-      }
-    }
+  const handleEdit = (id) => {
+    navigate(`/usuarios/editar/${id}`); // Redireciona para a rota de edição de usuário
   };
 
   useEffect(() => {
@@ -80,7 +71,7 @@ const Usuario = () => {
               usuarios.map((usuario) => (
                 <tr key={usuario.id}>
                   <td>{usuario.id}</td>
-                  <td>{usuario.nome}</td>
+                  <td>{usuario.usuario}</td>
                   <td>
                     <button className="btn btn-warning btn-sm mx-1" onClick={() => handleEdit(usuario.id)}>
                       Editar

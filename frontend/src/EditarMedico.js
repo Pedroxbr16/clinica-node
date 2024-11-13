@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import InputMask from 'react-input-mask';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './css/RegisterMedico.css';
 
 function EditarMedico() {
   const { id: medicoId } = useParams();
@@ -25,11 +24,16 @@ function EditarMedico() {
   useEffect(() => {
     const fetchMedicoData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/medicos/${medicoId}`);
-        const data = response.data;
+        const response = await axios.get(`http://localhost:5000/medicos/medicos/${medicoId}`);
+        const data = response.data.data || response.data;
+
         setUsuario(data.usuario);
         setCrm(data.crm);
-        setDataNascimento(data.dataNascimento ? new Date(data.dataNascimento).toISOString().split('T')[0] : '');
+
+        // Aqui estamos assumindo que a data está no formato YYYY-MM-DD no banco de dados
+        const formattedDate = data.dataNascimento ? data.dataNascimento.split('T')[0] : '';
+        setDataNascimento(formattedDate);
+
         setEmail(data.email);
         setCelular(data.celular);
         setCpf(data.cpf);
@@ -40,6 +44,7 @@ function EditarMedico() {
         setEstado(data.estado);
       } catch (error) {
         console.error('Erro ao buscar dados do médico:', error);
+        setFeedback('Erro ao carregar os dados do médico.');
       }
     };
     fetchMedicoData();
@@ -49,11 +54,11 @@ function EditarMedico() {
     e.preventDefault();
     try {
       const payload = { usuario, crm, dataNascimento, email, celular, cpf, cep, numero, bairro, cidade, estado };
-      await axios.put(`http://localhost:5000/medicos/${medicoId}`, payload);
+      await axios.put(`http://localhost:5000/medicos/medicos/${medicoId}`, payload);
       setFeedback('Médico atualizado com sucesso!');
       setTimeout(() => {
         setFeedback('');
-        navigate('/listagemMedico');
+        navigate('/medicos');
       }, 3000);
     } catch (error) {
       console.error('Erro ao atualizar médico:', error);
@@ -87,7 +92,6 @@ function EditarMedico() {
   return (
     <div className="register-page d-flex justify-content-center align-items-center vh-100">
       <div className="register-container bg-light p-4 shadow-sm rounded">
-        {/* Botão de Voltar */}
         <button
           className="btn btn-secondary mb-4"
           onClick={() => navigate(-1)}
@@ -114,7 +118,14 @@ function EditarMedico() {
           <div className="row">
             <div className="col-md-6 mb-3">
               <label htmlFor="dataNascimento">Data de Nascimento</label>
-              <input type="date" id="dataNascimento" className="form-control" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} required />
+              <input
+                type="date"
+                id="dataNascimento"
+                className="form-control"
+                value={dataNascimento}
+                onChange={(e) => setDataNascimento(e.target.value)}
+                required
+              />
             </div>
 
             <div className="col-md-6 mb-3">

@@ -7,7 +7,8 @@ import RegisterUsuario from './RegisterUsuario';
 import ListagemPacientes from './ListagemPacientes';
 import CadastroPacientes from './CadastroPacientes';
 import EditarPaciente from './EditarPaciente';
-import EditarMedico from './EditarMedico'; // Importa o componente de edição de médico
+import EditarMedico from './EditarMedico';
+import EditUsuario from './EditarUsuario'; // Importa o componente de edição de usuário
 import Agenda from './Agenda';
 import CreateEvent from './CreateEvent';
 import Config from './ConfigADM';
@@ -66,6 +67,9 @@ function App() {
 
             {/* Rota para Editar Médico */}
             <Route path="/medicos/editar/:id" element={isAuthenticated ? <EditarMedico /> : <Navigate to="/login" />} />
+
+            {/* Rota para Editar Usuário */}
+            <Route path="/usuarios/editar/:id" element={isAuthenticated ? <EditUsuario /> : <Navigate to="/login" />} />
           </Routes>
         </div>
       </div>
@@ -75,7 +79,7 @@ function App() {
 
 // Página inicial (Home)
 function Home() {
- 
+  
 }
 
 export default App;
