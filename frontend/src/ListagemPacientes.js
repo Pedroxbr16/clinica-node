@@ -46,9 +46,14 @@ function Pacientes() {
     navigate(`/pacientes/editar/${id}`); // Redireciona para a tela de edição com o ID do paciente
   };
 
-  const filteredPacientes = pacientes.filter(paciente =>
-    paciente.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPacientes = pacientes.filter(paciente => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      paciente.nome.toLowerCase().includes(searchLower) ||
+      paciente.cpf.replace(/\D/g, '').includes(searchTerm.replace(/\D/g, '')) || // Remove caracteres não numéricos para CPF
+      paciente.email.toLowerCase().includes(searchLower) // Pesquisa por e-mail
+    );
+  });
 
   // Paginação
   const totalPages = Math.ceil(filteredPacientes.length / patientsPerPage);
@@ -78,7 +83,7 @@ function Pacientes() {
 
       <input
         type="text"
-        placeholder="Buscar paciente..."
+        placeholder="Buscar por nome ou CPF....."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="search-input"

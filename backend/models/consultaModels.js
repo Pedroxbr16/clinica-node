@@ -63,7 +63,7 @@ class ConsultaModel {
     }
 
     // Atualiza uma consulta por ID
-    static async updateConsulta(id, { titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id }) {
+    static async updateConsulta(id, { titulo = null, inicio = null, fim = null, paciente_id = null, medico_id = null, tipo_consulta_id = null }) {
         const sql = `
             UPDATE Consulta 
             SET titulo = ?, inicio = ?, fim = ?, paciente_id = ?, medico_id = ?, tipo_consulta_id = ? 
@@ -84,6 +84,7 @@ class ConsultaModel {
             throw error;
         }
     }
+    
 
     // Deleta uma consulta por ID
     static async deleteConsulta(id) {

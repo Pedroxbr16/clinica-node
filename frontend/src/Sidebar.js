@@ -40,6 +40,7 @@ function Sidebar({ onLogout }) {
             <li><Link to="/listagemPaciente" className="text-white nav-link">Listagem</Link></li>
             <li><Link to="/cadastro" className="nav-link text-white">Cadastro</Link></li>
             <li><Link to="/pedido-exames" className="nav-link text-white">Exames</Link></li>
+            <li><Link to="/Historico" className="nav-link text-white">Historicos</Link></li>
           </ul>
         </li>
         <li className="nav-item">
@@ -49,6 +50,7 @@ function Sidebar({ onLogout }) {
           <ul className={`nested-list list-unstyled ${showAppointmentsList ? 'show' : ''}`}>
             <li><Link to="/agenda" className="nav-link text-white">Mostrar Agenda</Link></li>
             <li><Link to="/create-event" className="nav-link text-white">Criar Agendamento</Link></li>
+            <li><Link to="/create-event" className="nav-link text-white">Pré-Agendamento</Link></li>
           </ul>
         </li>
         <li className="nav-item">

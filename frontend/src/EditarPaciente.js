@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import InputMask from 'react-input-mask';
-import { Navbar, Nav } from 'react-bootstrap';
-import './css/CadastroPacientes.css';
 import { useParams, useNavigate } from 'react-router-dom';
+import './css/CadastroPacientes.css';
 
 function EditarPaciente() {
   const { id: pacienteId } = useParams();
@@ -85,14 +84,6 @@ function EditarPaciente() {
 
   return (
     <div className="container">
-      <Navbar bg="light" expand="lg" className="mb-4">
-        <Navbar.Brand>Paciente</Navbar.Brand>
-        <Nav className="ml-auto">
-          <Nav.Link onClick={() => navigate(`/pacientes/editar/${pacienteId}`)}>Editar Paciente</Nav.Link>
-          <Nav.Link onClick={() => navigate(`/pacientes/historico/${pacienteId}`)}>Histórico</Nav.Link>
-        </Nav>
-      </Navbar>
-
       <h2>Editar Paciente</h2>
       <form onSubmit={handleSubmit} className="row g-3">
         <div className="col-md-6">

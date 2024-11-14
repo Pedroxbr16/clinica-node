@@ -2,14 +2,14 @@
   padding: 20px;
   background-color: white;
   height: calc(100vh - 120px);
-  width: calc(100% - 35px); 
+  width: 100%; 
   margin: 0;
 }
-
 
 .rbc-toolbar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
 }
 
@@ -18,8 +18,13 @@
   color: white;
   border: none;
   padding: 5px 10px;
+  border-radius: 4px;
   margin-right: 5px;
   cursor: pointer;
+}
+
+.rbc-toolbar button:hover {
+  background-color: #1b2d45;
 }
 
 .rbc-month-view {
@@ -62,35 +67,32 @@
   padding: 20px;
 }
 
-
 .calendar-container .rbc-calendar {
   height: 100%;
 }
+
 /* Estilo para o Modal */
 .ReactModal__Overlay {
-  background-color: rgba(0, 0, 0, 0.4); /* Fundo translúcido */
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }
 
 .ReactModal__Content {
   background-color: white;
   padding: 20px;
   border-radius: 8px;
-  width: 300px; /* Ajuste a largura conforme necessário */
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adiciona sombra suave */
-  position: relative; /* Necessário para garantir a posição dentro do overlay */
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  height: 650px;
 }
 
 button {
-  background-color: #007bff; /* Cor azul */
+  background-color: #007bff;
   color: white;
   padding: 8px 16px;
   border: none;
@@ -102,11 +104,9 @@ button {
 }
 
 button:hover {
-  background-color: #0056b3; /* Cor ao passar o mouse */
+  background-color: #0056b3;
 }
 
-/* Ajusta o layout dos botões */
 button + button {
-  margin-left: 10px; /* Adiciona margem entre os botões */
+  margin-left: 10px;
 }
-

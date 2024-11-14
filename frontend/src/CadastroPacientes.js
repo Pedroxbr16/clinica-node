@@ -23,9 +23,6 @@ function CadastroPacientes() {
   });
   
   const [fotoPreview, setFotoPreview] = useState(null); // Preview da foto
-  const [historico, setHistorico] = useState([]);
-  const [novoHistorico, setNovoHistorico] = useState('');
-  const [activeTab, setActiveTab] = useState('cadastro');
   const [submitStatus, setSubmitStatus] = useState('');
 
   const handleInputChange = useCallback((e) => {
@@ -130,24 +127,13 @@ function CadastroPacientes() {
     if (fileInput) fileInput.value = null;
   };
 
-  const handleAddHistorico = () => {
-    if (novoHistorico.trim() !== '') {
-      setHistorico(prevState => [...prevState, novoHistorico]);
-      setNovoHistorico(''); 
-    }
-  };
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-  };
-
   useEffect(() => {
-    document.title = activeTab === 'cadastro' ? 'Cadastro de Pacientes' : 'Histórico de Pacientes';
-  }, [activeTab]);
+    document.title = 'Cadastro de Pacientes';
+  }, []);
 
   return (
     <div className="container cadastro-pacientes">
-      <h2>{activeTab === 'cadastro' ? 'Cadastro de Pacientes' : 'Histórico de Pacientes'}</h2>
+      <h2>Cadastro de Pacientes</h2>
 
       {submitStatus && (
         <div className={`alert ${submitStatus.includes('sucesso') ? 'alert-success' : 'alert-danger'}`} role="alert">
@@ -155,247 +141,204 @@ function CadastroPacientes() {
         </div>
       )}
 
-      {/* Navegação por abas */}
-      <ul className="nav nav-tabs">
-        <li className="nav-item">
-          <button className={`nav-link ${activeTab === 'cadastro' ? 'active' : ''}`} onClick={() => handleTabChange('cadastro')}>Cadastro</button>
-        </li>
-        <li className="nav-item">
-          <button className={`nav-link ${activeTab === 'historico' ? 'active' : ''}`} onClick={() => handleTabChange('historico')}>Histórico</button>
-        </li>
-      </ul>
+      <form onSubmit={handleSubmit} className="row g-3">
+        <div className="col-md-6">
+          <label>Nome:</label>
+          <input
+            type="text"
+            name="nome"
+            className="form-control"
+            value={formData.nome}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
 
-      {/* Conteúdo das abas */}
-      {activeTab === 'cadastro' && (
-        <form onSubmit={handleSubmit} className="row g-3">
-          <div className="col-md-6">
-            <label>Nome:</label>
-            <input
-              type="text"
-              name="nome"
+        <div className="col-md-6">
+          <label>Foto:</label>
+          <div className="input-group">
+            <input 
+              type="file" 
+              name="foto" 
               className="form-control"
-              value={formData.nome}
-              onChange={handleInputChange}
-              required
+              onChange={handleFileChange} 
+              accept="image/png, image/jpeg, image/jpg, application/pdf" 
             />
-          </div>
-
-          <div className="col-md-6">
-            <label>Foto:</label>
-            <div className="input-group">
-              <input 
-                type="file" 
-                name="foto" 
-                className="form-control"
-                onChange={handleFileChange} 
-                accept="image/png, image/jpeg, image/jpg, application/pdf" 
-              />
-              {fotoPreview && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => window.open(fotoPreview, '_blank')}
-                >
-                  Visualizar
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <label>CEP:</label>
-            <InputMask
-              mask="99999-999"
-              type="text"
-              name="cep"
-              className="form-control"
-              value={formData.cep}
-              onChange={handleInputChange}
-              onBlur={handleCepBlur}
-              required
-            />
-          </div>
-
-          <div className="col-md-4">
-            <label>Número:</label>
-            <input
-              type="text"
-              name="numero"
-              className="form-control"
-              value={formData.numero}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="col-md-4">
-            <label>Bairro:</label>
-            <input
-              type="text"
-              name="bairro"
-              className="form-control"
-              value={formData.bairro}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label>Cidade:</label>
-            <input
-              type="text"
-              name="cidade"
-              className="form-control"
-              value={formData.cidade}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label>Estado:</label>
-            <select
-              name="estado"
-              className="form-select"
-              value={formData.estado}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Selecione um Estado</option>
-              {estadosBrasileiros.map((estado) => (
-                <option key={estado} value={estado}>
-                  {estado}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-md-6">
-            <label>CPF:</label>
-            <InputMask
-              mask="999.999.999-99"
-              type="text"
-              name="cpf"
-              className="form-control"
-              value={formData.cpf}
-              onChange={handleInputChange}
-              required={!formData.cnpj} 
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label>CNPJ:</label>
-            <InputMask
-              mask="99.999.999/9999-99"
-              type="text"
-              name="cnpj"
-              className="form-control"
-              value={formData.cnpj}
-              onChange={handleInputChange}
-              required={!formData.cpf}
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label>Data de Nascimento:</label>
-            <input
-              type="date"
-              name="nascimento"
-              className="form-control"
-              value={formData.nascimento}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label>Gênero:</label>
-            <select
-              name="genero"
-              className="form-select"
-              value={formData.genero}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Selecione um Gênero</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Feminino">Feminino</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-
-          <div className="col-md-6">
-            <label>Email:</label>
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label>Telefone:</label>
-            <InputMask
-              mask="(99) 9999-9999"
-              type="text"
-              name="telefone"
-              className="form-control"
-              value={formData.telefone}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label>Celular:</label>
-            <InputMask
-              mask="(99) 99999-9999"
-              type="text"
-              name="celular"
-              className="form-control"
-              value={formData.celular}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="col-12">
-            <button type="submit" className="btn btn-primary w-100">Cadastrar</button>
-          </div>
-        </form>
-      )}
-
-      {activeTab === 'historico' && (
-        <div className="historico-tab">
-          <h3>Histórico do Paciente</h3>
-          <ul className="list-group mb-3">
-            {historico.length === 0 ? (
-              <li className="list-group-item">Nenhum histórico adicionado ainda.</li>
-            ) : (
-              historico.map((item, index) => (
-                <li key={index} className="list-group-item">
-                  {item}
-                </li>
-              ))
+            {fotoPreview && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => window.open(fotoPreview, '_blank')}
+              >
+                Visualizar
+              </button>
             )}
-          </ul>
-
-          <div className="input-group mb-3">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Adicionar novo histórico"
-              value={novoHistorico}
-              onChange={(e) => setNovoHistorico(e.target.value)}
-            />
-            <button className="btn btn-primary" type="button" onClick={handleAddHistorico}>
-              Adicionar
-            </button>
           </div>
         </div>
-      )}
+
+        <div className="col-md-4">
+          <label>CEP:</label>
+          <InputMask
+            mask="99999-999"
+            type="text"
+            name="cep"
+            className="form-control"
+            value={formData.cep}
+            onChange={handleInputChange}
+            onBlur={handleCepBlur}
+            required
+          />
+        </div>
+
+        <div className="col-md-4">
+          <label>Número:</label>
+          <input
+            type="text"
+            name="numero"
+            className="form-control"
+            value={formData.numero}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+
+        <div className="col-md-4">
+          <label>Bairro:</label>
+          <input
+            type="text"
+            name="bairro"
+            className="form-control"
+            value={formData.bairro}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label>Cidade:</label>
+          <input
+            type="text"
+            name="cidade"
+            className="form-control"
+            value={formData.cidade}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label>Estado:</label>
+          <select
+            name="estado"
+            className="form-select"
+            value={formData.estado}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Selecione um Estado</option>
+            {estadosBrasileiros.map((estado) => (
+              <option key={estado} value={estado}>
+                {estado}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="col-md-6">
+          <label>CPF:</label>
+          <InputMask
+            mask="999.999.999-99"
+            type="text"
+            name="cpf"
+            className="form-control"
+            value={formData.cpf}
+            onChange={handleInputChange}
+            required={!formData.cnpj} 
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label>CNPJ:</label>
+          <InputMask
+            mask="99.999.999/9999-99"
+            type="text"
+            name="cnpj"
+            className="form-control"
+            value={formData.cnpj}
+            onChange={handleInputChange}
+            required={!formData.cpf}
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label>Data de Nascimento:</label>
+          <input
+            type="date"
+            name="nascimento"
+            className="form-control"
+            value={formData.nascimento}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label>Gênero:</label>
+          <select
+            name="genero"
+            className="form-select"
+            value={formData.genero}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Selecione um Gênero</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+
+        <div className="col-md-6">
+          <label>Email:</label>
+          <input
+            type="email"
+            name="email"
+            className="form-control"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label>Telefone:</label>
+          <InputMask
+            mask="(99) 9999-9999"
+            type="text"
+            name="telefone"
+            className="form-control"
+            value={formData.telefone}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label>Celular:</label>
+          <InputMask
+            mask="(99) 99999-9999"
+            type="text"
+            name="celular"
+            className="form-control"
+            value={formData.celular}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+
+        <div className="col-12">
+          <button type="submit" className="btn btn-primary w-100">Cadastrar</button>
+        </div>
+      </form>
     </div>
   );
 }

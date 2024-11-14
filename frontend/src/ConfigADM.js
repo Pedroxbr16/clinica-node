@@ -21,6 +21,10 @@ const ConfigADM = () => {
     navigate('/tipos-consulta');
   };
 
+  const handleNavigateToTipoExame = () => {
+    navigate('/tipos-exame');
+  };
+
   return (
     <div className="container config-adm-container mt-5">
       <h2 className="text-center mb-4">Configurações de Administrador</h2>
@@ -35,6 +39,9 @@ const ConfigADM = () => {
 
       <button onClick={handleNavigateToTiposConsulta} className="btn btn-primary btn-block">
         Tipos de Consulta
+      </button>
+      <button onClick={handleNavigateToTipoExame} className='btn btn-primary btn-block'>
+        Exames
       </button>
     </div>
   );
