@@ -1,4 +1,4 @@
-const Historico = require('../models/historico');
+const Historico = require('../models/historicoModel');
 
 // Lista todos os históricos
 exports.listarHistoricos = (req, res) => {

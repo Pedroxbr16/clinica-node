@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './css/listagemPaciente.css';
+import './css/historico.css';
 
 function Pacientes() {
   const [pacientes, setPacientes] = useState([]);
@@ -30,6 +30,10 @@ function Pacientes() {
   }, []);
 
   const handleViewHistory = (id) => {
+    navigate(`/pacientes/${id}/historico/novo`);
+  };
+
+  const handleCreateHistory = (id) => {
     navigate(`/pacientes/${id}/historico`);
   };
 
@@ -61,7 +65,7 @@ function Pacientes() {
 
   return (
     <div className="container">
-      <h2>Historico dos Pacientes</h2>
+      <h2>Histórico dos Pacientes</h2>
 
       <input
         type="text"
@@ -85,25 +89,33 @@ function Pacientes() {
               </tr>
             </thead>
             <tbody>
-  {currentPatients.length > 0 ? (
-    currentPatients.map((paciente) => (
-      <tr key={paciente.id}>
-        <td>{paciente.nome}</td>
-        <td>{formatDate(paciente.nascimento)}</td> 
-        <td>
-          <button onClick={() => handleViewHistory(paciente.id)} className="view-history-button">
-            Visualizar Histórico
-          </button>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="3">Nenhum paciente encontrado.</td>
-    </tr>
-  )}
-</tbody>
-
+              {currentPatients.length > 0 ? (
+                currentPatients.map((paciente) => (
+                  <tr key={paciente.id}>
+                    <td>{paciente.nome}</td>
+                    <td>{formatDate(paciente.nascimento)}</td>
+                    <td>
+                      <button
+                        onClick={() => handleViewHistory(paciente.id)}
+                        className="view-history-button"
+                      >
+                        Visualizar Histórico
+                      </button>
+                      <button
+                        onClick={() => handleCreateHistory(paciente.id)}
+                        className="create-history-button"
+                      >
+                        Criar Histórico
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3">Nenhum paciente encontrado.</td>
+                </tr>
+              )}
+            </tbody>
           </table>
 
           <div className="pagination">
@@ -128,12 +140,12 @@ function Pacientes() {
 }
 
 const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Mês começa em 0
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Mês começa em 0
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
 
 export default Pacientes;

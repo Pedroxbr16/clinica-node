@@ -14,7 +14,7 @@ import CreateEvent from './CreateEvent';
 import Config from './ConfigADM';
 import PedidoExames from './PedidoExames';
 import TiposConsulta from './AddTipoConsulta';
-import HistoricoPaciente from './HistoricoPaciente';
+import HistoricoPaciente from './CriarHistorico';
 import Medico from './ConfigMedicos';
 import Usuario from './ConfigUsuario';
 import AddTipoExame from './AddTipoExames';
