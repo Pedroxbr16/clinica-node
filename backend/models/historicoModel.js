@@ -1,23 +1,46 @@
-const db = require('../config/database');
+const connection = require('../config/database');
 
-class HistoricoModel {
-    // Adiciona um novo histórico
-    static async createHistorico(pacienteId, descricao) {
-        const [result] = await db.execute(
-            'INSERT INTO historico (paciente_id, descricao) VALUES (?, ?)',
-            [pacienteId, descricao]
-        );
-        return result.insertId;
+// Função para listar todos os históricos
+exports.findAll = (callback) => {
+  connection.query('SELECT * FROM historico', (error, results) => {
+    callback(error, results);
+  });
+};
+
+// Função para adicionar um novo histórico
+exports.create = (data, callback) => {
+  const { paciente_id, data_consulta, historico } = data;
+  connection.query(
+    'INSERT INTO historico (paciente_id, data_consulta, historico) VALUES (?, ?, ?)',
+    [paciente_id, data_consulta, historico],
+    (error, results) => {
+      callback(error, results);
     }
+  );
+};
 
-    // Obtém o histórico de um paciente específico
-    static async getHistoricoByPacienteId(pacienteId) {
-        const [rows] = await db.execute(
-            'SELECT * FROM historico WHERE paciente_id = ? ORDER BY data DESC',
-            [pacienteId]
-        );
-        return rows;
+// Função para atualizar um histórico pelo ID
+exports.update = (id, data, callback) => {
+  const { paciente_id, data_consulta, historico } = data;
+  connection.query(
+    'UPDATE historico SET paciente_id = ?, data_consulta = ?, historico = ? WHERE id = ?',
+    [paciente_id, data_consulta, historico, id],
+    (error, results) => {
+      callback(error, results);
     }
-}
+  );
+};
 
-module.exports = HistoricoModel;
+// Função para excluir um histórico pelo ID
+exports.delete = (id, callback) => {
+  connection.query('DELETE FROM historico WHERE id = ?', [id], (error, results) => {
+    callback(error, results);
+  });
+};
+
+// Função para buscar um histórico pelo ID
+exports.findById = (id, callback) => {
+  connection.query('SELECT * FROM historico WHERE id = ?', [id], (error, results) => {
+    callback(error, results[0]);
+  });
+};

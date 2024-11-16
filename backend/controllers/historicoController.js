@@ -1,23 +1,57 @@
-const HistoricoModel = require('../models/historicoModel');
+const Historico = require('../models/historico');
 
-// Adiciona um novo registro de histórico
-exports.createHistorico = async (req, res) => {
-    try {
-        const { pacienteId, descricao } = req.body;
-        const historicoId = await HistoricoModel.createHistorico(pacienteId, descricao);
-        res.status(201).json({ id: historicoId, message: 'Histórico adicionado com sucesso!' });
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao adicionar histórico: ' + error.message });
+// Lista todos os históricos
+exports.listarHistoricos = (req, res) => {
+  Historico.findAll((error, results) => {
+    if (error) {
+      console.error('Erro ao listar históricos:', error);
+      res.status(500).json({ error: 'Erro ao listar históricos' });
+    } else {
+      res.json(results);
     }
+  });
 };
 
-// Obtém o histórico de um paciente específico
-exports.getHistoricoByPacienteId = async (req, res) => {
-    try {
-        const { pacienteId } = req.params;
-        const historico = await HistoricoModel.getHistoricoByPacienteId(pacienteId);
-        res.status(200).json(historico);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao obter histórico: ' + error.message });
+// Adiciona um novo histórico
+exports.adicionarHistorico = (req, res) => {
+  const { paciente_id, data_consulta, historico } = req.body;
+  Historico.create({ paciente_id, data_consulta, historico }, (error, results) => {
+    if (error) {
+      console.error('Erro ao adicionar histórico:', error);
+      res.status(500).json({ error: 'Erro ao adicionar histórico' });
+    } else {
+      res.status(201).json({ id: results.insertId, paciente_id, data_consulta, historico });
     }
+  });
+};
+
+// Atualiza um histórico existente
+exports.atualizarHistorico = (req, res) => {
+  const { id } = req.params;
+  const { paciente_id, data_consulta, historico } = req.body;
+  Historico.update(id, { paciente_id, data_consulta, historico }, (error, results) => {
+    if (error) {
+      console.error('Erro ao atualizar histórico:', error);
+      res.status(500).json({ error: 'Erro ao atualizar histórico' });
+    } else if (results.affectedRows === 0) {
+      res.status(404).json({ error: 'Histórico não encontrado' });
+    } else {
+      res.json({ id, paciente_id, data_consulta, historico });
+    }
+  });
+};
+
+// Exclui um histórico
+exports.excluirHistorico = (req, res) => {
+  const { id } = req.params;
+  Historico.delete(id, (error, results) => {
+    if (error) {
+      console.error('Erro ao excluir histórico:', error);
+      res.status(500).json({ error: 'Erro ao excluir histórico' });
+    } else if (results.affectedRows === 0) {
+      res.status(404).json({ error: 'Histórico não encontrado' });
+    } else {
+      res.json({ message: 'Histórico excluído com sucesso' });
+    }
+  });
 };
