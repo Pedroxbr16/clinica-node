@@ -55,3 +55,19 @@ exports.excluirHistorico = (req, res) => {
     }
   });
 };
+
+// Busca o histórico de um paciente específico
+exports.buscarHistoricoPorPaciente = (req, res) => {
+  const { pacienteId } = req.params;
+
+  Historico.findByPacienteId(pacienteId, (error, results) => {
+    if (error) {
+      console.error('Erro ao buscar histórico do paciente:', error);
+      res.status(500).json({ error: 'Erro ao buscar histórico do paciente' });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: 'Nenhum histórico encontrado para este paciente' });
+    } else {
+      res.json(results);
+    }
+  });
+};

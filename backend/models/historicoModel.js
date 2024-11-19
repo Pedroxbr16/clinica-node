@@ -44,3 +44,14 @@ exports.findById = (id, callback) => {
     callback(error, results[0]);
   });
 };
+
+// Função para buscar os históricos de um paciente específico
+exports.findByPacienteId = (pacienteId, callback) => {
+  connection.query(
+    'SELECT * FROM historico WHERE paciente_id = ?',
+    [pacienteId],
+    (error, results) => {
+      callback(error, results);
+    }
+  );
+};

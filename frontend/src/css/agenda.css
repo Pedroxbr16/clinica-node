@@ -11,21 +11,46 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f7f9fc; /* Cor de fundo leve para contraste */
+  border-radius: 8px; /* Bordas arredondadas para um visual moderno */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra leve para destacar */
 }
 
 .rbc-toolbar button {
-  background-color: #2d4360;
+  background-color: #0d6efd; /* Azul para consistência */
   color: white;
   border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  margin-right: 5px;
+  padding: 8px 16px; /* Botões mais destacados */
+  border-radius: 5px;
+  margin: 0 5px; /* Espaçamento entre os botões */
+  font-size: 14px;
+  font-weight: bold; /* Texto mais destacado */
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .rbc-toolbar button:hover {
-  background-color: #1b2d45;
+  background-color: #0056b3;
+  transform: scale(1.05); /* Efeito de leve aumento ao passar o mouse */
 }
+
+.rbc-toolbar button:active {
+  background-color: #003d80; /* Cor mais escura ao clicar */
+  transform: scale(0.95); /* Efeito de clique */
+}
+
+.rbc-toolbar label {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2d4360;
+}
+
+.rbc-toolbar .rbc-btn-group {
+  display: flex;
+  align-items: center;
+}
+
 
 .rbc-month-view {
   border: 1px solid #e4e4e4;

@@ -30,7 +30,7 @@ function Pacientes() {
   }, []);
 
   const handleViewHistory = (id) => {
-    navigate(`/pacientes/${id}/historico/novo`);
+    navigate(`/pacientes/${id}/visualizar-historico`);
   };
 
   const handleCreateHistory = (id) => {

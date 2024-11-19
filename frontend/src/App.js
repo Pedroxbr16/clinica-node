@@ -18,7 +18,8 @@ import HistoricoPaciente from './CriarHistorico';
 import Medico from './ConfigMedicos';
 import Usuario from './ConfigUsuario';
 import AddTipoExame from './AddTipoExames';
-import Historico from './historico'; // Importa o componente Historico
+import Historico from './historico';
+import VisualizarHistorico from './VisualizarHistorico'; // Nova importação
 import './css/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -49,10 +50,7 @@ function App() {
             <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
             <Route path="/register/medico" element={<RegisterMedico />} />
             <Route path="/register/usuario" element={<RegisterUsuario />} />
-
-            {/* Rota inicial (Home) */}
             <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
-
             <Route path="/listagemPaciente" element={isAuthenticated ? <ListagemPacientes /> : <Navigate to="/login" />} />
             <Route path="/cadastro" element={isAuthenticated ? <CadastroPacientes /> : <Navigate to="/login" />} />
             <Route path="/agenda" element={isAuthenticated ? <Agenda /> : <Navigate to="/login" />} />
@@ -61,27 +59,14 @@ function App() {
             <Route path="/pedido-exames" element={isAuthenticated ? <PedidoExames /> : <Navigate to="/login" />} />
             <Route path="/pacientes/editar/:id" element={isAuthenticated ? <EditarPaciente /> : <Navigate to="/login" />} />
             <Route path="/tipos-consulta" element={isAuthenticated ? <TiposConsulta /> : <Navigate to="/login" />} />
-
-            {/* Nova Rota para Histórico de Pacientes */}
             <Route path="/historico" element={isAuthenticated ? <Historico /> : <Navigate to="/login" />} />
-
-            {/* Nova Rota para Histórico do Paciente Específico */}
             <Route path="/pacientes/:id/historico" element={isAuthenticated ? <HistoricoPaciente /> : <Navigate to="/login" />} />
-
-            {/* Rotas para Médicos e Usuários */}
+            <Route path="/pacientes/:id/visualizar-historico" element={isAuthenticated ? <VisualizarHistorico /> : <Navigate to="/login" />} /> {/* Nova rota */}
             <Route path="/medicos" element={isAuthenticated ? <Medico /> : <Navigate to="/login" />} />
             <Route path="/usuarios" element={isAuthenticated ? <Usuario /> : <Navigate to="/login" />} />
-
-            {/* Rota para Editar Médico */}
             <Route path="/medicos/editar/:id" element={isAuthenticated ? <EditarMedico /> : <Navigate to="/login" />} />
-
-            {/* Rota para Editar Usuário */}
             <Route path="/usuarios/editar/:id" element={isAuthenticated ? <EditUsuario /> : <Navigate to="/login" />} />
-
-            {/* Rota para AddTipoExame */}
             <Route path="/tipos-exame" element={isAuthenticated ? <AddTipoExame /> : <Navigate to="/login" />} />
-
-            {/* Rota de redirecionamento padrão */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
           </Routes>
         </div>
@@ -91,8 +76,6 @@ function App() {
 }
 
 // Página inicial (Home)
-function Home() {
-  
-}
+function Home() {}
 
 export default App;

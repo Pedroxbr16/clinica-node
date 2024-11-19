@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import "./css/visualizarHistorico.css";
+// import "./css/visualizarHistorico.css";
 
 function VisualizarHistorico() {
   const { id } = useParams(); // ID do paciente vindo da URL
@@ -15,7 +15,7 @@ function VisualizarHistorico() {
       try {
         // Busca os históricos do paciente
         const responseHistoricos = await axios.get(
-          `http://localhost:5000/historicos/paciente/${id}`
+          `http://localhost:5000/historico/paciente/${id}`
         );
         setHistoricos(responseHistoricos.data);
 
