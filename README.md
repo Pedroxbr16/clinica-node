@@ -34,7 +34,8 @@ aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e
 - **Cadastro de  Medicos**
 - **Cadastro de Atendentes**
 - **Agendamento de Consulta**
-- **Pedido de exames**
+- **Guia de exames**
+- **Historicos**
 
 # Requisitos
 
