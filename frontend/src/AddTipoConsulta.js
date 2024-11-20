@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Importando useNavigate
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2'; // Importando SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/TipoConsulta.css';
 
 const TipoConsulta = () => {
-  const navigate = useNavigate(); // Inicializando o hook useNavigate
+  const navigate = useNavigate();
 
   const [descricao, setDescricao] = useState('');
   const [tiposConsulta, setTiposConsulta] = useState([]);
@@ -15,49 +16,106 @@ const TipoConsulta = () => {
       const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
       setTiposConsulta(response.data);
     } catch (error) {
-      console.error('Erro ao buscar tipos de consulta:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar tipos de consulta.',
+      });
     }
   };
 
   const handleAddTipoConsulta = async () => {
     if (descricao.trim() === '') {
-      alert('A descrição é obrigatória.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: 'A descrição é obrigatória.',
+      });
       return;
     }
     try {
       await axios.post('http://localhost:5000/tipos_consulta/adiciona', { descricao });
       setDescricao('');
       fetchTiposConsulta();
-      alert('Tipo de consulta adicionado com sucesso!');
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso',
+        text: 'Tipo de consulta adicionado com sucesso!',
+      });
     } catch (error) {
-      console.error('Erro ao adicionar tipo de consulta:', error);
-      alert('Erro ao adicionar tipo de consulta.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao adicionar tipo de consulta.',
+      });
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este tipo de consulta?')) {
+    const result = await Swal.fire({
+      title: 'Tem certeza?',
+      text: 'Você não poderá desfazer esta ação!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sim, excluir!',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (result.isConfirmed) {
       try {
         await axios.delete(`http://localhost:5000/tipos_consulta/${id}`);
         fetchTiposConsulta();
-        alert('Tipo de consulta excluído com sucesso!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Excluído!',
+          text: 'Tipo de consulta excluído com sucesso.',
+        });
       } catch (error) {
-        console.error('Erro ao excluir tipo de consulta:', error);
-        alert('Erro ao excluir tipo de consulta.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao excluir tipo de consulta.',
+        });
       }
     }
   };
 
   const handleEdit = async (id) => {
-    const newDescricao = window.prompt('Digite a nova descrição:');
-    if (newDescricao && newDescricao.trim() !== '') {
+    const { value: newDescricao } = await Swal.fire({
+      title: 'Editar Tipo de Consulta',
+      input: 'text',
+      inputLabel: 'Nova descrição',
+      inputValue: '',
+      showCancelButton: true,
+      customClass: {
+        popup: 'swal-modal',
+        input: 'swal-input',
+      },
+      inputValidator: (value) => {
+        if (!value || value.trim() === '') {
+          return 'A descrição é obrigatória!';
+        }
+      },
+    });
+    
+
+    if (newDescricao) {
       try {
         await axios.put(`http://localhost:5000/tipos_consulta/${id}`, { descricao: newDescricao });
         fetchTiposConsulta();
-        alert('Tipo de consulta atualizado com sucesso!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Sucesso',
+          text: 'Tipo de consulta atualizado com sucesso!',
+        });
       } catch (error) {
-        console.error('Erro ao editar tipo de consulta:', error);
-        alert('Erro ao editar tipo de consulta.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao editar tipo de consulta.',
+        });
       }
     }
   };
@@ -68,10 +126,9 @@ const TipoConsulta = () => {
 
   return (
     <div className="container tipo-consulta-container mt-5 p-4">
-      {/* Botão de Voltar */}
       <button
         className="btn btn-secondary mb-4"
-        onClick={() => navigate(-1)} // Volta para a página anterior
+        onClick={() => navigate(-1)}
       >
         Voltar
       </button>

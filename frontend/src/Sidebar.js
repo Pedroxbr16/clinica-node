@@ -58,7 +58,6 @@ function Sidebar({ onLogout }) {
             <FontAwesomeIcon icon={faCog} className="me-2" style={{ color: '#343a40' }} /> Administração
           </a>
           <ul className={`nested-list list-unstyled ${showAdminList ? 'show' : ''}`}>
-            <li><Link to="/dashboard" className="nav-link text-white">Dashboard</Link></li>
             <li><Link to="/config" className="nav-link text-white">Configurações</Link></li>
           </ul>
         </li>

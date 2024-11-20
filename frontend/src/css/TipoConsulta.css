@@ -67,4 +67,15 @@
   .table tbody tr:hover {
     background-color: #f1f1f1;
   }
-  
+  /* Customizar o modal */
+.swal-modal {
+  width: 400px !important; /* Define a largura do modal */
+}
+
+/* Ajustar o campo de entrada */
+.swal-input {
+  width: 80% !important; /* Garante que o input ocupe 80% da largura disponível */
+  box-sizing: border-box; /* Inclui padding e border no cálculo de largura */
+  margin: 0 auto; /* Centraliza o input */
+  margin-top: 20px;
+}

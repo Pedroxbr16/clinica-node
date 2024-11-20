@@ -1,4 +1,3 @@
-const bcrypt = require('bcryptjs');
 const AtendenteModel = require('../models/atendenteModels');
 
 // Função para criar um novo atendente
@@ -9,20 +8,13 @@ exports.criarAtendente = (req, res) => {
     return res.status(400).json({ mensagem: 'Todos os campos (usuario, senha, email, funcao) são obrigatórios.' });
   }
 
-  bcrypt.hash(senha, 10, (err, hashedPassword) => {
-    if (err) {
-      console.error("Erro ao criptografar senha:", err);
-      return res.status(500).json({ mensagem: 'Erro ao criptografar senha.' });
+  AtendenteModel.criarAtendente(usuario, senha, email, funcao, (error, insertId) => {
+    if (error) {
+      console.error("Erro ao criar atendente:", error);
+      return res.status(500).json({ mensagem: 'Erro ao criar atendente.' });
     }
 
-    AtendenteModel.criarAtendente(usuario, hashedPassword, email, funcao, (error, insertId) => {
-      if (error) {
-        console.error("Erro ao criar atendente:", error);
-        return res.status(500).json({ mensagem: 'Erro ao criar atendente.' });
-      }
-
-      res.status(201).json({ mensagem: 'Atendente criado com sucesso!', atendenteId: insertId });
-    });
+    res.status(201).json({ mensagem: 'Atendente criado com sucesso!', atendenteId: insertId });
   });
 };
 
@@ -65,34 +57,18 @@ exports.atualizarAtendente = (req, res) => {
     return res.status(400).json({ mensagem: 'Os campos (usuario, email, funcao) são obrigatórios.' });
   }
 
-  const atualizarAtendente = (hashedPassword) => {
-    AtendenteModel.atualizarAtendente(id, usuario, hashedPassword, email, funcao, (error, affectedRows) => {
-      if (error) {
-        console.error("Erro ao atualizar atendente:", error);
-        return res.status(500).json({ mensagem: 'Erro ao atualizar atendente.' });
-      }
+  AtendenteModel.atualizarAtendente(id, usuario, senha, email, funcao, (error, affectedRows) => {
+    if (error) {
+      console.error("Erro ao atualizar atendente:", error);
+      return res.status(500).json({ mensagem: 'Erro ao atualizar atendente.' });
+    }
 
-      if (affectedRows === 0) {
-        return res.status(404).json({ mensagem: 'Atendente não encontrado.' });
-      }
+    if (affectedRows === 0) {
+      return res.status(404).json({ mensagem: 'Atendente não encontrado.' });
+    }
 
-      res.status(200).json({ mensagem: 'Atendente atualizado com sucesso!' });
-    });
-  };
-
-  if (senha) {
-    // Se a senha foi fornecida, criptografa antes de atualizar
-    bcrypt.hash(senha, 10, (err, hashedPassword) => {
-      if (err) {
-        console.error("Erro ao criptografar senha:", err);
-        return res.status(500).json({ mensagem: 'Erro ao criptografar senha.' });
-      }
-      atualizarAtendente(hashedPassword);
-    });
-  } else {
-    // Se a senha não foi fornecida, atualiza sem modificar a senha
-    atualizarAtendente(null);
-  }
+    res.status(200).json({ mensagem: 'Atendente atualizado com sucesso!' });
+  });
 };
 
 // Função para excluir um atendente
