@@ -16,7 +16,7 @@ function RegisterUsuario() {
     e.preventDefault();
     try {
       const payload = { usuario, senha, email, funcao };
-      const response = await axios.post('http://localhost:5000/usuarios/usuarios', payload);
+      const response = await axios.post('http://localhost:5000/atendente/atendente', payload);
 
       if (response.status === 200 || response.status === 201) {
         setFeedback('Cadastro realizado com sucesso!');

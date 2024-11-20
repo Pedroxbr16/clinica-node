@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2'; // Importando SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './css/TipoExame.css'; // Certifique-se de adicionar estilos específicos
 
 const Exame = () => {
   const navigate = useNavigate();
@@ -13,49 +15,132 @@ const Exame = () => {
       const response = await axios.get('http://localhost:5000/exames/exames');
       setExames(response.data);
     } catch (error) {
-      console.error('Erro ao buscar exames:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar exames.',
+        customClass: {
+          popup: 'swal-modal',
+        },
+      });
     }
   };
 
   const handleAddExame = async () => {
     if (nome.trim() === '') {
-      alert('O nome do exame é obrigatório.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: 'O nome do exame é obrigatório.',
+        customClass: {
+          popup: 'swal-modal',
+        },
+      });
       return;
     }
     try {
       await axios.post('http://localhost:5000/exames/exames', { nome });
       setNome('');
       fetchExames();
-      alert('Exame adicionado com sucesso!');
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso',
+        text: 'Exame adicionado com sucesso!',
+        customClass: {
+          popup: 'swal-modal',
+        },
+      });
     } catch (error) {
-      console.error('Erro ao adicionar exame:', error);
-      alert('Erro ao adicionar exame.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao adicionar exame.',
+        customClass: {
+          popup: 'swal-modal',
+        },
+      });
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este exame?')) {
+    const result = await Swal.fire({
+      title: 'Tem certeza?',
+      text: 'Você não poderá desfazer esta ação!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sim, excluir!',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        popup: 'swal-modal',
+      },
+    });
+
+    if (result.isConfirmed) {
       try {
         await axios.delete(`http://localhost:5000/exames/exames/${id}`);
         fetchExames();
-        alert('Exame excluído com sucesso!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Excluído!',
+          text: 'Exame excluído com sucesso.',
+          customClass: {
+            popup: 'swal-modal',
+          },
+        });
       } catch (error) {
-        console.error('Erro ao excluir exame:', error);
-        alert('Erro ao excluir exame.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao excluir exame.',
+          customClass: {
+            popup: 'swal-modal',
+          },
+        });
       }
     }
   };
 
   const handleEdit = async (id) => {
-    const newNome = window.prompt('Digite o novo nome do exame:');
-    if (newNome && newNome.trim() !== '') {
+    const { value: newNome } = await Swal.fire({
+      title: 'Editar Exame',
+      input: 'text',
+      inputLabel: 'Novo nome do exame',
+      inputValue: '',
+      showCancelButton: true,
+      customClass: {
+        popup: 'swal-modal',
+        input: 'swal-input',
+      },
+      inputValidator: (value) => {
+        if (!value || value.trim() === '') {
+          return 'O nome do exame é obrigatório!';
+        }
+      },
+    });
+
+    if (newNome) {
       try {
         await axios.put(`http://localhost:5000/exames/exames/${id}`, { nome: newNome });
         fetchExames();
-        alert('Exame atualizado com sucesso!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Sucesso',
+          text: 'Exame atualizado com sucesso!',
+          customClass: {
+            popup: 'swal-modal',
+          },
+        });
       } catch (error) {
-        console.error('Erro ao editar exame:', error);
-        alert('Erro ao editar exame.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao editar exame.',
+          customClass: {
+            popup: 'swal-modal',
+          },
+        });
       }
     }
   };
