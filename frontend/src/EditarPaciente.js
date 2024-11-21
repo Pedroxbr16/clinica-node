@@ -39,14 +39,16 @@ function EditarPaciente() {
         const dataNascimento = response.data.nascimento
           ? new Date(response.data.nascimento).toISOString().split('T')[0]
           : '';
-
+  
         setFormData({
           ...response.data,
           nascimento: dataNascimento,
         });
+  
+        if (response.data.foto) {
+          console.log('Foto recebida:', response.data.foto); // Verifica a string Base64
+          setFotoPreview(`data:image/png;base64,${response.data.foto}`); // Altere para PNG ou outro formato, se necessário.
 
-        if (response.data.fotoUrl) {
-          setFotoPreview(response.data.fotoUrl);
         }
       } catch (error) {
         console.error('Erro ao buscar dados do paciente:', error);
@@ -59,6 +61,7 @@ function EditarPaciente() {
     };
     fetchPacienteData();
   }, [pacienteId]);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -131,27 +134,28 @@ function EditarPaciente() {
         </div>
 
         <div className="col-md-6">
-          <label>Foto:</label>
-          <div className="input-group">
-            <input
-              type="file"
-              name="foto"
-              className="form-control"
-              onChange={handleFileChange}
-              accept="image/png, image/jpeg, image/jpg"
-            />
-            {fotoPreview && (
-              <div className="mt-2">
-                <img
-                  src={fotoPreview}
-                  alt="Pré-visualização"
-                  className="img-thumbnail"
-                  style={{ maxHeight: '150px' }}
-                />
-              </div>
-            )}
-          </div>
-        </div>
+  <label>Foto:</label>
+  <div className="input-group">
+    <input
+      type="file"
+      name="foto"
+      className="form-control"
+      onChange={handleFileChange}
+      accept="image/png, image/jpeg, image/jpg"
+    />
+    {fotoPreview && (
+      <div className="mt-2">
+        <img
+          src={fotoPreview}
+          alt="Pré-visualização"
+          className="img-thumbnail"
+          style={{ maxHeight: '150px' }}
+        />
+      </div>
+    )}
+  </div>
+</div>
+
 
         <div className="col-md-4">
           <label>CEP:</label>
