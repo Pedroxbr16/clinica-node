@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Adicionado o `useNavigate` para o botão de voltar
 import Swal from "sweetalert2"; // Importa o SweetAlert2
 import './css/CriarHistorico.css'; // Caminho atualizado
 
 const CriarHistorico = () => {
   const { id } = useParams(); // Obtém o ID do paciente da URL
+  const navigate = useNavigate(); // Para o botão de voltar
   const [pacienteNome, setPacienteNome] = useState("");
   const [dataConsulta, setDataConsulta] = useState("");
   const [historicoTexto, setHistoricoTexto] = useState("");
@@ -85,6 +86,18 @@ const CriarHistorico = () => {
 
   return (
     <div className="historico-container">
+      {/* Botão de voltar e título */}
+      <div className="d-flex align-items-center mb-4">
+        <button
+          className="btn btn-secondary btn-sm me-3"
+          style={{ width: '100px' }}
+          onClick={() => navigate(-1)} // Voltar para a página anterior
+        >
+          Voltar
+        </button>
+        <h2 className="mb-0">Criar Histórico de {pacienteNome}</h2>
+      </div>
+
       <form onSubmit={handleSubmit} className="historico-form">
         <label htmlFor="pacienteNome">Nome do Paciente</label>
         <input
@@ -113,7 +126,7 @@ const CriarHistorico = () => {
           required
         ></textarea>
 
-        <button type="submit">Criar Histórico</button>
+        <button type="submit" className="btn btn-primary w-100 mt-3">Criar Histórico</button>
       </form>
     </div>
   );

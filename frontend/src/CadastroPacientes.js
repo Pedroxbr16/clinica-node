@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import InputMask from 'react-input-mask';
+import Swal from 'sweetalert2'; // Importação do SweetAlert
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/CadastroPacientes.css';
 
@@ -23,7 +24,6 @@ function CadastroPacientes() {
   });
   
   const [fotoPreview, setFotoPreview] = useState(null); // Preview da foto
-  const [submitStatus, setSubmitStatus] = useState('');
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -57,6 +57,7 @@ function CadastroPacientes() {
         }
       } catch (error) {
         console.error('Erro ao buscar o CEP:', error);
+        Swal.fire('Erro', 'Erro ao buscar o CEP. Tente novamente.', 'error');
       }
     }
   }, [formData.cep]);
@@ -71,7 +72,7 @@ function CadastroPacientes() {
     e.preventDefault();
     
     if (!formData.cpf && !formData.cnpj) {
-      setSubmitStatus('Erro: CPF ou CNPJ deve ser informado.');
+      Swal.fire('Erro', 'CPF ou CNPJ deve ser informado.', 'error');
       return;
     }
 
@@ -96,12 +97,11 @@ function CadastroPacientes() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Sucesso:', response.data);
-      setSubmitStatus('Cadastro realizado com sucesso!');
+      Swal.fire('Sucesso', 'Cadastro realizado com sucesso!', 'success');
       resetForm();
     } catch (error) {
       console.error('Erro ao enviar dados:', error);
-      setSubmitStatus('Erro ao cadastrar. Por favor, tente novamente.');
+      Swal.fire('Erro', 'Erro ao cadastrar. Por favor, tente novamente.', 'error');
     }
   };
 
@@ -134,12 +134,6 @@ function CadastroPacientes() {
   return (
     <div className="container cadastro-pacientes">
       <h2>Cadastro de Pacientes</h2>
-
-      {submitStatus && (
-        <div className={`alert ${submitStatus.includes('sucesso') ? 'alert-success' : 'alert-danger'}`} role="alert">
-          {submitStatus}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="row g-3">
         <div className="col-md-6">

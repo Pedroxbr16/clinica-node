@@ -105,7 +105,18 @@ function EditarPaciente() {
 
   return (
     <div className="container">
-      <h2>Editar Paciente</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <button
+          className="btn btn-secondary btn-sm"
+          style={{ width: '80px', height: '30px', fontSize: '12px' }}
+          onClick={() => navigate(-1)}
+        >
+          Voltar
+        </button>
+        <h2 className="text-center flex-grow-1" style={{ marginLeft: '-80px' }}>
+          Editar Paciente
+        </h2>
+      </div>
       <form onSubmit={handleSubmit} className="row g-3">
         <div className="col-md-6">
           <label>Nome:</label>

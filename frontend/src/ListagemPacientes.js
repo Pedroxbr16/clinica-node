@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import './css/listagemPaciente.css';
 
 function Pacientes() {
@@ -30,23 +31,34 @@ function Pacientes() {
   }, []);
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm('Tem certeza que deseja excluir este paciente?');
-    if (confirmDelete) {
-      try {
-        await axios.delete(`http://localhost:5000/pacientes/${id}`);
-        setPacientes(prevPacientes => prevPacientes.filter(paciente => paciente.id !== id));
-      } catch (err) {
-        console.error('Erro ao excluir paciente:', err);
-        setError('Erro ao excluir paciente. Por favor, tente novamente.');
+    Swal.fire({
+      title: 'Você tem certeza?',
+      text: 'Esta ação não pode ser desfeita!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, excluir!',
+      cancelButtonText: 'Cancelar',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.delete(`http://localhost:5000/pacientes/${id}`);
+          setPacientes((prevPacientes) =>
+            prevPacientes.filter((paciente) => paciente.id !== id)
+          );
+          Swal.fire('Excluído!', 'Paciente foi excluído com sucesso.', 'success');
+        } catch (err) {
+          console.error('Erro ao excluir paciente:', err);
+          Swal.fire('Erro!', 'Erro ao excluir paciente. Por favor, tente novamente.', 'error');
+        }
       }
-    }
+    });
   };
 
   const handleEdit = (id) => {
     navigate(`/pacientes/editar/${id}`); // Redireciona para a tela de edição com o ID do paciente
   };
 
-  const filteredPacientes = pacientes.filter(paciente => {
+  const filteredPacientes = pacientes.filter((paciente) => {
     const searchLower = searchTerm.toLowerCase();
     return (
       paciente.nome.toLowerCase().includes(searchLower) ||
@@ -113,8 +125,12 @@ function Pacientes() {
                     <td>{paciente.email}</td>
                     <td>{formatTelefone(paciente.celular)}</td>
                     <td>
-                      <button onClick={() => handleEdit(paciente.id)} className="edit-button">Editar</button>
-                      <button onClick={() => handleDelete(paciente.id)} className="delete-button">Excluir</button>
+                      <button onClick={() => handleEdit(paciente.id)} className="edit-button">
+                        Editar
+                      </button>
+                      <button onClick={() => handleDelete(paciente.id)} className="delete-button">
+                        Excluir
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -134,7 +150,9 @@ function Pacientes() {
             <button onClick={handlePreviousPage} disabled={currentPage === 1}>
               Anterior
             </button>
-            <span>Página {currentPage} de {totalPages}</span>
+            <span>
+              Página {currentPage} de {totalPages}
+            </span>
             <button onClick={handleNextPage} disabled={currentPage === totalPages}>
               Próxima
             </button>

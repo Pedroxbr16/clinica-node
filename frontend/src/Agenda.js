@@ -3,6 +3,7 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import axios from 'axios';
 import Modal from 'react-modal';
+import Swal from 'sweetalert2'; // Importando SweetAlert
 import 'moment/locale/pt-br';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './css/agenda.css';
@@ -10,7 +11,7 @@ import './css/agenda.css';
 moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
 
-Modal.setAppElement('#root'); // Define o appElement para o modal apenas uma vez
+Modal.setAppElement('#root');
 
 const Agenda = () => {
   const [events, setEvents] = useState([]);
@@ -21,7 +22,7 @@ const Agenda = () => {
   const [pacientes, setPacientes] = useState([]);
   const [medicos, setMedicos] = useState([]);
   const [tiposConsulta, setTiposConsulta] = useState([]);
-  const [selectedMedico, setSelectedMedico] = useState(''); // Estado para o filtro de médico
+  const [selectedMedico, setSelectedMedico] = useState('');
 
   // Função para buscar consultas
   const fetchConsultas = async () => {
@@ -38,13 +39,43 @@ const Agenda = () => {
         tipo_consulta_id: consulta.tipo_consulta_id,
       }));
       setEvents(mappedEvents);
-      setFilteredEvents(mappedEvents); // Inicialmente exibe todos os eventos
+      setFilteredEvents(mappedEvents);
     } catch (error) {
-      console.error('Erro ao buscar consultas:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar consultas. Tente novamente mais tarde.',
+      });
     }
   };
 
-  // Função para buscar lista de tipos de consulta
+  // Funções para buscar pacientes, médicos e tipos de consulta
+  const fetchPacientes = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/pacientes/pacientes');
+      setPacientes(response.data);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar pacientes. Tente novamente mais tarde.',
+      });
+    }
+  };
+
+  const fetchMedicos = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/medicos/medicos');
+      setMedicos(response.data.data);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar médicos. Tente novamente mais tarde.',
+      });
+    }
+  };
+
   const fetchTiposConsulta = async () => {
     try {
       const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
@@ -54,31 +85,14 @@ const Agenda = () => {
         value: tipo.id
       })));
     } catch (error) {
-      console.error('Erro ao buscar tipos de consulta:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar tipos de consulta. Tente novamente mais tarde.',
+      });
     }
   };
 
-  // Função para buscar lista de pacientes
-  const fetchPacientes = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-      setPacientes(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar pacientes:', error);
-    }
-  };
-
-  // Função para buscar lista de médicos
-  const fetchMedicos = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/medicos/medicos');
-      setMedicos(response.data.data);
-    } catch (error) {
-      console.error('Erro ao buscar médicos:', error);
-    }
-  };
-
-  // Chama as funções de busca ao carregar o componente
   useEffect(() => {
     fetchConsultas();
     fetchPacientes();
@@ -86,20 +100,15 @@ const Agenda = () => {
     fetchTiposConsulta();
   }, []);
 
-  // Filtra os eventos com base no médico selecionado
   useEffect(() => {
     if (selectedMedico) {
-      const filtered = events.filter(event => {
-        console.log(`Comparing event.medico_id: ${event.medico_id} with selectedMedico: ${selectedMedico}`);
-        return event.medico_id.toString() === selectedMedico; // Certifica-se de que ambos sejam strings para comparação
-      });
+      const filtered = events.filter(event => event.medico_id.toString() === selectedMedico);
       setFilteredEvents(filtered);
     } else {
-      setFilteredEvents(events); // Se nenhum médico estiver selecionado, exibe todos os eventos
+      setFilteredEvents(events);
     }
   }, [selectedMedico, events]);
 
-  // Manipulador para selecionar o evento
   const handleEventClick = (event) => {
     setSelectedEvent(event);
     setEditedEvent({
@@ -113,19 +122,25 @@ const Agenda = () => {
     setShowModal(true);
   };
 
-  // Função para excluir o evento
   const handleDelete = async () => {
     try {
       await axios.delete(`http://localhost:5000/consultas/${selectedEvent.id}`);
       setEvents(events.filter(event => event.id !== selectedEvent.id));
       setShowModal(false);
-      alert('Consulta excluída com sucesso!');
+      Swal.fire({
+        icon: 'success',
+        title: 'Excluído',
+        text: 'Consulta excluída com sucesso!',
+      });
     } catch (error) {
-      console.error('Erro ao excluir evento:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao excluir consulta. Tente novamente.',
+      });
     }
   };
 
-  // Função para editar o evento
   const handleEdit = async () => {
     try {
       const updatedEvent = {
@@ -137,24 +152,25 @@ const Agenda = () => {
         tipo_consulta_id: editedEvent.tipo_consulta_id,
       };
       const response = await axios.put(`http://localhost:5000/consultas/${selectedEvent.id}`, updatedEvent);
-      
+
       if (response.status === 200) {
-        setEvents(events.map(event => 
-          event.id === selectedEvent.id ? { ...event, ...updatedEvent } : event
-        ));
+        setEvents(events.map(event => event.id === selectedEvent.id ? { ...event, ...updatedEvent } : event));
         setShowModal(false);
-        alert('Alterações salvas com sucesso!');
-      } else {
-        console.error('Erro ao editar evento:', response.statusText);
-        alert('Erro ao salvar as alterações. Tente novamente.');
+        Swal.fire({
+          icon: 'success',
+          title: 'Alterações Salvas',
+          text: 'As alterações foram salvas com sucesso!',
+        });
       }
     } catch (error) {
-      console.error('Erro ao editar evento:', error);
-      alert('Erro ao salvar as alterações. Tente novamente.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao salvar as alterações. Tente novamente.',
+      });
     }
   };
 
-  // Manipulador para alterações no formulário de edição
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedEvent({ ...editedEvent, [name]: value });
@@ -197,9 +213,9 @@ const Agenda = () => {
         onSelectEvent={handleEventClick}
       />
 
-      <Modal 
-        isOpen={showModal} 
-        onRequestClose={() => setShowModal(false)} 
+      <Modal
+        isOpen={showModal}
+        onRequestClose={() => setShowModal(false)}
         contentLabel="Evento"
         style={{
           content: {
@@ -207,11 +223,9 @@ const Agenda = () => {
             margin: 'auto',
             padding: '20px',
             borderRadius: '8px',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
           }
         }}
       >
-        {/* Conteúdo do Modal */}
         <h2 style={{ textAlign: 'center' }}>Editar Evento</h2>
         <form onSubmit={(e) => { e.preventDefault(); handleEdit(); }}>
           <div style={{ marginBottom: '10px' }}>
