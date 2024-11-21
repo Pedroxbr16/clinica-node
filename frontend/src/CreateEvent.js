@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
+import Swal from 'sweetalert2'; // Importa o SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/CreateEvent.css';
 
@@ -16,54 +17,71 @@ const CreateEvent = () => {
 
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
-  const [types, setTypes] = useState([]); // Estado para armazenar os tipos de consulta
+  const [types, setTypes] = useState([]);
 
-  // Função para buscar os pacientes
   const fetchPatients = async () => {
     try {
       const response = await axios.get(`http://localhost:5000/pacientes/pacientes`);
-      setPatients(response.data.map(patient => ({
-        label: patient.nome,
-        value: patient.id
-      })));
+      setPatients(
+        response.data.map((patient) => ({
+          label: patient.nome,
+          value: patient.id,
+        }))
+      );
     } catch (error) {
       console.error('Erro ao buscar pacientes:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar pacientes. Por favor, tente novamente.',
+      });
     }
   };
 
-  // Função para buscar os médicos
   const fetchDoctors = async () => {
     try {
       const response = await axios.get(`http://localhost:5000/medicos/medicos`);
       const doctorsData = Array.isArray(response.data.data) ? response.data.data : [];
-      setDoctors(doctorsData.map(doctor => ({
-        label: doctor.usuario, // ou doctor.nome se preferir
-        value: doctor.id
-      })));
+      setDoctors(
+        doctorsData.map((doctor) => ({
+          label: doctor.usuario,
+          value: doctor.id,
+        }))
+      );
     } catch (error) {
       console.error('Erro ao buscar médicos:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar médicos. Por favor, tente novamente.',
+      });
     }
   };
 
-  // Função para buscar os tipos de consulta
   const fetchTiposConsulta = async () => {
     try {
       const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
       const tiposData = Array.isArray(response.data) ? response.data : [];
-      setTypes(tiposData.map(tipo => ({
-        label: tipo.descricao, // Nome do tipo de consulta
-        value: tipo.id
-      })));
+      setTypes(
+        tiposData.map((tipo) => ({
+          label: tipo.descricao,
+          value: tipo.id,
+        }))
+      );
     } catch (error) {
       console.error('Erro ao buscar tipos de consulta:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao buscar tipos de consulta. Por favor, tente novamente.',
+      });
     }
   };
 
-  // UseEffect para carregar os dados ao montar o componente
   useEffect(() => {
     fetchPatients();
     fetchDoctors();
-    fetchTiposConsulta(); // Chama a função de buscar tipos de consulta
+    fetchTiposConsulta();
   }, []);
 
   const handleInputChange = (e) => {
@@ -75,30 +93,35 @@ const CreateEvent = () => {
     setEvent({ ...event, [action.name]: selectedOption ? selectedOption.value : '' });
   };
 
-  // Função para enviar o evento para o backend
   const submitEvent = async () => {
-    console.log('tipo_consulta_id enviado:', event.type); // Confirme o valor
     try {
-        const response = await axios.post('http://localhost:5000/consultas/adiciona', {
-            titulo: event.title,
-            inicio: event.start,
-            fim: event.end,
-            paciente_id: event.patient,
-            medico_id: event.doctor,
-            tipo_consulta_id: event.type,
-        });
-        console.log('Evento criado com sucesso:', response.data);
-        alert('Consulta agendada com sucesso!');
+      await axios.post('http://localhost:5000/consultas/adiciona', {
+        titulo: event.title,
+        inicio: event.start,
+        fim: event.end,
+        paciente_id: event.patient,
+        medico_id: event.doctor,
+        tipo_consulta_id: event.type,
+      });
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso',
+        text: 'Consulta agendada com sucesso!',
+        confirmButtonText: 'OK',
+      });
     } catch (error) {
-        console.error('Erro ao criar consulta:', error);
-        alert('Ocorreu um erro ao agendar a consulta. Tente novamente.');
+      console.error('Erro ao criar consulta:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Ocorreu um erro ao agendar a consulta. Tente novamente.',
+      });
     }
-};
-
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    submitEvent(); // Chama a função de envio ao backend
+    submitEvent();
   };
 
   return (
@@ -146,12 +169,11 @@ const CreateEvent = () => {
           <Select
             name="patient"
             options={patients}
-            value={patients.find(p => p.value === event.patient) || null}
+            value={patients.find((p) => p.value === event.patient) || null}
             onChange={handleSelectChange}
             placeholder="Buscar paciente..."
             isClearable
             classNamePrefix="select"
-           
           />
         </div>
         <div className="mb-3">
@@ -159,18 +181,11 @@ const CreateEvent = () => {
           <Select
             name="doctor"
             options={doctors}
-            value={doctors.find(d => d.value === event.doctor) || null}
+            value={doctors.find((d) => d.value === event.doctor) || null}
             onChange={handleSelectChange}
             placeholder="Buscar médico..."
             isClearable
             classNamePrefix="select"
-            styles={{
-              menu: (provided) => ({
-                ...provided,
-                maxHeight: '150px',
-                overflowY: 'auto',
-              }),
-            }}
           />
         </div>
         <div className="mb-4">
@@ -178,14 +193,16 @@ const CreateEvent = () => {
           <Select
             name="type"
             options={types}
-            value={types.find(t => t.value === event.type) || null}
+            value={types.find((t) => t.value === event.type) || null}
             onChange={handleSelectChange}
             placeholder="Selecione um Tipo de Consulta"
             isClearable
             classNamePrefix="select"
           />
         </div>
-        <button type="submit" className="btn btn-primary w-100">Agendar</button>
+        <button type="submit" className="btn btn-primary w-100">
+          Agendar
+        </button>
       </form>
     </div>
   );

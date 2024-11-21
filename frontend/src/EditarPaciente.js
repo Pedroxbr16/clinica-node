@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import InputMask from 'react-input-mask';
+import Swal from 'sweetalert2';
 import { useParams, useNavigate } from 'react-router-dom';
 import './css/CadastroPacientes.css';
 
@@ -8,7 +9,7 @@ function EditarPaciente() {
   const { id: pacienteId } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    nome: '', 
+    nome: '',
     foto: null,
     cep: '',
     numero: '',
@@ -28,7 +29,7 @@ function EditarPaciente() {
   const estadosBrasileiros = [
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
     'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
   ];
 
   useEffect(() => {
@@ -38,12 +39,22 @@ function EditarPaciente() {
         const dataNascimento = response.data.nascimento
           ? new Date(response.data.nascimento).toISOString().split('T')[0]
           : '';
-        setFormData({ ...response.data, nascimento: dataNascimento });
+
+        setFormData({
+          ...response.data,
+          nascimento: dataNascimento,
+        });
+
         if (response.data.fotoUrl) {
           setFotoPreview(response.data.fotoUrl);
         }
       } catch (error) {
         console.error('Erro ao buscar dados do paciente:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao buscar dados do paciente.',
+        });
       }
     };
     fetchPacienteData();
@@ -64,7 +75,7 @@ function EditarPaciente() {
     e.preventDefault();
 
     const data = new FormData();
-    Object.keys(formData).forEach(key => {
+    Object.keys(formData).forEach((key) => {
       data.append(key, formData[key]);
     });
 
@@ -74,11 +85,21 @@ function EditarPaciente() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      alert('Paciente atualizado com sucesso!');
-      navigate('/listagemPaciente'); 
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso',
+        text: 'Paciente atualizado com sucesso!',
+        confirmButtonText: 'OK',
+      }).then(() => {
+        navigate('/listagemPaciente');
+      });
     } catch (error) {
       console.error('Erro ao atualizar paciente:', error);
-      alert('Erro ao atualizar paciente. Por favor, tente novamente.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao atualizar paciente. Por favor, tente novamente.',
+      });
     }
   };
 
@@ -101,21 +122,22 @@ function EditarPaciente() {
         <div className="col-md-6">
           <label>Foto:</label>
           <div className="input-group">
-            <input 
-              type="file" 
-              name="foto" 
+            <input
+              type="file"
+              name="foto"
               className="form-control"
-              onChange={handleFileChange} 
-              accept="image/png, image/jpeg, image/jpg, application/pdf" 
+              onChange={handleFileChange}
+              accept="image/png, image/jpeg, image/jpg"
             />
             {fotoPreview && (
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => window.open(fotoPreview, '_blank')}
-              >
-                Visualizar
-              </button>
+              <div className="mt-2">
+                <img
+                  src={fotoPreview}
+                  alt="Pré-visualização"
+                  className="img-thumbnail"
+                  style={{ maxHeight: '150px' }}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -196,7 +218,7 @@ function EditarPaciente() {
             className="form-control"
             value={formData.cpf}
             onChange={handleInputChange}
-            required={!formData.cnpj} 
+            required={!formData.cnpj}
           />
         </div>
 
@@ -279,7 +301,9 @@ function EditarPaciente() {
         </div>
 
         <div className="col-12">
-          <button type="submit" className="btn btn-primary w-100 mt-3">Atualizar</button>
+          <button type="submit" className="btn btn-primary w-100 mt-3">
+            Atualizar
+          </button>
         </div>
       </form>
     </div>

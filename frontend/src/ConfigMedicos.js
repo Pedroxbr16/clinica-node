@@ -43,23 +43,25 @@ const MedicoList = () => {
 
   return (
     <div className="container medico-container mt-5 p-4">
-      {/* Botão de Voltar */}
-      <button
-        className="btn btn-secondary mb-4"
-        onClick={() => navigate(-1)}
-      >
-        Voltar
-      </button>
+      {/* Título acima dos botões */}
+      <h3 className="text-center mb-4">Lista de Médicos</h3>
 
-      {/* Botão para Navegar para a Página de Registro */}
-      <button
-        className="btn btn-primary mb-4"
-        onClick={() => navigate('/register/medico')}
-      >
-        Adicionar Novo Médico
-      </button>
+      {/* Botões de Voltar e Adicionar na mesma linha */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => navigate(-1)}
+        >
+          Voltar
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate('/register/medico')}
+        >
+          Adicionar Novo Médico
+        </button>
+      </div>
 
-      <h3 className="text-center mb-3">Lista de Médicos</h3>
       <div className="medico-list table-responsive">
         <table className="table table-striped table-bordered">
           <thead className="thead-dark">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Swal from 'sweetalert2'; // Importa o SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function EditUsuario() {
@@ -11,7 +12,6 @@ function EditUsuario() {
   const [senha, setSenha] = useState('');
   const [email, setEmail] = useState('');
   const [funcao, setFuncao] = useState('');
-  const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
     const fetchUsuario = async () => {
@@ -24,7 +24,11 @@ function EditUsuario() {
         setFuncao(data.funcao);
       } catch (error) {
         console.error('Erro ao buscar usuário:', error);
-        setFeedback('Erro ao carregar os dados do usuário.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao carregar os dados do usuário.',
+        });
       }
     };
     fetchUsuario();
@@ -37,30 +41,36 @@ function EditUsuario() {
       const response = await axios.put(`http://localhost:5000/atendente/atendente/${id}`, payload);
 
       if (response.status === 200) {
-        setFeedback('Usuário atualizado com sucesso!');
-        setTimeout(() => {
-          setFeedback('');
-          navigate('/usuarios');
-        }, 3000);
+        Swal.fire({
+          icon: 'success',
+          title: 'Sucesso',
+          text: 'Usuário atualizado com sucesso!',
+        });
+        navigate('/usuarios');
       }
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
-      setFeedback('Erro ao atualizar o usuário.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao atualizar o usuário. Por favor, tente novamente.',
+      });
     }
   };
 
   return (
     <div className="register-page d-flex justify-content-center align-items-center vh-100">
       <div className="register-container bg-light p-4 shadow-sm rounded">
-        <button
-          className="btn btn-secondary mb-4"
-          onClick={() => navigate(-1)}
-        >
-          Voltar
-        </button>
-
-        <h2 className="text-center mb-4">Editar Usuário</h2>
-        {feedback && <div className="alert alert-success" role="alert">{feedback}</div>}
+        {/* Botão de Voltar */}
+        <div className="d-flex align-items-center mb-4">
+          <button
+            className="btn btn-secondary btn-sm me-3"
+            onClick={() => navigate(-1)}
+          >
+            Voltar
+          </button>
+          <h2 className="flex-grow-1 text-center mb-0">Editar Usuário</h2>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">

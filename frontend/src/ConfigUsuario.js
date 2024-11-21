@@ -42,14 +42,18 @@ const Usuario = () => {
 
   return (
     <div className="container mt-5 p-4">
-      <button className="btn btn-secondary mb-4" onClick={() => navigate(-1)}>Voltar</button>
-
       <h2 className="text-center mb-4">Usuários Existentes</h2>
 
-      {/* Botão para redirecionar para a página de registro de usuário */}
-      <div className="form-group text-center">
-        <button 
-          className="btn btn-primary w-100 my-3" 
+      {/* Botões de Voltar e Adicionar */}
+      <div className="d-flex justify-content-between mb-4">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => navigate(-1)}
+        >
+          Voltar
+        </button>
+        <button
+          className="btn btn-primary"
           onClick={() => navigate('/register/usuario')}
         >
           Adicionar Novo Usuário
@@ -73,10 +77,16 @@ const Usuario = () => {
                   <td>{usuario.id}</td>
                   <td>{usuario.usuario}</td>
                   <td>
-                    <button className="btn btn-warning btn-sm mx-1" onClick={() => handleEdit(usuario.id)}>
+                    <button
+                      className="btn btn-warning btn-sm mx-1"
+                      onClick={() => handleEdit(usuario.id)}
+                    >
                       Editar
                     </button>
-                    <button className="btn btn-danger btn-sm mx-1" onClick={() => handleDelete(usuario.id)}>
+                    <button
+                      className="btn btn-danger btn-sm mx-1"
+                      onClick={() => handleDelete(usuario.id)}
+                    >
                       Excluir
                     </button>
                   </td>
@@ -84,7 +94,9 @@ const Usuario = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="text-center">Nenhum usuário encontrado.</td>
+                <td colSpan="3" className="text-center">
+                  Nenhum usuário encontrado.
+                </td>
               </tr>
             )}
           </tbody>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Para obter o ID do paciente da URL
+import { useParams } from "react-router-dom";
+import Swal from "sweetalert2"; // Importa o SweetAlert2
 import './css/CriarHistorico.css'; // Caminho atualizado
 
 const CriarHistorico = () => {
@@ -7,7 +8,6 @@ const CriarHistorico = () => {
   const [pacienteNome, setPacienteNome] = useState("");
   const [dataConsulta, setDataConsulta] = useState("");
   const [historicoTexto, setHistoricoTexto] = useState("");
-  const [mensagem, setMensagem] = useState("");
 
   useEffect(() => {
     // Define a data atual automaticamente no formato YYYY-MM-DD
@@ -23,10 +23,18 @@ const CriarHistorico = () => {
           const data = await response.json();
           setPacienteNome(data.nome); // Define o nome do paciente
         } else {
-          setMensagem("Erro ao buscar o nome do paciente.");
+          Swal.fire({
+            icon: "error",
+            title: "Erro",
+            text: "Erro ao buscar o nome do paciente.",
+          });
         }
       } catch (error) {
-        setMensagem("Erro ao conectar com o servidor.");
+        Swal.fire({
+          icon: "error",
+          title: "Erro",
+          text: "Erro ao conectar com o servidor.",
+        });
       }
     };
 
@@ -52,14 +60,26 @@ const CriarHistorico = () => {
 
       if (response.ok) {
         const result = await response.json();
-        setMensagem(`Histórico criado com sucesso! ID: ${result.id}`);
+        Swal.fire({
+          icon: "success",
+          title: "Sucesso",
+          text: `Histórico criado com sucesso! ID: ${result.id}`,
+        });
         setHistoricoTexto(""); // Limpa o campo do histórico
       } else {
         const error = await response.json();
-        setMensagem(`Erro: ${error.error}`);
+        Swal.fire({
+          icon: "error",
+          title: "Erro",
+          text: `Erro: ${error.error}`,
+        });
       }
     } catch (error) {
-      setMensagem("Erro ao conectar com o servidor.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: "Erro ao conectar com o servidor.",
+      });
     }
   };
 
@@ -95,16 +115,6 @@ const CriarHistorico = () => {
 
         <button type="submit">Criar Histórico</button>
       </form>
-
-      {mensagem && (
-        <div
-          className={`mensagem ${
-            mensagem.startsWith("Erro") ? "mensagem-erro" : "mensagem-sucesso"
-          }`}
-        >
-          {mensagem}
-        </div>
-      )}
     </div>
   );
 };

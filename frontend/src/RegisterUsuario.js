@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Swal from 'sweetalert2'; // Importa o SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function RegisterUsuario() {
@@ -10,7 +11,6 @@ function RegisterUsuario() {
   const [senha, setSenha] = useState('');
   const [email, setEmail] = useState('');
   const [funcao, setFuncao] = useState('');
-  const [feedback, setFeedback] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,14 +19,18 @@ function RegisterUsuario() {
       const response = await axios.post('http://localhost:5000/atendente/atendente', payload);
 
       if (response.status === 200 || response.status === 201) {
-        setFeedback('Cadastro realizado com sucesso!');
-        setTimeout(() => {
-          setFeedback('');
-          navigate('/login');
-        }, 3000);
+        Swal.fire({
+          icon: 'success',
+          title: 'Cadastro realizado',
+          text: 'Usuário cadastrado com sucesso!',
+        }).then(() => navigate('/login')); // Redireciona para a página de login
       }
     } catch (error) {
-      setFeedback('Erro ao registrar o usuário.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro no cadastro',
+        text: 'Não foi possível registrar o usuário. Tente novamente.',
+      });
     }
   };
 
@@ -42,7 +46,6 @@ function RegisterUsuario() {
         </button>
 
         <h2 className="text-center mb-4">Registrar Usuário</h2>
-        {feedback && <div className="alert alert-success" role="alert">{feedback}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">
