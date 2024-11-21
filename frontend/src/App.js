@@ -6,7 +6,7 @@ import RegisterMedico from './RegisterMedico';
 import RegisterUsuario from './RegisterUsuario';
 import ListagemPacientes from './ListagemPacientes';
 import CadastroPacientes from './CadastroPacientes';
-import EditarPaciente from './EditarPaciente'; // Importando o componente de edição de paciente
+import EditarPaciente from './EditarPaciente';
 import EditarMedico from './EditarMedico';
 import EditarUsuario from './EditarUsuario';
 import Agenda from './Agenda';
@@ -21,6 +21,7 @@ import Usuario from './ConfigUsuario';
 import AddTipoExame from './AddTipoExames';
 import Historico from './historico';
 import VisualizarHistorico from './VisualizarHistorico';
+import VideoCall from './Call'; // Importando o componente de videochamada
 import './css/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -49,7 +50,6 @@ function App() {
     setIsAuthenticated(false);
   };
 
-  // Verificar permissão para uma rota
   const hasPermission = (allowedRoles) => allowedRoles.includes(userType);
 
   return (
@@ -58,13 +58,10 @@ function App() {
         {isAuthenticated && <Sidebar onLogout={handleLogout} />}
         <div className="content">
           <Routes>
-            {/* Rota de Login */}
             <Route
               path="/login"
               element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />}
             />
-
-            {/* Rotas acessíveis a todos os usuários autenticados */}
             <Route
               path="/"
               element={isAuthenticated ? <Home /> : <Navigate to="/login" />}
@@ -78,7 +75,12 @@ function App() {
               element={isAuthenticated ? <CreateEvent /> : <Navigate to="/login" />}
             />
 
-            {/* Rotas para Admin */}
+            {/* Adicionando rota para videochamada */}
+            <Route
+              path="/call/:roomId"
+              element={isAuthenticated ? <VideoCall /> : <Navigate to="/login" />}
+            />
+
             {hasPermission(['adm']) && (
               <>
                 <Route path="/listagemPaciente" element={<ListagemPacientes />} />
@@ -92,11 +94,10 @@ function App() {
                 <Route path="/usuarios/editar/:id" element={<EditarUsuario />} />
                 <Route path="/tipos-exame" element={<AddTipoExame />} />
                 <Route path="/tipos-consulta" element={<TiposConsulta />} />
-                <Route path="/pacientes/editar/:id" element={<EditarPaciente />} /> {/* Rota de edição de paciente */}
+                <Route path="/pacientes/editar/:id" element={<EditarPaciente />} />
               </>
             )}
 
-            {/* Rotas para Médicos */}
             {hasPermission(['adm', 'medico']) && (
               <>
                 <Route path="/historico" element={<Historico />} />
@@ -107,16 +108,14 @@ function App() {
               </>
             )}
 
-            {/* Rotas para Atendentes */}
             {hasPermission(['adm', 'atendente']) && (
               <>
                 <Route path="/listagemPaciente" element={<ListagemPacientes />} />
                 <Route path="/cadastro" element={<CadastroPacientes />} />
-                <Route path="/pacientes/editar/:id" element={<EditarPaciente />} /> {/* Rota de edição de paciente */}
+                <Route path="/pacientes/editar/:id" element={<EditarPaciente />} />
               </>
             )}
 
-            {/* Rotas genéricas */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
           </Routes>
         </div>
@@ -125,7 +124,6 @@ function App() {
   );
 }
 
-// Página inicial (Home)
 function Home() {}
 
 export default App;
