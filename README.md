@@ -1,102 +1,50 @@
-# Programa pra Clínicas
+# Welcome to your Expo app 👋
 
-## Sobre o Projeto
-aplicação desenvolvida para clinicas pra resolver problemas de cadastramento e agendamento, com integração com uma aplicação [mobile](https://github.com/Pedroxbr16/clinica-mobiile).
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## estrutura de pastas
+## Get started
 
-/backend <br/>
-    /config         # Onde fica localizado o arquivo de conexão com o banco de dados <br/>
-    /controlers     # Funções de controle das rotas <br/>
-    /models         # Modelo de dados no Mysql <br/>
-    /routes         # Definição das rotas <br/>
-    /server         # Localização do arquivo responsável pro rodar o servidor node <br/>
-    /uploads        # Onde sobe os arquivos de imagem da aplicação <br/>
-/frontend <br/>
-    /public         # Arquivos públicos <br/>
-    /src            # Onde se localiza o codigo-fonte principal  <br/>
-        /assets     # Arquivos estaticos <br/>
-        /css        # Arquivos de estilização <br/>
+1. Install dependencies
 
+   ```bash
+   npm install
+   ```
 
+2. Start the app
 
+   ```bash
+    npx expo start
+   ```
 
-## Tecnologias Utilizadas
+In the output, you'll find options to open the app in a
 
-- **Node.js**:Ambiente de execução Javascript no lado do servidor.
-- **Express.js**:Framework para Node.js que facilita a criação de servidores HTTP.
-- **Mysql**: Banco de dados relacional, ideal para dados robustos.
-- **React**: Biblioteca do Javascript pra facilitar na criação de interfaces.
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-## Funcionalidades
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-- **CRUD de Pacientes**
-- **Cadastro de  Medicos**
-- **Cadastro de Atendentes**
-- **Agendamento de Consulta**
-- **Guia de exames**
-- **Historicos**
+## Get a fresh project
 
-# Requisitos
-
-node 20.14.0  </br>
-xampp 8.0.30
--------------
-# Banco de dados
-assim que instalar o xampp rode os comando no terminal dele "shell" 
-
-dê o comando pra acessar o mariadb
-```bash
-mysql -u root -p
-```
-logo após crie o banco de dados
-```bash
-CREATE DATABASE clinica;
-```
-depos crie o usuário e senha e dê todas as permissões
-altere os campos 'usuario' e 'senha' para oque desejar
-e lembre de alterar no codigo de conexão com o banco de dados
+When you're ready, run:
 
 ```bash
-CREATE USER 'usuario'@'localhost' IDENTIFIED BY 'senha';
-```
-```bash
-GRANT ALL PRIVILEGES ON nome_do_banco.* TO 'usuario'@'localhost';
+npm run reset-project
 ```
 
-```bash
-FLUSH PRIVILEGES;
-```
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-# Rodando localmente
+## Learn more
 
-Clone o repositório:
-```bash
-git clone https://github.com/Pedroxbr16/clinica-node.git
-```
+To learn more about developing your project with Expo, look at the following resources:
 
-Instale as dependencias tanto do backend como do frontend:
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-```bash
-cd backend
-npm install
-```
-```bash
-cd ..
-cd frontend
-npm install
-```
+## Join the community
 
-Rode o servidor node e o react:
+Join our community of developers creating universal apps.
 
-```bash
-cd backend
-node server/app.js
-```
-
-```bash
-cd frontend
-npm start
-```
-
-**ℹ️não se esqueça de alterar no codigo o usuário e senha que colocou**
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
