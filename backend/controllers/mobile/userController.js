@@ -73,3 +73,20 @@ exports.updateUser = (req, res) => {
     res.status(200).json({ message: 'Usuário atualizado com sucesso!' });
   });
 };
+// Buscar usuário pelo ID
+exports.getUserById = (req, res) => {
+  const userId = req.params.id;
+
+  User.findUserById(userId, (err, user) => {
+    if (err) {
+      console.error('Erro ao buscar usuário:', err);
+      return res.status(500).json({ message: 'Erro ao buscar usuário.', error: err });
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    res.status(200).json(user);
+  });
+};

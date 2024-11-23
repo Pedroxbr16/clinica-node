@@ -36,8 +36,17 @@ const updateUser = (id, name, email, password, callback) => {
   });
 };
 
+// Buscar usuário pelo ID
+const findUserById = (id, callback) => {
+  const sql = 'SELECT * FROM users WHERE id = ?';
+  connection.query(sql, [id], (err, results) => {
+    callback(err, results[0]); // Retorna o primeiro usuário encontrado ou undefined
+  });
+};
+
 module.exports = {
   createUser,
+  findUserById,
   findUserByEmail,
   authenticateUser,
   updateUser,
