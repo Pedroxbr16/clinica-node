@@ -13,6 +13,7 @@ const CreateEvent = () => {
     patient: '',
     doctor: '',
     type: '',
+    modalidade: '', // Novo campo para modalidade
   });
 
   const [patients, setPatients] = useState([]);
@@ -102,6 +103,7 @@ const CreateEvent = () => {
         paciente_id: event.patient,
         medico_id: event.doctor,
         tipo_consulta_id: event.type,
+        modalidade: event.modalidade, // Enviar modalidade para o backend
       });
       Swal.fire({
         icon: 'success',
@@ -188,7 +190,7 @@ const CreateEvent = () => {
             classNamePrefix="select"
           />
         </div>
-        <div className="mb-4">
+        <div className="mb-3">
           <label>Tipo de Consulta:</label>
           <Select
             name="type"
@@ -196,6 +198,27 @@ const CreateEvent = () => {
             value={types.find((t) => t.value === event.type) || null}
             onChange={handleSelectChange}
             placeholder="Selecione um Tipo de Consulta"
+            isClearable
+            classNamePrefix="select"
+          />
+        </div>
+        <div className="mb-4">
+          <label>Modalidade:</label>
+          <Select
+            name="modalidade"
+            options={[
+              { label: 'Presencial', value: 'Presencial' },
+              { label: 'Online', value: 'Online' },
+            ]}
+            value={
+              event.modalidade
+                ? { label: event.modalidade, value: event.modalidade }
+                : null
+            }
+            onChange={(selectedOption) =>
+              setEvent({ ...event, modalidade: selectedOption ? selectedOption.value : '' })
+            }
+            placeholder="Selecione a modalidade"
             isClearable
             classNamePrefix="select"
           />

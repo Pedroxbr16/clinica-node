@@ -1,16 +1,15 @@
 const connection = require('../config/database');
 
-
 class ConsultaModel {
     // Cria uma nova consulta no banco de dados
-    static async createConsulta({ titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id }) {
+    static async createConsulta({ titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, modalidade }) {
         const sql = `
-            INSERT INTO Consulta (titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO Consulta (titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, modalidade) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
         try {
             return new Promise((resolve, reject) => {
-                connection.execute(sql, [titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id], (error, result) => {
+                connection.execute(sql, [titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, modalidade], (error, result) => {
                     if (error) {
                         console.error('Erro ao criar consulta:', error);
                         reject(error);
@@ -63,15 +62,15 @@ class ConsultaModel {
     }
 
     // Atualiza uma consulta por ID
-    static async updateConsulta(id, { titulo = null, inicio = null, fim = null, paciente_id = null, medico_id = null, tipo_consulta_id = null }) {
+    static async updateConsulta(id, { titulo = null, inicio = null, fim = null, paciente_id = null, medico_id = null, tipo_consulta_id = null, modalidade = null }) {
         const sql = `
             UPDATE Consulta 
-            SET titulo = ?, inicio = ?, fim = ?, paciente_id = ?, medico_id = ?, tipo_consulta_id = ? 
+            SET titulo = ?, inicio = ?, fim = ?, paciente_id = ?, medico_id = ?, tipo_consulta_id = ?, modalidade = ? 
             WHERE id = ?
         `;
         try {
             return new Promise((resolve, reject) => {
-                connection.execute(sql, [titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, id], (error, result) => {
+                connection.execute(sql, [titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, modalidade, id], (error, result) => {
                     if (error) {
                         console.error('Erro ao atualizar consulta:', error);
                         reject(error);
@@ -84,7 +83,6 @@ class ConsultaModel {
             throw error;
         }
     }
-    
 
     // Deleta uma consulta por ID
     static async deleteConsulta(id) {

@@ -18,7 +18,15 @@ const Agenda = () => {
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [editedEvent, setEditedEvent] = useState({ title: '', start: '', end: '', paciente_id: '', medico_id: '', tipo_consulta_id: '' });
+  const [editedEvent, setEditedEvent] = useState({
+    title: '',
+    start: '',
+    end: '',
+    paciente_id: '',
+    medico_id: '',
+    tipo_consulta_id: '',
+    modalidade: '', // Adicionado campo para modalidade
+  });
   const [pacientes, setPacientes] = useState([]);
   const [medicos, setMedicos] = useState([]);
   const [tiposConsulta, setTiposConsulta] = useState([]);
@@ -29,7 +37,7 @@ const Agenda = () => {
     try {
       const response = await axios.get('http://localhost:5000/consultas/lista');
       const consultasData = Array.isArray(response.data) ? response.data : [];
-      const mappedEvents = consultasData.map(consulta => ({
+      const mappedEvents = consultasData.map((consulta) => ({
         title: consulta.titulo,
         start: new Date(consulta.inicio),
         end: new Date(consulta.fim),
@@ -37,6 +45,7 @@ const Agenda = () => {
         paciente_id: consulta.paciente_id,
         medico_id: consulta.medico_id,
         tipo_consulta_id: consulta.tipo_consulta_id,
+        modalidade: consulta.modalidade, // Adicionar modalidade à consulta
       }));
       setEvents(mappedEvents);
       setFilteredEvents(mappedEvents);
@@ -80,10 +89,12 @@ const Agenda = () => {
     try {
       const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
       const tiposData = Array.isArray(response.data) ? response.data : [];
-      setTiposConsulta(tiposData.map(tipo => ({
-        label: tipo.descricao,
-        value: tipo.id
-      })));
+      setTiposConsulta(
+        tiposData.map((tipo) => ({
+          label: tipo.descricao,
+          value: tipo.id,
+        }))
+      );
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -102,7 +113,7 @@ const Agenda = () => {
 
   useEffect(() => {
     if (selectedMedico) {
-      const filtered = events.filter(event => event.medico_id.toString() === selectedMedico);
+      const filtered = events.filter((event) => event.medico_id.toString() === selectedMedico);
       setFilteredEvents(filtered);
     } else {
       setFilteredEvents(events);
@@ -118,6 +129,7 @@ const Agenda = () => {
       paciente_id: event.paciente_id,
       medico_id: event.medico_id,
       tipo_consulta_id: event.tipo_consulta_id,
+      modalidade: event.modalidade, // Adicionar modalidade ao evento selecionado
     });
     setShowModal(true);
   };
@@ -125,7 +137,7 @@ const Agenda = () => {
   const handleDelete = async () => {
     try {
       await axios.delete(`http://localhost:5000/consultas/${selectedEvent.id}`);
-      setEvents(events.filter(event => event.id !== selectedEvent.id));
+      setEvents(events.filter((event) => event.id !== selectedEvent.id));
       setShowModal(false);
       Swal.fire({
         icon: 'success',
@@ -150,11 +162,12 @@ const Agenda = () => {
         paciente_id: editedEvent.paciente_id,
         medico_id: editedEvent.medico_id,
         tipo_consulta_id: editedEvent.tipo_consulta_id,
+        modalidade: editedEvent.modalidade, // Adicionado campo modalidade
       };
       const response = await axios.put(`http://localhost:5000/consultas/${selectedEvent.id}`, updatedEvent);
 
       if (response.status === 200) {
-        setEvents(events.map(event => event.id === selectedEvent.id ? { ...event, ...updatedEvent } : event));
+        setEvents(events.map((event) => (event.id === selectedEvent.id ? { ...event, ...updatedEvent } : event)));
         setShowModal(false);
         Swal.fire({
           icon: 'success',
@@ -176,10 +189,26 @@ const Agenda = () => {
     setEditedEvent({ ...editedEvent, [name]: value });
   };
 
+  // Função para definir o estilo do evento baseado na modalidade
+  const eventStyleGetter = (event) => {
+    const backgroundColor = event.modalidade === 'Online' ? '#ff7f7f' : '#007bff'; // Vermelho para online, azul para presencial
+    const style = {
+      backgroundColor,
+      borderRadius: '5px',
+      opacity: 0.8,
+      color: 'white',
+      border: '0px',
+      display: 'block',
+    };
+    return { style };
+  };
+
   return (
     <div className="calendar-container">
       <div className="filter-container">
-        <label htmlFor="medico-filter"><strong>Filtrar por Médico:</strong></label>
+        <label htmlFor="medico-filter">
+          <strong>Filtrar por Médico:</strong>
+        </label>
         <select
           id="medico-filter"
           value={selectedMedico}
@@ -187,8 +216,10 @@ const Agenda = () => {
           style={{ marginLeft: '10px', padding: '8px', borderRadius: '4px' }}
         >
           <option value="">Todos</option>
-          {medicos.map(medico => (
-            <option key={medico.id} value={medico.id}>{medico.usuario}</option>
+          {medicos.map((medico) => (
+            <option key={medico.id} value={medico.id}>
+              {medico.usuario}
+            </option>
           ))}
         </select>
       </div>
@@ -208,9 +239,10 @@ const Agenda = () => {
           today: 'Hoje',
           previous: 'Anterior',
           next: 'Próximo',
-          showMore: total => `+ ver mais (${total})`,
+          showMore: (total) => `+ ver mais (${total})`,
         }}
         onSelectEvent={handleEventClick}
+        eventPropGetter={eventStyleGetter} // Aplica o estilo personalizado
       />
 
       <Modal
@@ -223,33 +255,52 @@ const Agenda = () => {
             margin: 'auto',
             padding: '20px',
             borderRadius: '8px',
-          }
+          },
         }}
       >
         <h2 style={{ textAlign: 'center' }}>Editar Evento</h2>
-        <form onSubmit={(e) => { e.preventDefault(); handleEdit(); }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleEdit();
+          }}
+        >
           <div style={{ marginBottom: '10px' }}>
-            <label><strong>Título</strong></label>
+            <label>
+              <strong>Título</strong>
+            </label>
             <input
               type="text"
               name="title"
               value={editedEvent.title}
               onChange={handleInputChange}
               required
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+              }}
             />
           </div>
           <div style={{ marginBottom: '10px' }}>
-            <label><strong>Paciente</strong></label>
+            <label>
+              <strong>Paciente</strong>
+            </label>
             <select
               name="paciente_id"
               value={editedEvent.paciente_id}
               onChange={handleInputChange}
               required
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+              }}
             >
               <option value="">Selecione um paciente</option>
-              {pacientes.map(paciente => (
+              {pacientes.map((paciente) => (
                 <option key={paciente.id} value={paciente.id}>
                   {paciente.nome}
                 </option>
@@ -257,16 +308,23 @@ const Agenda = () => {
             </select>
           </div>
           <div style={{ marginBottom: '10px' }}>
-            <label><strong>Médico</strong></label>
+            <label>
+              <strong>Médico</strong>
+            </label>
             <select
               name="medico_id"
               value={editedEvent.medico_id}
               onChange={handleInputChange}
               required
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+              }}
             >
               <option value="">Selecione um médico</option>
-              {medicos.map(medico => (
+              {medicos.map((medico) => (
                 <option key={medico.id} value={medico.id}>
                   {medico.usuario}
                 </option>
@@ -274,16 +332,23 @@ const Agenda = () => {
             </select>
           </div>
           <div style={{ marginBottom: '10px' }}>
-            <label><strong>Tipo de Consulta</strong></label>
+            <label>
+              <strong>Tipo de Consulta</strong>
+            </label>
             <select
               name="tipo_consulta_id"
               value={editedEvent.tipo_consulta_id}
               onChange={handleInputChange}
               required
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+              }}
             >
               <option value="">Selecione um tipo de consulta</option>
-              {tiposConsulta.map(tipo => (
+              {tiposConsulta.map((tipo) => (
                 <option key={tipo.value} value={tipo.value}>
                   {tipo.label}
                 </option>
@@ -291,31 +356,101 @@ const Agenda = () => {
             </select>
           </div>
           <div style={{ marginBottom: '10px' }}>
-            <label><strong>Data de Início</strong></label>
+            <label>
+              <strong>Modalidade</strong>
+            </label>
+            <select
+              name="modalidade"
+              value={editedEvent.modalidade}
+              onChange={handleInputChange}
+              required
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+              }}
+            >
+              <option value="">Selecione a modalidade</option>
+              <option value="Online">Online</option>
+              <option value="Presencial">Presencial</option>
+            </select>
+          </div>
+          <div style={{ marginBottom: '10px' }}>
+            <label>
+              <strong>Data de Início</strong>
+            </label>
             <input
               type="datetime-local"
               name="start"
               value={editedEvent.start}
               onChange={handleInputChange}
               required
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+              }}
             />
           </div>
           <div style={{ marginBottom: '10px' }}>
-            <label><strong>Data de Fim</strong></label>
+            <label>
+              <strong>Data de Fim</strong>
+            </label>
             <input
               type="datetime-local"
               name="end"
               value={editedEvent.end}
               onChange={handleInputChange}
               required
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+              }}
             />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-            <button type="submit" style={{ backgroundColor: '#007bff', color: '#fff', padding: '10px 15px', borderRadius: '4px', border: 'none' }}>Salvar Alterações</button>
-            <button type="button" onClick={handleDelete} style={{ backgroundColor: '#dc3545', color: '#fff', padding: '10px 15px', borderRadius: '4px', border: 'none' }}>Excluir</button>
-            <button type="button" onClick={() => setShowModal(false)} style={{ backgroundColor: '#6c757d', color: '#fff', padding: '10px 15px', borderRadius: '4px', border: 'none' }}>Fechar</button>
+            <button
+              type="submit"
+              style={{
+                backgroundColor: '#007bff',
+                color: '#fff',
+                padding: '10px 15px',
+                borderRadius: '4px',
+                border: 'none',
+              }}
+            >
+              Salvar Alterações
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              style={{
+                backgroundColor: '#dc3545',
+                color: '#fff',
+                padding: '10px 15px',
+                borderRadius: '4px',
+                border: 'none',
+              }}
+            >
+              Excluir
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowModal(false)}
+              style={{
+                backgroundColor: '#6c757d',
+                color: '#fff',
+                padding: '10px 15px',
+                borderRadius: '4px',
+                border: 'none',
+              }}
+            >
+              Fechar
+            </button>
           </div>
         </form>
       </Modal>
