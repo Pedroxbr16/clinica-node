@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import axios from 'axios';
+import { API_URL } from '@env'; // Importa o API_URL do .env
 import { RootStackParamList } from './types'; // Certifique-se de ajustar o caminho
 
 interface RouteParams {
@@ -21,7 +22,7 @@ export default function SettingsScreen() {
   // Função para buscar os dados do usuário pelo ID
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(`http://192.168.1.8:5000/user/buscar/${userId}`);
+      const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
       const { name, email, password } = response.data; // Inclui a senha na resposta
       setName(name);
       setEmail(email);
@@ -41,9 +42,8 @@ export default function SettingsScreen() {
     }
 
     try {
-      await axios.put(`http://192.168.1.8:5000/user/atualizar/${userId}`, { name, email, password });
+      await axios.put(`${API_URL}/user/atualizar/${userId}`, { name, email, password });
       Alert.alert('Sucesso', 'Dados atualizados com sucesso!');
-
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível atualizar os dados do usuário.');
     }

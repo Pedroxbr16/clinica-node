@@ -24,3 +24,7 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+
+# Arquivo de variáveis de ambiente
+.env

@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import axios, { AxiosError } from "axios";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "./types";
+import { API_URL } from "@env"; // Importa o API_URL do arquivo .env
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ export default function LoginScreen() {
     }
 
     try {
-      const response = await axios.post("http://192.168.1.8:5000/user/login", {
+      const response = await axios.post(`${API_URL}/user/login`, {
         email,
         password,
       });

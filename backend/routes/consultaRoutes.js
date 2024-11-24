@@ -1,4 +1,3 @@
-// routes/consultaRoutes.js
 const express = require('express');
 const router = express.Router();
 const consultaController = require('../controllers/consultaController');
@@ -17,5 +16,8 @@ router.put('/:id', consultaController.updateConsulta);
 
 // Rota para deletar uma consulta por ID
 router.delete('/:id', consultaController.deleteConsulta);
+
+// Rota para obter horários disponíveis
+router.get('/horarios', consultaController.getHorariosDisponiveis);
 
 module.exports = router;

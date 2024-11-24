@@ -1,44 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import axios from 'axios';
-import { RootStackParamList } from './types';
+import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
+import { API_URL } from '@env';
 
 interface RouteParams {
   userId: number;
-  name?: string;
-  email?: string;
 }
 
-export default function PreAgendamentoScreen() {
+export default function PreCadastroScreen() {
   const route = useRoute();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<any>>(); // Ajuste conforme necessário
+  const { userId } = route.params as RouteParams;
 
-  // Garantindo valores padrão caso `params` esteja ausente
-  const { userId, name = 'Usuário', email = 'Não disponível' } = route.params as RouteParams;
-
-  // Estados
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [doctor, setDoctor] = useState<number | null>(null);
   const [modalidade, setModalidade] = useState<string | null>(null);
-  const [date, setDate] = useState(new Date()); // Estado para a data/hora
+  const [date, setDate] = useState('');
+  const [selectedHorario, setSelectedHorario] = useState<string | null>(null);
   const [doctorsList, setDoctorsList] = useState<{ label: string; value: number }[]>([]);
-  const [modalidadeList] = useState([
-    { label: 'Presencial', value: 'presencial' },
-    { label: 'Online', value: 'online' },
-  ]);
-  const [isLoading, setIsLoading] = useState(true);
   const [openDoctors, setOpenDoctors] = useState(false);
   const [openModalidade, setOpenModalidade] = useState(false);
-  const [showPicker, setShowPicker] = useState(false); // Controle de visibilidade do DateTimePicker
-  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date'); // Define se o picker é de data ou hora
+  const [openHorarios, setOpenHorarios] = useState(false);
 
-  // Busca os dados dos médicos
+  const horariosFixos = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
+  const modalidades = [
+    { label: "Presencial", value: "presencial" },
+    { label: "Online", value: "online" },
+  ];
+
+  useEffect(() => {
+    fetchUserData();
+    fetchDoctors();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
+      const { name, email, phone } = response.data;
+      setName(name);
+      setEmail(email);
+      setPhone(phone);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível buscar os dados do usuário.');
+    }
+  };
+
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://192.168.1.8:5000/medicos/medicos');
+      const response = await axios.get(`${API_URL}/medicos/medicos`);
       const doctorsData = response.data.data.map((doctor: { usuario: string; id: number }) => ({
         label: doctor.usuario,
         value: doctor.id,
@@ -46,123 +59,93 @@ export default function PreAgendamentoScreen() {
       setDoctorsList(doctorsData);
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível carregar os médicos.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDoctors();
-  }, []);
-
-  // Lógica para lidar com a alteração no DateTimePicker
-  const onChange = (event: any, selectedDate?: Date) => {
-    setShowPicker(false); // Fecha o picker após seleção
-    if (selectedDate) {
-      setDate(selectedDate); // Atualiza a data/hora selecionada
-    }
-  };
-
-  const showMode = (currentMode: 'date' | 'time') => {
-    setPickerMode(currentMode); // Define se será data ou horário
-    setShowPicker(true); // Exibe o picker
-  };
-
-  // Lógica para criar o pré-agendamento
-  const handlePreAgendamento = async () => {
-    if (!doctor || !modalidade || !phone) {
-      Alert.alert('Erro', 'Todos os campos são obrigatórios.');
+  const handlePreCadastro = async () => {
+    if (!doctor || !modalidade || !date || !selectedHorario) {
+      Alert.alert('Erro', 'Preencha todos os campos antes de realizar o pré-cadastro.');
       return;
     }
 
     try {
-      await axios.post('http://192.168.1.8:5000/pre-agendamentos/criar', {
+      const formattedDate = `${date} ${selectedHorario}`;
+      await axios.post(`${API_URL}/pre-agendamentos/criar`, {
         userId,
-        doctor,
+        doctorId: doctor,
         modalidade,
-        date,
+        date: formattedDate,
         phone,
       });
 
-      Alert.alert('Sucesso', 'Pré-agendamento criado com sucesso!');
-      navigation.navigate('HomeScreen', { userId, name });
+      Alert.alert('Sucesso', 'Pré-cadastro realizado com sucesso!');
+      navigation.navigate('HomeScreen');
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível criar o pré-agendamento. Tente novamente.');
+      Alert.alert('Erro', 'Não foi possível concluir o pré-cadastro.');
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Carregando...</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Pré-Agendamento</Text>
+      <Text style={styles.title}>Pré-Cadastro</Text>
 
       <Text style={styles.label}>Nome</Text>
-      <Text style={styles.input}>{name}</Text>
+      <TextInput style={styles.input} value={name} editable={false} />
 
       <Text style={styles.label}>E-mail</Text>
-      <Text style={styles.input}>{email}</Text>
+      <TextInput style={styles.input} value={email} editable={false} />
 
       <Text style={styles.label}>Telefone</Text>
-      <TextInput
-        value={phone}
-        onChangeText={setPhone}
-        placeholder="Digite seu telefone"
-        keyboardType="phone-pad"
-        style={styles.input}
-      />
+      <TextInput style={styles.input} value={phone} editable={true} />
 
       <Text style={styles.label}>Médico</Text>
-      <View style={{ zIndex: openDoctors ? 1000 : 1 }}>
+      <View style={{ zIndex: 3 }}>
         <DropDownPicker
           open={openDoctors}
           value={doctor}
           items={doctorsList}
           setOpen={setOpenDoctors}
           setValue={setDoctor}
-          setItems={setDoctorsList}
           placeholder="Selecione um médico"
           style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
         />
       </View>
 
       <Text style={styles.label}>Modalidade</Text>
-      <View style={{ zIndex: openModalidade ? 1000 : 0 }}>
+      <View style={{ zIndex: 2 }}>
         <DropDownPicker
           open={openModalidade}
           value={modalidade}
-          items={modalidadeList}
+          items={modalidades}
           setOpen={setOpenModalidade}
           setValue={setModalidade}
           placeholder="Selecione a modalidade"
           style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
         />
       </View>
 
-      <Text style={styles.label}>Data e Hora</Text>
-      <Text style={styles.selectedDate}>{date.toLocaleString()}</Text>
-      <Button title="Escolher Data" onPress={() => showMode('date')} color="#007bff" />
-      <Button title="Escolher Hora" onPress={() => showMode('time')} color="#007bff" />
+      <Text style={styles.label}>Data</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="YYYY-MM-DD"
+        value={date}
+        onChangeText={setDate}
+      />
 
-      {showPicker && (
-        <DateTimePicker
-          value={date}
-          mode={pickerMode}
-          display="default"
-          onChange={onChange}
-          minimumDate={new Date()} // Bloqueia datas no passado
+      <Text style={styles.label}>Horário</Text>
+      <View style={{ zIndex: 1 }}>
+        <DropDownPicker
+          open={openHorarios}
+          value={selectedHorario}
+          items={horariosFixos.map((horario) => ({ label: horario, value: horario }))}
+          setOpen={setOpenHorarios}
+          setValue={setSelectedHorario}
+          placeholder="Selecione um horário"
+          style={styles.dropdown}
         />
-      )}
+      </View>
 
-      <Button title="Agendar" onPress={handlePreAgendamento} color="#007bff" />
+      <Button title="Concluir Pré-Cadastro" onPress={handlePreCadastro} />
     </View>
   );
 }
@@ -170,39 +153,28 @@ export default function PreAgendamentoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
   },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
   input: {
     height: 40,
-    borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 5,
+    borderWidth: 1,
     marginBottom: 15,
+    borderRadius: 5,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
   },
   dropdown: {
-    borderColor: '#ccc',
-    backgroundColor: '#fff',
+    marginBottom: 15,
   },
-  dropdownContainer: {
-    borderColor: '#ccc',
-  },
-  selectedDate: {
+  label: {
     fontSize: 16,
-    marginBottom: 10,
-    textAlign: 'center',
+    marginBottom: 5,
   },
 });

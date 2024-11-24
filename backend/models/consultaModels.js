@@ -1,7 +1,6 @@
 const connection = require('../config/database');
 
 class ConsultaModel {
-    // Cria uma nova consulta no banco de dados
     static async createConsulta({ titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, modalidade }) {
         const sql = `
             INSERT INTO Consulta (titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, modalidade) 
@@ -14,7 +13,7 @@ class ConsultaModel {
                         console.error('Erro ao criar consulta:', error);
                         reject(error);
                     }
-                    resolve(result.insertId); // Retorna o id da consulta criada
+                    resolve(result.insertId);
                 });
             });
         } catch (error) {
@@ -23,7 +22,6 @@ class ConsultaModel {
         }
     }
 
-    // Obtém todas as consultas
     static async getConsultas() {
         const sql = `SELECT * FROM Consulta`;
         try {
@@ -33,7 +31,7 @@ class ConsultaModel {
                         console.error('Erro ao obter consultas:', error);
                         reject(error);
                     }
-                    resolve(result); // Retorna as consultas
+                    resolve(result);
                 });
             });
         } catch (error) {
@@ -42,7 +40,6 @@ class ConsultaModel {
         }
     }
 
-    // Obtém uma consulta específica por ID
     static async getConsultaById(id) {
         const sql = `SELECT * FROM Consulta WHERE id = ?`;
         try {
@@ -52,7 +49,7 @@ class ConsultaModel {
                         console.error('Erro ao obter consulta por ID:', error);
                         reject(error);
                     }
-                    resolve(result[0]); // Retorna o resultado da consulta com o ID
+                    resolve(result[0]);
                 });
             });
         } catch (error) {
@@ -61,8 +58,7 @@ class ConsultaModel {
         }
     }
 
-    // Atualiza uma consulta por ID
-    static async updateConsulta(id, { titulo = null, inicio = null, fim = null, paciente_id = null, medico_id = null, tipo_consulta_id = null, modalidade = null }) {
+    static async updateConsulta(id, { titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, modalidade }) {
         const sql = `
             UPDATE Consulta 
             SET titulo = ?, inicio = ?, fim = ?, paciente_id = ?, medico_id = ?, tipo_consulta_id = ?, modalidade = ? 
@@ -75,7 +71,7 @@ class ConsultaModel {
                         console.error('Erro ao atualizar consulta:', error);
                         reject(error);
                     }
-                    resolve(result.affectedRows > 0); // Retorna um valor booleano se a atualização foi bem-sucedida
+                    resolve(result.affectedRows > 0);
                 });
             });
         } catch (error) {
@@ -84,7 +80,6 @@ class ConsultaModel {
         }
     }
 
-    // Deleta uma consulta por ID
     static async deleteConsulta(id) {
         const sql = `DELETE FROM Consulta WHERE id = ?`;
         try {
@@ -94,11 +89,34 @@ class ConsultaModel {
                         console.error('Erro ao deletar consulta:', error);
                         reject(error);
                     }
-                    resolve(result.affectedRows > 0); // Retorna um valor booleano se a exclusão foi bem-sucedida
+                    resolve(result.affectedRows > 0);
                 });
             });
         } catch (error) {
             console.error('Erro ao deletar consulta:', error);
+            throw error;
+        }
+    }
+
+    // Obtém horários ocupados para um médico em uma data específica
+    static async getHorariosOcupados(medico_id, date) {
+        const sql = `
+            SELECT DATE_FORMAT(inicio, '%H:%i') AS horario
+            FROM Consulta
+            WHERE medico_id = ? AND DATE(inicio) = ?
+        `;
+        try {
+            return new Promise((resolve, reject) => {
+                connection.execute(sql, [medico_id, date], (error, results) => {
+                    if (error) {
+                        console.error('Erro ao obter horários ocupados:', error);
+                        reject(error);
+                    }
+                    resolve(results.map((row) => row.horario));
+                });
+            });
+        } catch (error) {
+            console.error('Erro ao obter horários ocupados no banco de dados:', error);
             throw error;
         }
     }

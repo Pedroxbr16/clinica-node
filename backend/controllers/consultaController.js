@@ -1,13 +1,11 @@
 const ConsultaModel = require('../models/consultaModels');
 
 // Cria uma nova consulta
-
 exports.createConsulta = async (req, res) => {
     try {
         const consultaId = await ConsultaModel.createConsulta(req.body);
         res.status(201).json({ id: consultaId });
     } catch (error) {
-        // Se o erro for de duplicação, trata de forma especial
         if (error.message.includes('Já existe uma consulta agendada')) {
             return res.status(400).json({ error: error.message });
         }
@@ -70,3 +68,30 @@ exports.deleteConsulta = async (req, res) => {
         res.status(500).json({ error: 'Erro ao deletar consulta' });
     }
 };
+
+// Obtém horários disponíveis para um médico em uma data específica
+exports.getHorariosDisponiveis = async (req, res) => {
+    console.log('Requisição recebida em /horarios:', req.query);
+
+    try {
+        const { doctorId, date } = req.query;
+
+        if (!doctorId || !date) {
+            return res.status(400).json({ error: 'Parâmetros "doctorId" e "date" são obrigatórios.' });
+        }
+
+        const horariosOcupados = await ConsultaModel.getHorariosOcupados(doctorId, date);
+        const todosHorarios = [
+            "08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"
+        ];
+        const horariosDisponiveis = todosHorarios.filter(
+            (horario) => !horariosOcupados.includes(horario)
+        );
+
+        res.status(200).json({ data: horariosDisponiveis });
+    } catch (error) {
+        console.error('Erro ao buscar horários disponíveis:', error);
+        res.status(500).json({ error: 'Erro ao buscar horários disponíveis' });
+    }
+};
+

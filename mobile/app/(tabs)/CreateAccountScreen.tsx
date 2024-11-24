@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import axios, { AxiosError } from "axios";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { API_URL } from '@env';
+
 
 export default function CreateAccountScreen() {
   const [name, setName] = useState("");
@@ -16,7 +18,7 @@ export default function CreateAccountScreen() {
     }
 
     try {
-      const response = await axios.post("http://192.168.1.8:5000/user/criar", {
+      const response = await axios.post(`${API_URL}/user/criar`, {
         name,
         email,
         password,
