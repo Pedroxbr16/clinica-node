@@ -2,19 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import axios from 'axios';
-import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
+import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
 import { API_URL } from '@env';
+import { RootStackParamList } from './types';
 
-interface RouteParams {
-  userId: number;
-}
-
-export default function PreCadastroScreen() {
+export default function PreAgendamentoScreen() {
   const route = useRoute();
-  const navigation = useNavigation<NavigationProp<any>>(); // Ajuste conforme necessário
-  const { userId } = route.params as RouteParams;
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { userId, name } = route.params as RootStackParamList['PreAgendamentoScreen'];
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [doctor, setDoctor] = useState<number | null>(null);
@@ -40,8 +36,7 @@ export default function PreCadastroScreen() {
   const fetchUserData = async () => {
     try {
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
-      const { name, email, phone } = response.data;
-      setName(name);
+      const { email, phone } = response.data;
       setEmail(email);
       setPhone(phone);
     } catch (error) {
@@ -62,14 +57,33 @@ export default function PreCadastroScreen() {
     }
   };
 
+  const handleDateInput = (text: string) => {
+    let formattedText = text.replace(/\D/g, '');
+    if (formattedText.length > 4) {
+      formattedText = `${formattedText.slice(0, 4)}-${formattedText.slice(4)}`;
+    }
+    if (formattedText.length > 7) {
+      formattedText = `${formattedText.slice(0, 7)}-${formattedText.slice(7)}`;
+    }
+    setDate(formattedText);
+  };
+
   const handlePreCadastro = async () => {
     if (!doctor || !modalidade || !date || !selectedHorario) {
       Alert.alert('Erro', 'Preencha todos os campos antes de realizar o pré-cadastro.');
       return;
     }
-
+  
     try {
       const formattedDate = `${date} ${selectedHorario}`;
+      console.log('Enviando dados para o backend:', {
+        userId,
+        doctorId: doctor,
+        modalidade,
+        date: formattedDate,
+        phone,
+      });
+  
       await axios.post(`${API_URL}/pre-agendamentos/criar`, {
         userId,
         doctorId: doctor,
@@ -77,14 +91,16 @@ export default function PreCadastroScreen() {
         date: formattedDate,
         phone,
       });
-
+  
       Alert.alert('Sucesso', 'Pré-cadastro realizado com sucesso!');
-      navigation.navigate('HomeScreen');
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível concluir o pré-cadastro.');
+      navigation.navigate('HomeScreen', { userId, name });
+    } catch (error: any) {
+      // Agora o TypeScript entende o tipo de "error"
+      console.log('Erro na resposta do backend:', error.response?.data || error.message);
+      Alert.alert('Erro', error.response?.data?.message || 'Não foi possível concluir o pré-cadastro.');
     }
   };
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pré-Cadastro</Text>
@@ -96,7 +112,13 @@ export default function PreCadastroScreen() {
       <TextInput style={styles.input} value={email} editable={false} />
 
       <Text style={styles.label}>Telefone</Text>
-      <TextInput style={styles.input} value={phone} editable={true} />
+<TextInput
+  style={styles.input}
+  value={phone}
+  onChangeText={setPhone} // Garante que o valor seja atualizado no estado
+  placeholder="Digite seu telefone"
+/>
+
 
       <Text style={styles.label}>Médico</Text>
       <View style={{ zIndex: 3 }}>
@@ -129,7 +151,8 @@ export default function PreCadastroScreen() {
         style={styles.input}
         placeholder="YYYY-MM-DD"
         value={date}
-        onChangeText={setDate}
+        keyboardType="numeric"
+        onChangeText={handleDateInput}
       />
 
       <Text style={styles.label}>Horário</Text>

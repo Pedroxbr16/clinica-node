@@ -28,7 +28,10 @@ export default function HomeScreen() {
       {/* Botão de Pré-Agendamento */}
       <Button
         title="Criar Agendamento"
-        onPress={() => navigation.navigate('PreAgendamentoScreen', { userId, name })}
+        onPress={() => {
+          console.log('Navegando para PreAgendamentoScreen:', { userId, name }); // Debug
+          navigation.navigate('PreAgendamentoScreen', { userId, name });
+        }}
       />
     </View>
   );
