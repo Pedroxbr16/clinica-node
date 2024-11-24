@@ -1,45 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Alert, TextInput } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
+import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import axios from 'axios';
-import { useRoute, useNavigation, NavigationProp, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from './types';
 
-export default function PreAgendamentoScreen() {
-  const route = useRoute<RouteProp<RootStackParamList, 'PreAgendamentoScreen'>>();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { userId, name, email } = route.params; // Garante que os parâmetros existem e estão tipados
+interface RouteParams {
+  userId: number;
+}
 
+export default function PreAgendamentoScreen() {
+  const route = useRoute();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { userId } = route.params as RouteParams;
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [doctor, setDoctor] = useState<number | null>(null);
   const [modalidade, setModalidade] = useState<string | null>(null);
   const [date, setDate] = useState('');
-  const [phone, setPhone] = useState('');
   const [doctorsList, setDoctorsList] = useState<{ label: string; value: number }[]>([]);
   const [modalidadeList] = useState([
     { label: 'Presencial', value: 'presencial' },
     { label: 'Online', value: 'online' },
   ]);
-
+  const [isLoading, setIsLoading] = useState(true);
   const [openDoctors, setOpenDoctors] = useState(false);
   const [openModalidade, setOpenModalidade] = useState(false);
 
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const response = await axios.get('http://192.168.1.8:5000/medicos/medicos');
-        const doctorsData = response.data.data.map((doctor: { usuario: string; id: number }) => ({
-          label: doctor.usuario,
-          value: doctor.id,
-        }));
-        setDoctorsList(doctorsData);
-      } catch (error) {
-        Alert.alert('Erro', 'Erro ao buscar médicos. Tente novamente.');
-      }
-    };
+  // Busca os dados do usuário e médicos
+  const fetchData = async () => {
+    try {
+      const userResponse = await axios.get(`http://192.168.1.8:5000/user/buscar/${userId}`);
+      const { name, email } = userResponse.data;
+      setName(name);
+      setEmail(email);
 
-    fetchDoctors();
+      const doctorsResponse = await axios.get('http://192.168.1.8:5000/medicos/medicos');
+      const doctorsData = doctorsResponse.data.data.map((doctor: { usuario: string; id: number }) => ({
+        label: doctor.usuario,
+        value: doctor.id,
+      }));
+      setDoctorsList(doctorsData);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar os dados.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
+  // Lógica para criar o pré-agendamento
   const handlePreAgendamento = async () => {
     if (!doctor || !modalidade || !date || !phone) {
       Alert.alert('Erro', 'Todos os campos são obrigatórios.');
@@ -62,17 +77,25 @@ export default function PreAgendamentoScreen() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Carregando...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pré-Agendamento</Text>
 
-      <Text style={styles.label}>Nome:</Text>
+      <Text style={styles.label}>Nome</Text>
       <Text style={styles.input}>{name}</Text>
 
-      <Text style={styles.label}>Email:</Text>
+      <Text style={styles.label}>E-mail</Text>
       <Text style={styles.input}>{email}</Text>
 
-      <Text style={styles.label}>Telefone:</Text>
+      <Text style={styles.label}>Telefone</Text>
       <TextInput
         value={phone}
         onChangeText={setPhone}
@@ -81,32 +104,36 @@ export default function PreAgendamentoScreen() {
         style={styles.input}
       />
 
-      <Text style={styles.label}>Médico:</Text>
-      <DropDownPicker
-        open={openDoctors}
-        value={doctor}
-        items={doctorsList}
-        setOpen={setOpenDoctors}
-        setValue={setDoctor}
-        setItems={setDoctorsList}
-        placeholder="Selecione um médico"
-        style={styles.dropdown}
-        dropDownContainerStyle={styles.dropdownContainer}
-      />
+      <Text style={styles.label}>Médico</Text>
+      <View style={{ zIndex: openDoctors ? 1000 : 1 }}>
+        <DropDownPicker
+          open={openDoctors}
+          value={doctor}
+          items={doctorsList}
+          setOpen={setOpenDoctors}
+          setValue={setDoctor}
+          setItems={setDoctorsList}
+          placeholder="Selecione um médico"
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownContainer}
+        />
+      </View>
 
-      <Text style={styles.label}>Modalidade:</Text>
-      <DropDownPicker
-        open={openModalidade}
-        value={modalidade}
-        items={modalidadeList}
-        setOpen={setOpenModalidade}
-        setValue={setModalidade}
-        placeholder="Selecione a modalidade"
-        style={styles.dropdown}
-        dropDownContainerStyle={styles.dropdownContainer}
-      />
+      <Text style={styles.label}>Modalidade</Text>
+      <View style={{ zIndex: openModalidade ? 1000 : 0 }}>
+        <DropDownPicker
+          open={openModalidade}
+          value={modalidade}
+          items={modalidadeList}
+          setOpen={setOpenModalidade}
+          setValue={setModalidade}
+          placeholder="Selecione a modalidade"
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownContainer}
+        />
+      </View>
 
-      <Text style={styles.label}>Data Desejada:</Text>
+      <Text style={styles.label}>Data Desejada</Text>
       <TextInput
         value={date}
         onChangeText={setDate}
