@@ -1,25 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import axios from 'axios';
 import { RootStackParamList } from './types';
 
 interface RouteParams {
   userId: number;
+  name?: string;
+  email?: string;
 }
 
 export default function PreAgendamentoScreen() {
   const route = useRoute();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { userId } = route.params as RouteParams;
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  // Garantindo valores padrão caso `params` esteja ausente
+  const { userId, name = 'Usuário', email = 'Não disponível' } = route.params as RouteParams;
+
+  // Estados
   const [phone, setPhone] = useState('');
   const [doctor, setDoctor] = useState<number | null>(null);
   const [modalidade, setModalidade] = useState<string | null>(null);
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(new Date()); // Estado para a data/hora
   const [doctorsList, setDoctorsList] = useState<{ label: string; value: number }[]>([]);
   const [modalidadeList] = useState([
     { label: 'Presencial', value: 'presencial' },
@@ -28,41 +32,51 @@ export default function PreAgendamentoScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [openDoctors, setOpenDoctors] = useState(false);
   const [openModalidade, setOpenModalidade] = useState(false);
+  const [showPicker, setShowPicker] = useState(false); // Controle de visibilidade do DateTimePicker
+  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date'); // Define se o picker é de data ou hora
 
-  // Busca os dados do usuário e médicos
-  const fetchData = async () => {
+  // Busca os dados dos médicos
+  const fetchDoctors = async () => {
     try {
-      const userResponse = await axios.get(`http://192.168.1.8:5000/user/buscar/${userId}`);
-      const { name, email } = userResponse.data;
-      setName(name);
-      setEmail(email);
-
-      const doctorsResponse = await axios.get('http://192.168.1.8:5000/medicos/medicos');
-      const doctorsData = doctorsResponse.data.data.map((doctor: { usuario: string; id: number }) => ({
+      const response = await axios.get('http://192.168.1.8:5000/medicos/medicos');
+      const doctorsData = response.data.data.map((doctor: { usuario: string; id: number }) => ({
         label: doctor.usuario,
         value: doctor.id,
       }));
       setDoctorsList(doctorsData);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível carregar os dados.');
+      Alert.alert('Erro', 'Não foi possível carregar os médicos.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchDoctors();
   }, []);
+
+  // Lógica para lidar com a alteração no DateTimePicker
+  const onChange = (event: any, selectedDate?: Date) => {
+    setShowPicker(false); // Fecha o picker após seleção
+    if (selectedDate) {
+      setDate(selectedDate); // Atualiza a data/hora selecionada
+    }
+  };
+
+  const showMode = (currentMode: 'date' | 'time') => {
+    setPickerMode(currentMode); // Define se será data ou horário
+    setShowPicker(true); // Exibe o picker
+  };
 
   // Lógica para criar o pré-agendamento
   const handlePreAgendamento = async () => {
-    if (!doctor || !modalidade || !date || !phone) {
+    if (!doctor || !modalidade || !phone) {
       Alert.alert('Erro', 'Todos os campos são obrigatórios.');
       return;
     }
 
     try {
-      await axios.post('http://192.168.1.8:5000/pre-agendamentos', {
+      await axios.post('http://192.168.1.8:5000/pre-agendamentos/criar', {
         userId,
         doctor,
         modalidade,
@@ -133,14 +147,20 @@ export default function PreAgendamentoScreen() {
         />
       </View>
 
-      <Text style={styles.label}>Data Desejada</Text>
-      <TextInput
-        value={date}
-        onChangeText={setDate}
-        placeholder="YYYY-MM-DD"
-        keyboardType="default"
-        style={styles.input}
-      />
+      <Text style={styles.label}>Data e Hora</Text>
+      <Text style={styles.selectedDate}>{date.toLocaleString()}</Text>
+      <Button title="Escolher Data" onPress={() => showMode('date')} color="#007bff" />
+      <Button title="Escolher Hora" onPress={() => showMode('time')} color="#007bff" />
+
+      {showPicker && (
+        <DateTimePicker
+          value={date}
+          mode={pickerMode}
+          display="default"
+          onChange={onChange}
+          minimumDate={new Date()} // Bloqueia datas no passado
+        />
+      )}
 
       <Button title="Agendar" onPress={handlePreAgendamento} color="#007bff" />
     </View>
@@ -179,5 +199,10 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     borderColor: '#ccc',
+  },
+  selectedDate: {
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });

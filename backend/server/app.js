@@ -10,6 +10,7 @@
   const historicoRoutes = require('../routes/historicoRoutes');
   const Exames = require('../routes/ExameRoutes');
   const users = require('../routes/mobile/usersRoutes');
+  const preAgendamentoRoutes = require('../routes/mobile/preAgendamentoRoutes');
   const cors = require('cors');
 
   const app = express();
@@ -42,6 +43,7 @@
   app.use('/exames', Exames);
   // rotas do mobile
   app.use('/user',  users);
+  app.use('/pre-agendamentos', preAgendamentoRoutes);
 
   // Iniciar o servidor
   const PORT = process.env.PORT || 5000;
