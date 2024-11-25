@@ -1,48 +1,100 @@
-const connection = require('../../config/database'); // Certifique-se de importar sua configuração de conexão corretamente
+const connection = require('../../config/database');
 
 const PreAgendamentoModel = {
   // Criar um novo pré-agendamento
-  create: (data, callback) => {
-    const query = `
-      INSERT INTO pre_agendamento (user_id, medico_id, modalidade, data_desejada, telefone)
-      VALUES (?, ?, ?, ?, ?)
+  create(preAgendamento, callback) {
+    const sql = `
+      INSERT INTO pre_agendamento 
+      (user_id, medico_id, email, telefone, modalidade, data_desejada, status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-    const values = [data.userId, data.doctorId, data.modalidade, data.date, data.phone];
-    connection.query(query, values, callback);
+    const { userId, doctorId, email, phone, modalidade, date } = preAgendamento;
+    connection.query(
+      sql,
+      [userId, doctorId, email, phone, modalidade, date, 'Pendente'],
+      callback
+    );
   },
 
   // Listar todos os pré-agendamentos
-  list: (callback) => {
-    const query = `SELECT * FROM pre_agendamento`;
-    connection.query(query, callback);
+  list(callback) {
+    const sql = `
+      SELECT 
+        pa.id, 
+        pa.user_id, 
+        u.name AS nome, 
+        pa.email, 
+        pa.telefone, 
+        pa.modalidade, 
+        pa.data_desejada, 
+        pa.status 
+      FROM 
+        pre_agendamento pa
+      LEFT JOIN users u ON pa.user_id = u.id
+    `;
+    connection.query(sql, callback);
   },
 
   // Buscar um pré-agendamento por ID
-  findById: (id, callback) => {
-    const query = `SELECT * FROM pre_agendamento WHERE id = ?`;
-    connection.query(query, [id], callback);
+  findById(id, callback) {
+    const sql = `
+      SELECT 
+        pa.id, 
+        pa.user_id, 
+        u.name AS nome, 
+        pa.email, 
+        pa.telefone, 
+        pa.modalidade, 
+        pa.data_desejada, 
+        pa.status 
+      FROM 
+        pre_agendamento pa
+      LEFT JOIN users u ON pa.user_id = u.id
+      WHERE pa.id = ?
+    `;
+    connection.query(sql, [id], callback);
   },
 
-  // Atualizar um pré-agendamento por ID
-  update: (id, data, callback) => {
-    const query = `
-      UPDATE pre_agendamento
-      SET user_id = ?, medico_id = ?, modalidade = ?, data_desejada = ?, telefone = ?
+  // Atualizar um pré-agendamento por ID (dinâmico)
+  update(id, updateFields, callback) {
+    const keys = Object.keys(updateFields);
+    const values = Object.values(updateFields);
+
+    // Gera o SQL dinamicamente com os campos enviados
+    const fields = keys.map((key) => `${key} = ?`).join(', ');
+
+    const sql = `
+      UPDATE pre_agendamento 
+      SET ${fields} 
       WHERE id = ?
     `;
-    const values = [data.userId, data.doctorId, data.modalidade, data.date, data.phone, id];
-    connection.query(query, values, callback);
+    connection.query(sql, [...values, id], callback);
   },
 
   // Deletar um pré-agendamento por ID
-  delete: (id, callback) => {
-    const query = `DELETE FROM pre_agendamento WHERE id = ?`;
-    connection.query(query, [id], callback);
+  delete(id, callback) {
+    const sql = 'DELETE FROM pre_agendamento WHERE id = ?';
+    connection.query(sql, [id], callback);
   },
 
-  findByUserId: (userId, callback) => {
-    const query = `SELECT * FROM pre_agendamento WHERE user_id = ?`;
-    connection.query(query, [userId], callback);
+  // Buscar pré-agendamentos por usuário
+  findByUserId(userId, callback) {
+    const sql = `
+      SELECT 
+        pa.id, 
+        pa.user_id, 
+        u.name AS nome, 
+        pa.email, 
+        pa.telefone, 
+        pa.modalidade, 
+        pa.data_desejada, 
+        pa.status 
+      FROM 
+        pre_agendamento pa
+      LEFT JOIN users u ON pa.user_id = u.id
+      WHERE pa.user_id = ?
+    `;
+    connection.query(sql, [userId], callback);
   },
 };
 

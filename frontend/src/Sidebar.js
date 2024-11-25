@@ -94,6 +94,9 @@ function Sidebar({ onLogout }) {
                   <Link to="/create-event" className="nav-link text-white">
                     Criar Agendamento
                   </Link>
+                  <Link to="/pre-agenda" className="nav-link text-white">
+                    Pré Agendamento
+                  </Link>
                 </li>
               )}
             </ul>
