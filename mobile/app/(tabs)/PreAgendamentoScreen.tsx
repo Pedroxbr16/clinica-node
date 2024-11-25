@@ -92,7 +92,7 @@ export default function PreAgendamentoScreen() {
         phone,
       });
   
-      Alert.alert('Sucesso', 'Pré-cadastro realizado com sucesso!');
+      Alert.alert('Sucesso', 'Pré-agendamento realizado com sucesso! Um atendente entrará em contado com voçê para confirmar sua consulta');
       navigation.navigate('HomeScreen', { userId, name });
     } catch (error: any) {
       // Agora o TypeScript entende o tipo de "error"
