@@ -4,7 +4,7 @@ const PreAgendamentoModel = {
   // Criar um novo pré-agendamento
   create: (data, callback) => {
     const query = `
-      INSERT INTO pre_agendamento (userId, doctorId, modalidade, date, phone)
+      INSERT INTO pre_agendamento (user_id, medico_id, modalidade, data_desejada, telefone)
       VALUES (?, ?, ?, ?, ?)
     `;
     const values = [data.userId, data.doctorId, data.modalidade, data.date, data.phone];
@@ -27,7 +27,7 @@ const PreAgendamentoModel = {
   update: (id, data, callback) => {
     const query = `
       UPDATE pre_agendamento
-      SET userId = ?, doctorId = ?, modalidade = ?, date = ?, phone = ?
+      SET user_id = ?, medico_id = ?, modalidade = ?, data_desejada = ?, telefone = ?
       WHERE id = ?
     `;
     const values = [data.userId, data.doctorId, data.modalidade, data.date, data.phone, id];
@@ -39,16 +39,11 @@ const PreAgendamentoModel = {
     const query = `DELETE FROM pre_agendamento WHERE id = ?`;
     connection.query(query, [id], callback);
   },
-  
+
   findByUserId: (userId, callback) => {
-    const query = `SELECT * FROM pre_agendamento WHERE userId = ?`;
+    const query = `SELECT * FROM pre_agendamento WHERE user_id = ?`;
     connection.query(query, [userId], callback);
   },
-
-
 };
-
-
-
 
 module.exports = PreAgendamentoModel;
