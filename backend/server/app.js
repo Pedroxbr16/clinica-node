@@ -22,8 +22,11 @@
   app.use(cors({
     origin:[ 'http://localhost:8081',
       'http://localhost:8081',
-      'exp://192.168.1.8:8081',
-      'http://localhost:3000'
+      'exp://192.168.1.5:8081',
+      'exp://192.168.27.163:8081',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://192.168.1.1'
     ],// Caso esteja usando Expo Go no dispositivo // URL do seu frontend
     methods: ['GET', 'POST','PUT','DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
