@@ -6,6 +6,7 @@ import HomeScreen from "./app/screens/HomeScreen";
 import CreateAccountScreen from "./app/screens/CreateAccountScreen";
 import PreAgendamentoScreen from "./app/screens/PreAgendamentoScreen";
 import SettingsScreen from "./app/screens/SettingsScreen";
+import ConsultaPreAgendamentoScreen from "./app/screens/ConsultaPreAgendamentoScreen"
 
 const Stack = createStackNavigator();
 
@@ -18,6 +19,7 @@ export default function App() {
         <Stack.Screen name="CreateAccountScreen" component={CreateAccountScreen} />
         <Stack.Screen name="PreAgendamentoScreen" component={PreAgendamentoScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+        <Stack.Screen name="ConsultaPreAgendamentoScreen" component={ConsultaPreAgendamentoScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

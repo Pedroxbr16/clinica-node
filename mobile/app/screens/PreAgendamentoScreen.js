@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert, Platform, ScrollView } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  Alert,
+  Platform,
+  ScrollView,
+  KeyboardAvoidingView,
+} from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { API_URL } from "@env";
@@ -19,9 +29,6 @@ export default function PreAgendamentoScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedHorario, setSelectedHorario] = useState(null);
   const [doctorsList, setDoctorsList] = useState([]);
-  const [openDoctors, setOpenDoctors] = useState(false);
-  const [openModalidade, setOpenModalidade] = useState(false);
-  const [openHorarios, setOpenHorarios] = useState(false);
 
   const horariosFixos = [
     "08:00",
@@ -48,7 +55,7 @@ export default function PreAgendamentoScreen() {
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
       const { email, phone } = response.data;
       setEmail(email);
-      setPhone(formatPhone(phone)); // Aplica máscara ao telefone
+      setPhone(formatPhone(phone));
     } catch (error) {
       Alert.alert("Erro", "Não foi possível buscar os dados do usuário.");
     }
@@ -68,7 +75,7 @@ export default function PreAgendamentoScreen() {
   };
 
   const formatPhone = (text) => {
-    const cleaned = text.replace(/\D/g, ""); // Remove caracteres não numéricos
+    const cleaned = text.replace(/\D/g, "");
     const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
     if (match) {
       return `(${match[1]}) ${match[2]}-${match[3]}`;
@@ -77,7 +84,7 @@ export default function PreAgendamentoScreen() {
   };
 
   const handlePhoneInput = (text) => {
-    setPhone(formatPhone(text)); // Atualiza o estado com a máscara
+    setPhone(formatPhone(text));
   };
 
   const handleDateChange = (event, selectedDate) => {
@@ -92,128 +99,146 @@ export default function PreAgendamentoScreen() {
       Alert.alert("Erro", "Preencha todos os campos antes de realizar o pré-cadastro.");
       return;
     }
-  
+
     try {
-      const formattedPhone = phone.replace(/\D/g, ""); // Remove máscara do telefone
-      const formattedDate = date.toISOString().split("T")[0] + ` ${selectedHorario}`;
+      const formattedPhone = phone.replace(/\D/g, "");
+      const formattedDate =
+        date.toISOString().split("T")[0] + ` ${selectedHorario}`;
       console.log("Enviando dados para o backend:", {
         userId,
         doctorId: doctor,
-        email, // Inclui o email
+        email,
         modalidade,
         date: formattedDate,
         phone: formattedPhone,
       });
-  
+
       await axios.post(`${API_URL}/pre-agendamentos/criar`, {
         userId,
         doctorId: doctor,
-        email, // Inclui o email na requisição
+        email,
         modalidade,
         date: formattedDate,
         phone: formattedPhone,
       });
-  
+
       Alert.alert("Sucesso", "Pré-agendamento realizado com sucesso!");
       navigation.navigate("HomeScreen", { userId, name });
     } catch (error) {
-      console.log("Erro na resposta do backend:", error.response?.data || error.message);
+      console.log(
+        "Erro na resposta do backend:",
+        error.response?.data || error.message
+      );
       Alert.alert(
         "Erro",
         error.response?.data?.message || "Não foi possível concluir o pré-cadastro."
       );
     }
   };
-  
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Pré-Cadastro</Text>
+    <KeyboardAvoidingView style={styles.safeContainer} behavior="height">
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          <Text style={styles.title}>Pré-Cadastro</Text>
 
-        <Text style={styles.label}>Nome</Text>
-        <TextInput style={styles.input} value={name} editable={false} />
+          <Text style={styles.label}>Nome</Text>
+          <TextInput style={styles.input} value={name} editable={false} />
 
-        <Text style={styles.label}>E-mail</Text>
-        <TextInput style={styles.input} value={email} editable={false} />
+          <Text style={styles.label}>E-mail</Text>
+          <TextInput style={styles.input} value={email} editable={false} />
 
-        <Text style={styles.label}>Telefone</Text>
-        <TextInput
-          style={styles.input}
-          value={phone}
-          onChangeText={handlePhoneInput}
-          placeholder="Digite seu telefone"
-          keyboardType="phone-pad"
-        />
-
-        <Text style={styles.label}>Médico</Text>
-        <View style={{ zIndex: 3 }}>
-          <DropDownPicker
-            open={openDoctors}
-            value={doctor}
-            items={doctorsList}
-            setOpen={setOpenDoctors}
-            setValue={setDoctor}
-            placeholder="Selecione um médico"
-            style={styles.dropdown}
+          <Text style={styles.label}>Telefone</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={handlePhoneInput}
+            placeholder="Digite seu telefone"
+            keyboardType="phone-pad"
           />
+
+          <Text style={styles.label}>Médico</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={doctor}
+              onValueChange={(itemValue) => setDoctor(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Selecione um médico" value={null} />
+              {doctorsList.map((doctor) => (
+                <Picker.Item
+                  key={doctor.value}
+                  label={doctor.label}
+                  value={doctor.value}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Modalidade</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={modalidade}
+              onValueChange={(itemValue) => setModalidade(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Selecione a modalidade" value={null} />
+              {modalidades.map((modalidade) => (
+                <Picker.Item
+                  key={modalidade.value}
+                  label={modalidade.label}
+                  value={modalidade.value}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Data</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Selecione uma data"
+            value={date.toLocaleDateString("pt-BR")}
+            onFocus={() => setShowDatePicker(true)}
+          />
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "calendar"}
+              onChange={handleDateChange}
+            />
+          )}
+
+          <Text style={styles.label}>Horário</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedHorario}
+              onValueChange={(itemValue) => setSelectedHorario(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Selecione um horário" value={null} />
+              {horariosFixos.map((horario) => (
+                <Picker.Item key={horario} label={horario} value={horario} />
+              ))}
+            </Picker>
+          </View>
+
+          <Button title="Concluir Pré-Cadastro" onPress={handlePreCadastro} />
         </View>
-
-        <Text style={styles.label}>Modalidade</Text>
-        <View style={{ zIndex: 2 }}>
-          <DropDownPicker
-            open={openModalidade}
-            value={modalidade}
-            items={modalidades}
-            setOpen={setOpenModalidade}
-            setValue={setModalidade}
-            placeholder="Selecione a modalidade"
-            style={styles.dropdown}
-          />
-        </View>
-
-        <Text style={styles.label}>Data</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Selecione uma data"
-          value={date.toLocaleDateString("pt-BR")}
-          onFocus={() => setShowDatePicker(true)}
-        />
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "calendar"}
-            onChange={handleDateChange}
-          />
-        )}
-
-        <Text style={styles.label}>Horário</Text>
-        <View style={{ zIndex: 1 }}>
-          <DropDownPicker
-            open={openHorarios}
-            value={selectedHorario}
-            items={horariosFixos.map((horario) => ({
-              label: horario,
-              value: horario,
-            }))}
-            setOpen={setOpenHorarios}
-            setValue={setSelectedHorario}
-            placeholder="Selecione um horário"
-            style={styles.dropdown}
-          />
-        </View>
-
-        <Button title="Concluir Pré-Cadastro" onPress={handlePreCadastro} />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+  },
   scrollContainer: {
     flexGrow: 1,
-    paddingBottom: 20,
   },
   container: {
     flex: 1,
@@ -221,24 +246,36 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   title: {
-    fontSize: 24,
+    fontSize: 26, // Aumentei o tamanho da fonte
     marginBottom: 20,
     textAlign: "center",
+    fontWeight: "bold",
   },
   input: {
-    height: 40,
+    height: 50, // Aumentei a altura do campo de entrada
     borderColor: "#ccc",
     borderWidth: 1,
-    marginBottom: 15,
-    borderRadius: 5,
-    paddingHorizontal: 10,
+    marginBottom: 20, // Aumentei o espaçamento entre os campos
+    borderRadius: 8, // Aumentei o arredondamento
+    paddingHorizontal: 12,
+    fontSize: 18, // Aumentei o tamanho da fonte
     backgroundColor: "#fff",
   },
-  dropdown: {
-    marginBottom: 15,
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8, // Aumentei o arredondamento
+    marginBottom: 20, // Aumentei o espaçamento entre os campos
+    backgroundColor: "#fff",
+  },
+  picker: {
+    height: 50, // Aumentei a altura do picker
+    fontSize: 18, // Aumentei o tamanho da fonte no picker
   },
   label: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 18, // Aumentei o tamanho da fonte do rótulo
+    marginBottom: 8, // Dei mais espaçamento entre o rótulo e os campos
+    fontWeight: "500", // Adicionei peso à fonte para maior legibilidade
   },
 });
+

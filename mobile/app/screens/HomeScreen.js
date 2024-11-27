@@ -20,6 +20,10 @@ export default function HomeScreen() {
     navigation.navigate("PreAgendamentoScreen", { userId, name });
   };
 
+  const handledConsultaPreAgendamento =() =>{
+    console.log("navegando para a tela de consulta de PreAgendamento" ,{ userId});
+    navigation.navigate("ConsultaPreAgendamentoScreen", { userId});
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bem-vindo à Clínica, {name}!</Text>
@@ -37,6 +41,10 @@ export default function HomeScreen() {
       {/* Botão de Pré-Agendamento */}
       <TouchableOpacity style={styles.button} onPress={handlePreAgendamento}>
         <Text style={styles.buttonText}>Criar Agendamento</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={handledConsultaPreAgendamento}>
+        <Text style={styles.buttonText}>Pre Agendamentos</Text>
       </TouchableOpacity>
     </View>
   );

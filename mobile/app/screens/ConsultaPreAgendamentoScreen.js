@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from "react-native";
 import axios from "axios";
 import { useRoute } from "@react-navigation/native";
@@ -15,21 +16,22 @@ export default function PreAgendamentosScreen() {
   const route = useRoute();
   const { userId } = route.params || {};
   const [preAgendamentos, setPreAgendamentos] = useState([]);
-  const [medicos, setMedicos] = useState([]);
+  const [medicosMap, setMedicosMap] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     carregarDados();
   }, []);
 
-  // Função para buscar médicos
+  // Função para buscar médicos e criar um mapeamento { id: nome }
   const fetchMedicos = async () => {
     try {
       const response = await axios.get(`${API_URL}/medicos/medicos`);
-      const medicosData = Array.isArray(response.data.data)
-        ? response.data.data
-        : [];
-      setMedicos(medicosData);
+      const medicosData = response.data.data.reduce((acc, medico) => {
+        acc[medico.id] = medico.usuario; // Mapeia id para nome
+        return acc;
+      }, {});
+      setMedicosMap(medicosData);
     } catch (error) {
       console.error("Erro ao buscar médicos:", error.message);
       throw error;
@@ -76,43 +78,46 @@ export default function PreAgendamentosScreen() {
     }
   };
 
-  const renderItem = ({ item }) => {
-    const medico = medicos.find((medico) => medico.id === item.medico_id); // Encontra o médico pelo ID
-    return (
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>
-          Médico: {medico ? medico.usuario : "Não encontrado"}
-        </Text>
-        <Text style={styles.cardText}>Modalidade: {item.modalidade}</Text>
-        <Text style={styles.cardText}>Data: {item.data}</Text>
-        <Text style={styles.cardText}>Horário: {item.data.split(" ")[1]}</Text>
-        <Text style={styles.cardText}>Status: {item.status}</Text>
-      </View>
-    );
-  };
+  const renderItem = ({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>
+        Médico: {medicosMap[item.medico_id] || "Não encontrado"}
+      </Text>
+      <Text style={styles.cardText}>Modalidade: {item.modalidade}</Text>
+      <Text style={styles.cardText}>Data: {item.data}</Text>
+      <Text style={styles.cardText}>Horário: {item.data.split(" ")[1]}</Text>
+      <Text style={styles.cardText}>Status: {item.status}</Text>
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Meus Pré-Agendamentos</Text>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : preAgendamentos.length === 0 ? (
-        <Text style={styles.emptyText}>
-          Nenhum pré-agendamento encontrado.
-        </Text>
-      ) : (
-        <FlatList
-          data={preAgendamentos}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
-    </View>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Meus Pré-Agendamentos</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#007AFF" />
+        ) : preAgendamentos.length === 0 ? (
+          <Text style={styles.emptyText}>
+            Nenhum pré-agendamento encontrado.
+          </Text>
+        ) : (
+          <FlatList
+            data={preAgendamentos}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContainer}
+          />
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   container: {
     flex: 1,
     padding: 20,
