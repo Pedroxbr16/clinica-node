@@ -1,14 +1,20 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import axios, { AxiosError } from "axios";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "./types";
-import { API_URL } from "@env"; // Importa o API_URL do arquivo .env
+import { useNavigation } from "@react-navigation/native";
+import { API_URL } from "@env";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Tipar navegação
+  const navigation = useNavigation();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -24,9 +30,12 @@ export default function LoginScreen() {
 
       if (response.data.user) {
         Alert.alert("Sucesso", "Login realizado com sucesso!");
-        setEmail(""); // Reseta o campo email
-        setPassword(""); // Reseta o campo senha
-        navigation.navigate("HomeScreen", { name: response.data.user.name, userId: response.data.user.id }); // Passa nome e id
+        setEmail("");
+        setPassword("");
+        navigation.navigate("HomeScreen", {
+          name: response.data.user.name,
+          userId: response.data.user.id,
+        });
       } else {
         Alert.alert("Erro", "Credenciais inválidas.");
       }
@@ -50,6 +59,7 @@ export default function LoginScreen() {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
+        placeholderTextColor="#999"
       />
 
       <TextInput
@@ -58,15 +68,19 @@ export default function LoginScreen() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        placeholderTextColor="#999"
       />
 
-      <Button title="Entrar" onPress={handleLogin} />
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Entrar</Text>
+      </TouchableOpacity>
 
-      <Button
-        title="Criar Conta"
+      <TouchableOpacity
+        style={styles.secondaryButton}
         onPress={() => navigation.navigate("CreateAccountScreen")}
-        color="gray"
-      />
+      >
+        <Text style={styles.secondaryButtonText}>Criar Conta</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -75,22 +89,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     backgroundColor: "#f5f5f5",
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
+    color: "#333",
+    marginBottom: 30,
   },
   input: {
-    height: 40,
-    borderColor: "#ccc",
+    width: "100%",
+    height: 50,
     borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    fontSize: 16,
     marginBottom: 15,
-    borderRadius: 5,
-    paddingHorizontal: 10,
     backgroundColor: "#fff",
+    color: "#333",
+  },
+  button: {
+    width: "100%",
+    height: 50,
+    backgroundColor: "#007BFF",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  secondaryButton: {
+    marginTop: 10,
+  },
+  secondaryButtonText: {
+    color: "#007BFF",
+    fontSize: 16,
   },
 });

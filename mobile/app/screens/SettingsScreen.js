@@ -1,32 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
-import { API_URL } from '@env'; // Importa o API_URL do .env
-import { RootStackParamList } from './types'; // Certifique-se de ajustar o caminho
-
-interface RouteParams {
-  userId: number; // ID do usuário recebido pela navegação
-}
+import { API_URL } from '@env';
 
 export default function SettingsScreen() {
   const route = useRoute();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Tipando a navegação
-  const { userId } = route.params as RouteParams; // Tipando os parâmetros da rota
+  const navigation = useNavigation();
+  const { userId } = route.params;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); // Campo para senha
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Função para buscar os dados do usuário pelo ID
   const fetchUserData = async () => {
     try {
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
-      const { name, email, password } = response.data; // Inclui a senha na resposta
+      const { name, email, password } = response.data;
       setName(name);
       setEmail(email);
-      setPassword(password); // Atualiza o campo de senha
+      setPassword(password);
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível buscar os dados do usuário.');
     } finally {
@@ -34,7 +28,6 @@ export default function SettingsScreen() {
     }
   };
 
-  // Função para atualizar os dados do usuário
   const handleUpdate = async () => {
     if (!name || !email || !password) {
       Alert.alert('Erro', 'Nome, e-mail e senha não podem estar vazios.');
@@ -49,7 +42,6 @@ export default function SettingsScreen() {
     }
   };
 
-  // Busca os dados do usuário assim que a tela é montada
   useEffect(() => {
     fetchUserData();
   }, []);
@@ -96,7 +88,7 @@ export default function SettingsScreen() {
 
       <Button
         title="Voltar"
-        onPress={() => navigation.navigate('HomeScreen', { name, userId })} // Passando parâmetros para HomeScreen
+        onPress={() => navigation.navigate('HomeScreen', { name, userId })}
         color="gray"
       />
     </View>
