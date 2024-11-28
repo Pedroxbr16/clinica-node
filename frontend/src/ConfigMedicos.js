@@ -1,153 +1,116 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
-import axios from "axios";
-import { useRoute } from "@react-navigation/native";
-import { API_URL } from "@env";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
-export default function PreAgendamentosScreen() {
-  const route = useRoute();
-  const { userId } = route.params || {};
-  const [preAgendamentos, setPreAgendamentos] = useState([]);
-  const [medicos, setMedicos] = useState([]);
-  const [loading, setLoading] = useState(true);
+function Login({ onLogin }) {
+  const [usuario, setUsuario] = useState('');
+  const [senha, setSenha] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    carregarDados();
-  }, []);
+  const navigate = useNavigate();
 
-  // Função para buscar médicos
-  const fetchMedicos = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/medicos/medicos`);
-      const medicosData = Array.isArray(response.data.data)
-        ? response.data.data
-        : [];
-      setMedicos(medicosData);
-    } catch (error) {
-      console.error("Erro ao buscar médicos:", error.message);
-      throw error;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!usuario || !senha) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos obrigatórios',
+        text: 'Por favor, preencha todos os campos.',
+      });
+      return;
     }
-  };
 
-  // Função para buscar pré-agendamentos
-  const fetchPreAgendamentos = async (userId) => {
-    try {
-      const response = await axios.get(
-        `${API_URL}/pre-agendamentos/usuario/${userId}`
-      );
-      return response.data.data.map((agendamento) => ({
-        ...agendamento,
-        data: new Date(agendamento.data_desejada).toLocaleString("pt-BR", {
-          timeZone: "UTC",
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      }));
-    } catch (error) {
-      console.error("Erro ao buscar pré-agendamentos:", error.message);
-      throw error;
-    }
-  };
+    setLoading(true);
 
-  // Função principal para carregar dados
-  const carregarDados = async () => {
     try {
-      setLoading(true);
-      await fetchMedicos(); // Primeiro busca os médicos
-      const agendamentos = await fetchPreAgendamentos(userId); // Depois busca os pré-agendamentos
-      setPreAgendamentos(agendamentos);
+      const response = await axios.post('http://localhost:5000/api/login', { usuario, senha });
+
+      const { token, role } = response.data;
+
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userType', role);
+      localStorage.setItem('token', token);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Login bem-sucedido',
+        text: 'Bem-vindo ao sistema!',
+      }).then(() => {
+        onLogin();
+        if (role === 'medico') navigate('/medico-home');
+        else if (role === 'atendente') navigate('/atendente-home');
+        else if (role === 'adm') navigate('/admin-home');
+        else navigate('/');
+      });
     } catch (error) {
-      Alert.alert(
-        "Erro",
-        "Não foi possível carregar os dados. Tente novamente mais tarde."
-      );
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro no login',
+        text: 'Usuário ou senha inválidos. Por favor, tente novamente.',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const renderItem = ({ item }) => {
-    const medico = medicos.find((medico) => medico.id === item.medico_id); // Encontra o médico pelo ID
-    return (
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>
-          Médico: {medico ? medico.usuario : "Não encontrado"}
-        </Text>
-        <Text style={styles.cardText}>Modalidade: {item.modalidade}</Text>
-        <Text style={styles.cardText}>Data: {item.data}</Text>
-        <Text style={styles.cardText}>Horário: {item.data.split(" ")[1]}</Text>
-        <Text style={styles.cardText}>Status: {item.status}</Text>
-      </View>
-    );
+  const toggleShowPassword = () => {
+    setShowPassword((prev) => !prev);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Meus Pré-Agendamentos</Text>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : preAgendamentos.length === 0 ? (
-        <Text style={styles.emptyText}>
-          Nenhum pré-agendamento encontrado.
-        </Text>
-      ) : (
-        <FlatList
-          data={preAgendamentos}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
-    </View>
+    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+      <div className="card shadow p-4" style={{ maxWidth: '400px', width: '100%' }}>
+        <h2 className="text-center mb-4">Clinica Corpart</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label htmlFor="usuario" className="form-label">Usuário</label>
+            <input
+              type="text"
+              className="form-control"
+              id="usuario"
+              placeholder="Insira seu usuário"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="senha" className="form-label">Senha</label>
+            <div className="input-group">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="form-control"
+                id="senha"
+                placeholder="Sua senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+              />
+              <span
+                className="input-group-text"
+                style={{ cursor: 'pointer' }}
+                onClick={toggleShowPassword}
+              >
+                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+              </span>
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="btn btn-success w-100 mb-3"
+            disabled={loading}
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  listContainer: {
-    paddingBottom: 20,
-  },
-  card: {
-    backgroundColor: "#f8f8f8",
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  cardText: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  emptyText: {
-    fontSize: 18,
-    textAlign: "center",
-    color: "#aaa",
-    marginTop: 50,
-  },
-});
+export default Login;

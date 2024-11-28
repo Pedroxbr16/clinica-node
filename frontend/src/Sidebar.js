@@ -30,6 +30,10 @@ function Sidebar({ onLogout }) {
     navigate('/login'); // Redireciona para a tela de login
   };
 
+  const handleEstoque = () => {
+    navigate('../estoque');
+  }
+
   return (
     <div className="sidebar">
       <h2>
@@ -120,6 +124,9 @@ function Sidebar({ onLogout }) {
         )}
       </ul>
       <div className="sidebar-footer mt-auto">
+      <button onClick={handleEstoque} className="button">
+          Estoque
+        </button>
         <button onClick={handleLogoutClick} className="logout-button">
           Deslogar
         </button>
