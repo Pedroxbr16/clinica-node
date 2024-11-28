@@ -1,9 +1,12 @@
 const connection = require('../../config/database'); // Importe sua conexão com o banco de dados
 
 // Função para criar um novo usuário
-const createUser = (name, email, password, callback) => {
-  const sql = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-  connection.query(sql, [name, email, password], (err, results) => {
+const createUser = (name, email, password, cpf, data_de_nascimento, genero, callback) => {
+  const sql = `
+    INSERT INTO users (name, email, password, cpf, data_de_nascimento, genero)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  connection.query(sql, [name, email, password, cpf, data_de_nascimento, genero], (err, results) => {
     callback(err, results);
   });
 };
@@ -25,13 +28,13 @@ const authenticateUser = (email, password, callback) => {
 };
 
 // Função para atualizar um usuário
-const updateUser = (id, name, email, password, callback) => {
+const updateUser = (id, name, email, password, cpf, data_de_nascimento, genero, callback) => {
   const sql = `
     UPDATE users
-    SET name = ?, email = ?, password = ?
+    SET name = ?, email = ?, password = ?, cpf = ?, data_de_nascimento = ?, genero = ?
     WHERE id = ?
   `;
-  connection.query(sql, [name, email, password, id], (err, results) => {
+  connection.query(sql, [name, email, password, cpf, data_de_nascimento, genero, id], (err, results) => {
     callback(err, results);
   });
 };

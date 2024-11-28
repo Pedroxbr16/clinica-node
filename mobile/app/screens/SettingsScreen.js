@@ -1,8 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { API_URL } from '@env';
+
+// Função para formatar a data no formato DD/MM/YYYY
+const formatDateToDisplay = (isoDate) => {
+  if (!isoDate) return '';
+  const date = new Date(isoDate);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Janeiro é 0
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Função para formatar a data para o padrão ISO antes de enviar ao backend
+const formatDateToISO = (dateString) => {
+  const [day, month, year] = dateString.split('/');
+  return `${year}-${month}-${day}`;
+};
 
 export default function SettingsScreen() {
   const route = useRoute();
@@ -12,15 +29,31 @@ export default function SettingsScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
+  const [genero, setGenero] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  const formatCpf = (text) => {
+    return text
+      .replace(/\D/g, '')
+      .slice(0, 11)
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
 
   const fetchUserData = async () => {
     try {
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
-      const { name, email, password } = response.data;
+      const { name, email, password, cpf, data_de_nascimento, genero } = response.data;
+
       setName(name);
       setEmail(email);
       setPassword(password);
+      setCpf(cpf);
+      setDataNascimento(formatDateToDisplay(data_de_nascimento)); // Formata a data para exibição
+      setGenero(genero);
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível buscar os dados do usuário.');
     } finally {
@@ -29,13 +62,20 @@ export default function SettingsScreen() {
   };
 
   const handleUpdate = async () => {
-    if (!name || !email || !password) {
-      Alert.alert('Erro', 'Nome, e-mail e senha não podem estar vazios.');
+    if (!name || !email || !password || !cpf || !dataNascimento || !genero) {
+      Alert.alert('Erro', 'Todos os campos são obrigatórios.');
       return;
     }
 
     try {
-      await axios.put(`${API_URL}/user/atualizar/${userId}`, { name, email, password });
+      await axios.put(`${API_URL}/user/atualizar/${userId}`, {
+        name,
+        email,
+        password,
+        cpf,
+        data_de_nascimento: formatDateToISO(dataNascimento), // Converte a data para o formato ISO
+        genero,
+      });
       Alert.alert('Sucesso', 'Dados atualizados com sucesso!');
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível atualizar os dados do usuário.');
@@ -83,6 +123,38 @@ export default function SettingsScreen() {
         placeholder="Digite sua nova senha"
         secureTextEntry
       />
+
+      <Text style={styles.label}>CPF</Text>
+      <TextInput
+        style={styles.input}
+        value={cpf}
+        onChangeText={(text) => setCpf(formatCpf(text))}
+        placeholder="Digite seu CPF"
+        keyboardType="numeric"
+        maxLength={14}
+      />
+
+      <Text style={styles.label}>Data de Nascimento</Text>
+      <TextInput
+        style={styles.input}
+        value={dataNascimento}
+        onChangeText={setDataNascimento}
+        placeholder="Digite sua data de nascimento (DD/MM/YYYY)"
+        keyboardType="numeric"
+        maxLength={10}
+      />
+
+      <Text style={styles.label}>Gênero</Text>
+      <Picker
+        selectedValue={genero}
+        style={styles.input}
+        onValueChange={(itemValue) => setGenero(itemValue)}
+      >
+        <Picker.Item label="Selecione o gênero" value="" />
+        <Picker.Item label="Masculino" value="Masculino" />
+        <Picker.Item label="Feminino" value="Feminino" />
+        <Picker.Item label="Outro" value="Outro" />
+      </Picker>
 
       <Button title="Salvar Alterações" onPress={handleUpdate} />
 

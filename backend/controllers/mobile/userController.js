@@ -2,9 +2,9 @@ const User = require('../../models/mobile/User');
 
 // Criar um novo usuário
 exports.createUser = (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, cpf, data_de_nascimento, genero } = req.body;
 
-  console.log("Tentativa de criar usuário:", { name, email });
+  console.log("Tentativa de criar usuário:", { name, email, cpf });
 
   User.findUserByEmail(email, (err, existingUser) => {
     if (err) {
@@ -17,7 +17,7 @@ exports.createUser = (req, res) => {
       return res.status(400).json({ message: 'E-mail já cadastrado.' });
     }
 
-    User.createUser(name, email, password, (err, results) => {
+    User.createUser(name, email, password, cpf, data_de_nascimento, genero, (err, results) => {
       if (err) {
         console.error("Erro ao criar usuário:", err);
         return res.status(500).json({ message: 'Erro ao criar usuário', error: err });
@@ -54,11 +54,11 @@ exports.loginUser = (req, res) => {
 // Atualizar um usuário
 exports.updateUser = (req, res) => {
   const userId = req.params.id;
-  const { name, email, password } = req.body;
+  const { name, email, password, cpf, data_de_nascimento, genero } = req.body;
 
-  console.log("Tentativa de atualizar usuário:", { userId, name, email });
+  console.log("Tentativa de atualizar usuário:", { userId, name, email, cpf });
 
-  User.updateUser(userId, name, email, password, (err, results) => {
+  User.updateUser(userId, name, email, password, cpf, data_de_nascimento, genero, (err, results) => {
     if (err) {
       console.error("Erro ao atualizar usuário:", err);
       return res.status(500).json({ message: 'Erro ao atualizar usuário.', error: err });
@@ -73,6 +73,7 @@ exports.updateUser = (req, res) => {
     res.status(200).json({ message: 'Usuário atualizado com sucesso!' });
   });
 };
+
 // Buscar usuário pelo ID
 exports.getUserById = (req, res) => {
   const userId = req.params.id;
