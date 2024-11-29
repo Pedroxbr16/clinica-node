@@ -1,61 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import axios from 'axios';
-import { API_URL } from '@env';
-
-// Função para formatar a data no formato DD/MM/YYYY
-const formatDateToDisplay = (isoDate) => {
-  if (!isoDate) return '';
-  const date = new Date(isoDate);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Janeiro é 0
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-
-// Função para formatar a data para o padrão ISO antes de enviar ao backend
-const formatDateToISO = (dateString) => {
-  const [day, month, year] = dateString.split('/');
-  return `${year}-${month}-${day}`;
-};
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import { API_URL } from "@env";
 
 export default function SettingsScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   const { userId } = route.params;
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [dataNascimento, setDataNascimento] = useState('');
-  const [genero, setGenero] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
+  const [genero, setGenero] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-
-  const formatCpf = (text) => {
-    return text
-      .replace(/\D/g, '')
-      .slice(0, 11)
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-  };
 
   const fetchUserData = async () => {
     try {
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
-      const { name, email, password, cpf, data_de_nascimento, genero } = response.data;
+      const { name, email, password, cpf, data_de_nascimento, genero } =
+        response.data;
 
       setName(name);
       setEmail(email);
       setPassword(password);
       setCpf(cpf);
-      setDataNascimento(formatDateToDisplay(data_de_nascimento)); // Formata a data para exibição
+      setDataNascimento(data_de_nascimento); // Ajustado para receber a data do backend
       setGenero(genero);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível buscar os dados do usuário.');
+      Alert.alert("Erro", "Não foi possível buscar os dados do usuário.");
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +49,7 @@ export default function SettingsScreen() {
 
   const handleUpdate = async () => {
     if (!name || !email || !password || !cpf || !dataNascimento || !genero) {
-      Alert.alert('Erro', 'Todos os campos são obrigatórios.');
+      Alert.alert("Erro", "Todos os campos são obrigatórios.");
       return;
     }
 
@@ -73,12 +59,15 @@ export default function SettingsScreen() {
         email,
         password,
         cpf,
-        data_de_nascimento: formatDateToISO(dataNascimento), // Converte a data para o formato ISO
+        data_de_nascimento: dataNascimento,
         genero,
       });
-      Alert.alert('Sucesso', 'Dados atualizados com sucesso!');
+      Alert.alert("Sucesso", "Dados atualizados com sucesso!");
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível atualizar os dados do usuário.');
+      Alert.alert(
+        "Erro",
+        error.response?.data?.message || "Não foi possível atualizar os dados."
+      );
     }
   };
 
@@ -95,103 +84,114 @@ export default function SettingsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Configurações</Text>
-
-      <Text style={styles.label}>Nome</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="Digite seu nome"
-      />
-
-      <Text style={styles.label}>E-mail</Text>
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Digite seu e-mail"
-        keyboardType="email-address"
-      />
-
-      <Text style={styles.label}>Senha</Text>
-      <TextInput
-        style={styles.input}
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Digite sua nova senha"
-        secureTextEntry
-      />
-
-      <Text style={styles.label}>CPF</Text>
-      <TextInput
-        style={styles.input}
-        value={cpf}
-        onChangeText={(text) => setCpf(formatCpf(text))}
-        placeholder="Digite seu CPF"
-        keyboardType="numeric"
-        maxLength={14}
-      />
-
-      <Text style={styles.label}>Data de Nascimento</Text>
-      <TextInput
-        style={styles.input}
-        value={dataNascimento}
-        onChangeText={setDataNascimento}
-        placeholder="Digite sua data de nascimento (DD/MM/YYYY)"
-        keyboardType="numeric"
-        maxLength={10}
-      />
-
-      <Text style={styles.label}>Gênero</Text>
-      <Picker
-        selectedValue={genero}
-        style={styles.input}
-        onValueChange={(itemValue) => setGenero(itemValue)}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
       >
-        <Picker.Item label="Selecione o gênero" value="" />
-        <Picker.Item label="Masculino" value="Masculino" />
-        <Picker.Item label="Feminino" value="Feminino" />
-        <Picker.Item label="Outro" value="Outro" />
-      </Picker>
+        <View style={styles.container}>
+          <Text style={styles.title}>Configurações</Text>
 
-      <Button title="Salvar Alterações" onPress={handleUpdate} />
+          <Text style={styles.label}>Nome</Text>
+          <TextInput
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="Digite seu nome"
+          />
 
-      <Button
-        title="Voltar"
-        onPress={() => navigation.navigate('HomeScreen', { name, userId })}
-        color="gray"
-      />
-    </View>
+          <Text style={styles.label}>E-mail</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Digite seu e-mail"
+            keyboardType="email-address"
+          />
+
+          <Text style={styles.label}>Senha</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Digite sua nova senha"
+            secureTextEntry
+          />
+
+          <Text style={styles.label}>CPF</Text>
+          <TextInput
+            style={styles.input}
+            value={cpf}
+            onChangeText={setCpf}
+            placeholder="Digite seu CPF"
+            keyboardType="numeric"
+            maxLength={14}
+          />
+
+          <Text style={styles.label}>Data de Nascimento</Text>
+          <TextInput
+            style={styles.input}
+            value={dataNascimento}
+            onChangeText={setDataNascimento}
+            placeholder="Digite sua data de nascimento"
+          />
+
+          <Text style={styles.label}>Gênero</Text>
+          <Picker
+            selectedValue={genero}
+            style={styles.input}
+            onValueChange={(itemValue) => setGenero(itemValue)}
+          >
+            <Picker.Item label="Selecione o gênero" value="" />
+            <Picker.Item label="Masculino" value="Masculino" />
+            <Picker.Item label="Feminino" value="Feminino" />
+            <Picker.Item label="Outro" value="Outro" />
+          </Picker>
+
+          <Button title="Salvar Alterações" onPress={handleUpdate} />
+
+          <Button
+            title="Voltar"
+            onPress={() => navigation.navigate("HomeScreen", { name, userId })}
+            color="gray"
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: "#f5f5f5",
     padding: 20,
-    backgroundColor: '#f5f5f5',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
   },
   input: {
-    height: 40,
-    borderColor: '#ccc',
+    height: 50,
+    borderColor: "#ccc",
     borderWidth: 1,
     marginBottom: 15,
-    borderRadius: 5,
+    borderRadius: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
 });

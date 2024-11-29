@@ -25,8 +25,8 @@ export default function PreAgendamentoScreen() {
   const [phone, setPhone] = useState("");
   const [doctor, setDoctor] = useState(null);
   const [modalidade, setModalidade] = useState(null);
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [date, setDate] = useState(new Date()); // Data padrão definida
+  const [showDatePicker, setShowDatePicker] = useState(false); // Controle interno da seleção de data
   const [selectedHorario, setSelectedHorario] = useState(null);
   const [doctorsList, setDoctorsList] = useState([]);
 
@@ -95,7 +95,7 @@ export default function PreAgendamentoScreen() {
   };
 
   const handlePreCadastro = async () => {
-    if (!doctor || !modalidade || !date || !selectedHorario || !email) {
+    if (!doctor || !modalidade || !selectedHorario || !email) {
       Alert.alert("Erro", "Preencha todos os campos antes de realizar o pré-cadastro.");
       return;
     }
@@ -103,7 +103,7 @@ export default function PreAgendamentoScreen() {
     try {
       const formattedPhone = phone.replace(/\D/g, "");
       const formattedDate =
-        date.toISOString().split("T")[0] + ` ${selectedHorario}`;
+        date.toISOString().split("T")[0] + ` ${selectedHorario}`; // Combina a data e o horário
       console.log("Enviando dados para o backend:", {
         userId,
         doctorId: doctor,
@@ -158,6 +158,7 @@ export default function PreAgendamentoScreen() {
             onChangeText={handlePhoneInput}
             placeholder="Digite seu telefone"
             keyboardType="phone-pad"
+            maxLength={15} // Limita a entrada de telefone
           />
 
           <Text style={styles.label}>Médico</Text>
@@ -196,22 +197,6 @@ export default function PreAgendamentoScreen() {
             </Picker>
           </View>
 
-          <Text style={styles.label}>Data</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Selecione uma data"
-            value={date.toLocaleDateString("pt-BR")}
-            onFocus={() => setShowDatePicker(true)}
-          />
-          {showDatePicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "calendar"}
-              onChange={handleDateChange}
-            />
-          )}
-
           <Text style={styles.label}>Horário</Text>
           <View style={styles.pickerContainer}>
             <Picker
@@ -246,36 +231,35 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   title: {
-    fontSize: 26, // Aumentei o tamanho da fonte
+    fontSize: 26,
     marginBottom: 20,
     textAlign: "center",
     fontWeight: "bold",
   },
   input: {
-    height: 50, // Aumentei a altura do campo de entrada
+    height: 50,
     borderColor: "#ccc",
     borderWidth: 1,
-    marginBottom: 20, // Aumentei o espaçamento entre os campos
-    borderRadius: 8, // Aumentei o arredondamento
+    marginBottom: 20,
+    borderRadius: 8,
     paddingHorizontal: 12,
-    fontSize: 18, // Aumentei o tamanho da fonte
+    fontSize: 18,
     backgroundColor: "#fff",
   },
   pickerContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 8, // Aumentei o arredondamento
-    marginBottom: 20, // Aumentei o espaçamento entre os campos
+    borderRadius: 8,
+    marginBottom: 20,
     backgroundColor: "#fff",
   },
   picker: {
-    height: 50, // Aumentei a altura do picker
-    fontSize: 18, // Aumentei o tamanho da fonte no picker
+    height: 50,
+    fontSize: 18,
   },
   label: {
-    fontSize: 18, // Aumentei o tamanho da fonte do rótulo
-    marginBottom: 8, // Dei mais espaçamento entre o rótulo e os campos
-    fontWeight: "500", // Adicionei peso à fonte para maior legibilidade
+    fontSize: 18,
+    marginBottom: 8,
+    fontWeight: "500",
   },
 });
-

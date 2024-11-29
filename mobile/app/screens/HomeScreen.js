@@ -35,7 +35,7 @@ export default function HomeScreen() {
 
       {/* Botão de Configurações */}
       <TouchableOpacity style={styles.button} onPress={handleSettings}>
-        <Text style={styles.buttonText}>Configurações</Text>
+        <Text style={styles.buttonText}>Dados Cadastrais</Text>
       </TouchableOpacity>
 
       {/* Botão de Pré-Agendamento */}

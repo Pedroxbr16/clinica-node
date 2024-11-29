@@ -28,10 +28,10 @@ export default function PreAgendamentosScreen() {
     try {
       const response = await axios.get(`${API_URL}/medicos/medicos`);
       const medicosData = response.data.data.reduce((acc, medico) => {
-        acc[medico.id] = medico.usuario; // Mapeia id para nome
+        acc[medico.id] = medico.usuario; // Mapeia id para nome do médico
         return acc;
       }, {});
-      setMedicosMap(medicosData);
+      setMedicosMap(medicosData); // Atualiza o estado com o mapeamento
     } catch (error) {
       console.error("Erro ao buscar médicos:", error.message);
       throw error;
@@ -78,6 +78,7 @@ export default function PreAgendamentosScreen() {
     }
   };
 
+  // Renderiza cada item da lista de pré-agendamentos
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>
