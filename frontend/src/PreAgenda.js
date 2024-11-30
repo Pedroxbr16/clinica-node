@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Swal from 'sweetalert2';
 
 function PreAgenda() {
   const [preAgendas, setPreAgendas] = useState([]);
@@ -25,27 +25,81 @@ function PreAgenda() {
     fetchPreAgendas();
   }, []);
 
+  // Verifica se o paciente já está cadastrado
+  const verificarPaciente = async (cpf) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/pacientes/cpf/${cpf}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao verificar paciente:', error);
+      return { success: false };
+    }
+  };
+
   // Função para iniciar o processo de confirmação
-  const handleConfirmar = (preAgenda) => {
-    // Passa as informações da pré-agenda para o cadastro
-    navigate('/cadastroMB', {
-      state: {
-        userId: preAgenda.user_id,
-        nome: preAgenda.nome,
-        email: preAgenda.email,
-        telefone: preAgenda.telefone,
-        preAgendaId: preAgenda.id, // Envia o ID para criar a consulta no futuro
-      },
-    });
+  const handleConfirmar = async (preAgenda) => {
+    const { cpf, user_id } = preAgenda;
+
+    // Aqui, simulamos que o CPF está relacionado ao usuário na tabela `user`
+    try {
+      const userResponse = await axios.get(`http://localhost:5000/users/${user_id}`);
+      const userCpf = userResponse.data.cpf; // Supondo que o backend retorna o CPF
+
+      const result = await verificarPaciente(userCpf);
+
+      if (result.success) {
+        // Paciente encontrado, segue para criação do evento
+        navigate('/createEvent', {
+          state: {
+            paciente: result.data,
+            preAgendaId: preAgenda.id,
+            cpf: userCpf,
+          },
+        });
+      } else {
+        // Paciente não encontrado, mostra SweetAlert
+        Swal.fire({
+          title: 'Paciente não cadastrado',
+          text: 'Deseja ir para a página de cadastro?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sim, cadastrar',
+          cancelButtonText: 'Cancelar',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate('/cadastroMB', {
+              state: {
+                preAgendaId: preAgenda.id,
+                nome: preAgenda.nome,
+                email: preAgenda.email,
+                telefone: preAgenda.telefone,
+                cpf: userCpf,
+              },
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar informações do usuário:', error);
+      Swal.fire({
+        title: 'Erro',
+        text: 'Não foi possível buscar o CPF do usuário.',
+        icon: 'error',
+        confirmButtonText: 'Fechar',
+      });
+    }
   };
 
   if (loading) {
     return <div className="text-center mt-5">Carregando...</div>;
   }
 
+  // Filtrar as pré-agendas pelo status "pendente"
+  const preAgendasPendentes = preAgendas.filter((agenda) => agenda.status.toLowerCase() === 'pendente');
+
   return (
     <div className="container mt-5 p-4">
-      <h2 className="text-center mb-4">Pré-Agendas</h2>
+      <h2 className="text-center mb-4">Pré-Agendas Pendentes</h2>
 
       {/* Botão Voltar */}
       <div className="d-flex justify-content-start mb-4">
@@ -57,15 +111,15 @@ function PreAgenda() {
         </button>
       </div>
 
-      {preAgendas.length === 0 ? (
-        <p className="text-center">Nenhuma pré-agenda disponível no momento.</p>
+      {preAgendasPendentes.length === 0 ? (
+        <p className="text-center">Nenhuma pré-agenda pendente disponível no momento.</p>
       ) : (
         <div className="table-responsive">
           <table className="table table-striped table-bordered">
             <thead>
               <tr>
                 <th>Nome</th>
-                <th>Telefone</th>
+                <th>Celular</th>
                 <th>Modalidade</th>
                 <th>Data Desejada</th>
                 <th>Status</th>
@@ -73,7 +127,7 @@ function PreAgenda() {
               </tr>
             </thead>
             <tbody>
-              {preAgendas.map((preAgenda) => (
+              {preAgendasPendentes.map((preAgenda) => (
                 <tr key={preAgenda.id}>
                   <td>{preAgenda.nome || 'Nome não informado'}</td>
                   <td>{preAgenda.telefone}</td>

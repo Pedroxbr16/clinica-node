@@ -37,14 +37,21 @@ exports.getById = (id, callback) => {
     if (err) {
       return callback(err, null);
     }
-    if (results[0] && results[0].foto) {
-      // Converte o campo 'foto' de binário para Base64
-      results[0].fotoUrl = `data:image/jpeg;base64,${results[0].foto.toString('base64')}`;
-    }
     callback(null, results[0]); // Retorna o primeiro (e único) resultado
   });
 };
 
+// Função para buscar um paciente por CPF
+exports.getByCpf = (cpf, callback) => {
+  const query = 'SELECT * FROM pacientes WHERE cpf = ?';
+
+  connection.query(query, [cpf], (err, results) => {
+    if (err) {
+      return callback(err, null);
+    }
+    callback(null, results[0]); // Retorna o primeiro (e único) resultado
+  });
+};
 
 // Função para atualizar um paciente
 exports.update = (id, pacienteData, callback) => {
