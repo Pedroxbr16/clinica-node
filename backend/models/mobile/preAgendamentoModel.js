@@ -23,6 +23,8 @@ const PreAgendamentoModel = {
         pa.id, 
         pa.user_id, 
         u.name AS nome, 
+        pa.medico_id, -- Incluindo o ID do médico
+        m.usuario AS medico_nome, -- Incluindo o nome do médico, se necessário
         pa.email, 
         pa.telefone, 
         pa.modalidade, 
@@ -31,9 +33,11 @@ const PreAgendamentoModel = {
       FROM 
         pre_agendamento pa
       LEFT JOIN users u ON pa.user_id = u.id
+      LEFT JOIN medicos m ON pa.medico_id = m.id -- Fazendo join com a tabela de médicos
     `;
     connection.query(sql, callback);
   },
+
 
   // Buscar um pré-agendamento por ID
   findById(id, callback) {
@@ -42,6 +46,8 @@ const PreAgendamentoModel = {
         pa.id, 
         pa.user_id, 
         u.name AS nome, 
+        pa.medico_id, 
+        m.usuario AS medico_nome, 
         pa.email, 
         pa.telefone, 
         pa.modalidade, 
@@ -50,10 +56,12 @@ const PreAgendamentoModel = {
       FROM 
         pre_agendamento pa
       LEFT JOIN users u ON pa.user_id = u.id
+      LEFT JOIN medicos m ON pa.medico_id = m.id
       WHERE pa.id = ?
     `;
     connection.query(sql, [id], callback);
   },
+
 
   // Atualizar um pré-agendamento por ID (dinâmico)
   update(id, updateFields, callback) {

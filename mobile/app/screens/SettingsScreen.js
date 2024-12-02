@@ -28,6 +28,33 @@ export default function SettingsScreen() {
   const [genero, setGenero] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  // Remove formatação do CPF
+  const removeCpfFormatting = (cpf) => cpf.replace(/\D/g, "");
+
+  // Formata o CPF dinamicamente para exibição
+  const formatCpf = (text) => {
+    const unformatted = text.replace(/\D/g, "").slice(0, 11); // Limita a 11 caracteres numéricos
+    const formatted = unformatted
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+    return formatted;
+  };
+
+  // Converte a data de nascimento para o formato ISO
+  const formatDateToISO = (dateString) => {
+    const [day, month, year] = dateString.split("/");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Formata a data de nascimento para exibição no formato DD/MM/YYYY
+  const formatDateToDisplay = (isoDate) => {
+    const [year, month, day] = isoDate.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
+  // Busca os dados do usuário no backend
   const fetchUserData = async () => {
     try {
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
@@ -37,8 +64,8 @@ export default function SettingsScreen() {
       setName(name);
       setEmail(email);
       setPassword(password);
-      setCpf(cpf);
-      setDataNascimento(data_de_nascimento); // Ajustado para receber a data do backend
+      setCpf(formatCpf(cpf)); // Formata o CPF para exibição
+      setDataNascimento(formatDateToDisplay(data_de_nascimento)); // Formata a data para exibição
       setGenero(genero);
     } catch (error) {
       Alert.alert("Erro", "Não foi possível buscar os dados do usuário.");
@@ -47,19 +74,24 @@ export default function SettingsScreen() {
     }
   };
 
+  // Atualiza os dados do usuário no backend
   const handleUpdate = async () => {
     if (!name || !email || !password || !cpf || !dataNascimento || !genero) {
       Alert.alert("Erro", "Todos os campos são obrigatórios.");
       return;
     }
 
+    // Remove formatação do CPF e converte a data de nascimento para o formato ISO
+    const numericCpf = removeCpfFormatting(cpf); // Remove pontos e traços
+    const formattedDate = formatDateToISO(dataNascimento); // Converte data para YYYY-MM-DD
+
     try {
       await axios.put(`${API_URL}/user/atualizar/${userId}`, {
         name,
         email,
         password,
-        cpf,
-        data_de_nascimento: dataNascimento,
+        cpf: numericCpf, // CPF sem formatação
+        data_de_nascimento: formattedDate, // Envia data formatada para o backend
         genero,
       });
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
@@ -125,10 +157,10 @@ export default function SettingsScreen() {
           <TextInput
             style={styles.input}
             value={cpf}
-            onChangeText={setCpf}
+            onChangeText={(text) => setCpf(formatCpf(text))} // Aplica a formatação
             placeholder="Digite seu CPF"
             keyboardType="numeric"
-            maxLength={14}
+            maxLength={14} // Limita a quantidade de caracteres no campo formatado
           />
 
           <Text style={styles.label}>Data de Nascimento</Text>
@@ -136,7 +168,7 @@ export default function SettingsScreen() {
             style={styles.input}
             value={dataNascimento}
             onChangeText={setDataNascimento}
-            placeholder="Digite sua data de nascimento"
+            placeholder="Digite sua data de nascimento (DD/MM/YYYY)"
           />
 
           <Text style={styles.label}>Gênero</Text>

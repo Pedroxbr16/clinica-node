@@ -8,11 +8,11 @@ function PreAgenda() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Função para buscar as pré-agendas no backend
   const fetchPreAgendas = async () => {
     try {
       const response = await axios.get('http://localhost:5000/pre-agendamentos/listar');
-      setPreAgendas(response.data.data); // Assuma que o backend retorna os dados na chave 'data'
+      console.log('Resposta da API de pré-agendas:', response.data.data); // Log para verificar os dados
+      setPreAgendas(response.data.data);
       setLoading(false);
     } catch (error) {
       console.error('Erro ao buscar pré-agendas:', error);
@@ -20,70 +20,41 @@ function PreAgenda() {
     }
   };
 
-  // Carregar as pré-agendas ao montar o componente
   useEffect(() => {
     fetchPreAgendas();
   }, []);
 
-  // Verifica se o paciente já está cadastrado
-  const verificarPaciente = async (cpf) => {
-    try {
-      const response = await axios.get(`http://localhost:5000/pacientes/cpf/${cpf}`);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao verificar paciente:', error);
-      return { success: false };
-    }
-  };
-
-  // Função para iniciar o processo de confirmação
   const handleConfirmar = async (preAgenda) => {
-    const { cpf, user_id } = preAgenda;
+    const { user_id } = preAgenda;
 
-    // Aqui, simulamos que o CPF está relacionado ao usuário na tabela `user`
     try {
-      const userResponse = await axios.get(`http://localhost:5000/users/${user_id}`);
-      const userCpf = userResponse.data.cpf; // Supondo que o backend retorna o CPF
+      const userResponse = await axios.get(`http://localhost:5000/user/buscar/${user_id}`);
+      console.log('Resposta do backend para /user/buscar:', userResponse.data);
 
-      const result = await verificarPaciente(userCpf);
+      const userCpf = userResponse.data.cpf;
 
-      if (result.success) {
-        // Paciente encontrado, segue para criação do evento
-        navigate('/createEvent', {
-          state: {
-            paciente: result.data,
-            preAgendaId: preAgenda.id,
-            cpf: userCpf,
-          },
-        });
-      } else {
-        // Paciente não encontrado, mostra SweetAlert
-        Swal.fire({
-          title: 'Paciente não cadastrado',
-          text: 'Deseja ir para a página de cadastro?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Sim, cadastrar',
-          cancelButtonText: 'Cancelar',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            navigate('/cadastroMB', {
-              state: {
-                preAgendaId: preAgenda.id,
-                nome: preAgenda.nome,
-                email: preAgenda.email,
-                telefone: preAgenda.telefone,
-                cpf: userCpf,
-              },
-            });
-          }
-        });
-      }
+      // Verifique se o paciente existe
+      const pacienteResponse = await axios.get(`http://localhost:5000/pacientes/pacientes/cpf/${userCpf}`);
+      console.log('Paciente encontrado:', pacienteResponse.data);
+
+      // Navegar para o CreateEventMB com todos os dados necessários
+      console.log('Objeto preAgenda:', preAgenda); // Log para verificar medico_id
+      navigate('/createEventMB', {
+        state: {
+          paciente: pacienteResponse.data, // Dados do paciente
+          preAgendaId: preAgenda.id,
+          cpf: userCpf,
+          dataDesejada: preAgenda.data_desejada, // Data desejada
+          modalidade: preAgenda.modalidade, // Modalidade
+          medicoId: preAgenda.medico_id || '', // Médico associado
+        },
+      });
+      
     } catch (error) {
-      console.error('Erro ao buscar informações do usuário:', error);
+      console.error('Erro ao confirmar pré-agenda:', error);
       Swal.fire({
         title: 'Erro',
-        text: 'Não foi possível buscar o CPF do usuário.',
+        text: 'Não foi possível buscar informações da pré-agenda.',
         icon: 'error',
         confirmButtonText: 'Fechar',
       });
@@ -94,19 +65,13 @@ function PreAgenda() {
     return <div className="text-center mt-5">Carregando...</div>;
   }
 
-  // Filtrar as pré-agendas pelo status "pendente"
   const preAgendasPendentes = preAgendas.filter((agenda) => agenda.status.toLowerCase() === 'pendente');
 
   return (
     <div className="container mt-5 p-4">
       <h2 className="text-center mb-4">Pré-Agendas Pendentes</h2>
-
-      {/* Botão Voltar */}
       <div className="d-flex justify-content-start mb-4">
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={() => navigate(-1)}
-        >
+        <button className="btn btn-secondary btn-sm" onClick={() => navigate(-1)}>
           Voltar
         </button>
       </div>

@@ -35,6 +35,12 @@ const PreAgendamentoController = {
           .status(500)
           .json({ success: false, message: 'Erro ao listar os pré-agendamentos.' });
       }
+      if (results.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Nenhum pré-agendamento encontrado.',
+        });
+      }
       res.status(200).json({ success: true, data: results });
     });
   },
@@ -55,7 +61,10 @@ const PreAgendamentoController = {
           .json({ success: false, message: 'Erro ao buscar o pré-agendamento.' });
       }
       if (results.length === 0) {
-        return res.status(404).json({ success: false, message: 'Pré-agendamento não encontrado.' });
+        return res.status(404).json({
+          success: false,
+          message: 'Pré-agendamento não encontrado.',
+        });
       }
       res.status(200).json({ success: true, data: results[0] });
     });
@@ -78,7 +87,10 @@ const PreAgendamentoController = {
           .json({ success: false, message: 'Erro ao atualizar o pré-agendamento.' });
       }
       if (results.affectedRows === 0) {
-        return res.status(404).json({ success: false, message: 'Pré-agendamento não encontrado.' });
+        return res.status(404).json({
+          success: false,
+          message: 'Pré-agendamento não encontrado.',
+        });
       }
       res.status(200).json({ success: true, message: 'Pré-agendamento atualizado com sucesso!' });
     });
@@ -100,7 +112,10 @@ const PreAgendamentoController = {
           .json({ success: false, message: 'Erro ao deletar o pré-agendamento.' });
       }
       if (results.affectedRows === 0) {
-        return res.status(404).json({ success: false, message: 'Pré-agendamento não encontrado.' });
+        return res.status(404).json({
+          success: false,
+          message: 'Pré-agendamento não encontrado.',
+        });
       }
       res.status(200).json({ success: true, message: 'Pré-agendamento deletado com sucesso!' });
     });
@@ -119,12 +134,16 @@ const PreAgendamentoController = {
         console.error('Erro ao buscar os pré-agendamentos do usuário:', error);
         return res
           .status(500)
-          .json({ success: false, message: 'Erro ao buscar os pré-agendamentos do usuário.' });
+          .json({
+            success: false,
+            message: 'Erro ao buscar os pré-agendamentos do usuário.',
+          });
       }
       if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ success: false, message: 'Nenhum pré-agendamento encontrado para este usuário.' });
+        return res.status(404).json({
+          success: false,
+          message: 'Nenhum pré-agendamento encontrado para este usuário.',
+        });
       }
       res.status(200).json({ success: true, data: results });
     });

@@ -40,44 +40,47 @@ export default function CreateAccountScreen() {
   const handleCreateAccount = async () => {
     console.log("Iniciando criação de conta...");
     console.log("Dados fornecidos:", { name, email, password, cpf, dataNascimento, genero });
-
+  
     if (!name || !email || !password || !cpf || !dataNascimento || !genero) {
       Alert.alert("Erro", "Todos os campos são obrigatórios.");
       console.log("Erro: Campos obrigatórios não preenchidos.");
       return;
     }
-
+  
+    // Remove traços, pontos e outros caracteres do CPF
+    const numericCpf = cpf.replace(/\D/g, "");
+  
     // Valida o formato da data
     const datePattern = /^\d{2}\/\d{2}\/\d{4}$/;
     if (!datePattern.test(dataNascimento)) {
       Alert.alert("Erro", "A data de nascimento deve estar no formato DD/MM/YYYY.");
       return;
     }
-
+  
     // Converte a data para o formato YYYY-MM-DD
     const formattedDate = formatDateToISO(dataNascimento);
-
+  
     try {
       console.log("Enviando dados para o backend:", {
         name,
         email,
         password,
-        cpf,
+        cpf: numericCpf, // CPF limpo, sem formatação
         data_de_nascimento: formattedDate,
         genero,
       });
-
+  
       const response = await axios.post(`${API_URL}/user/criar`, {
         name,
         email,
         password,
-        cpf,
+        cpf: numericCpf, // CPF limpo
         data_de_nascimento: formattedDate, // Envia no formato correto
         genero,
       });
-
+  
       console.log("Resposta do backend:", response.data);
-
+  
       if (response.status === 201) {
         Alert.alert(
           "Sucesso",
@@ -104,6 +107,7 @@ export default function CreateAccountScreen() {
       }
     }
   };
+  
 
   return (
     <View style={styles.container}>

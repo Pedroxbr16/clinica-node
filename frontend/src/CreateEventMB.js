@@ -23,92 +23,102 @@ const CreateEventMB = () => {
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [types, setTypes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Função para formatar a data no formato compatível com o campo datetime-local
+  const formatDateForInput = (dateString) => {
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 16); // Remove os segundos e o fuso horário
+  };
+
+  // Preenche o formulário com os dados da pré-agenda ao montar
   useEffect(() => {
-    // Preenche o formulário com os dados da pré-agenda, caso existam
+    console.log('Dados recebidos do estado:', state); // Verificar se medicoId está correto
     if (state) {
       setEvent((prevEvent) => ({
         ...prevEvent,
-        start: state.dataDesejada || new Date().toISOString().slice(0, 16),
-        end: state.dataDesejada || new Date().toISOString().slice(0, 16),
-        doctor: state.medicoId || '',
+        start: state.dataDesejada ? formatDateForInput(state.dataDesejada) : new Date().toISOString().slice(0, 16),
+        end: state.dataDesejada ? formatDateForInput(state.dataDesejada) : new Date().toISOString().slice(0, 16),
+        patient: state.paciente?.id || '',
+        doctor: state.medicoId || '', // Médico associado
         modalidade: state.modalidade || '',
       }));
     }
   }, [state]);
 
-  const fetchPatients = async () => {
+  // Busca os dados necessários (pacientes, médicos, tipos de consulta)
+  const fetchData = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/pacientes/pacientes`);
+      const [patientsResponse, doctorsResponse, typesResponse] = await Promise.all([
+        axios.get(`http://localhost:5000/pacientes/pacientes`),
+        axios.get(`http://localhost:5000/medicos/medicos`),
+        axios.get(`http://localhost:5000/tipos_consulta/lista`),
+      ]);
+
       setPatients(
-        response.data.map((patient) => ({
+        patientsResponse.data.map((patient) => ({
           label: patient.nome,
           value: patient.id,
         }))
       );
-    } catch (error) {
-      console.error('Erro ao buscar pacientes:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar pacientes. Por favor, tente novamente.',
-      });
-    }
-  };
 
-  const fetchDoctors = async () => {
-    try {
-      const response = await axios.get(`http://localhost:5000/medicos/medicos`);
-      const doctorsData = Array.isArray(response.data.data) ? response.data.data : [];
+      const doctorsData = Array.isArray(doctorsResponse.data.data) ? doctorsResponse.data.data : [];
       setDoctors(
         doctorsData.map((doctor) => ({
-          label: doctor.usuario,
-          value: doctor.id,
+          label: doctor.usuario, // Nome do médico
+          value: doctor.id, // ID do médico
         }))
       );
-    } catch (error) {
-      console.error('Erro ao buscar médicos:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar médicos. Por favor, tente novamente.',
-      });
-    }
-  };
 
-  const fetchTiposConsulta = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
-      const tiposData = Array.isArray(response.data) ? response.data : [];
+      const typesData = Array.isArray(typesResponse.data) ? typesResponse.data : [];
       setTypes(
-        tiposData.map((tipo) => ({
-          label: tipo.descricao,
-          value: tipo.id,
+        typesData.map((type) => ({
+          label: type.descricao,
+          value: type.id,
         }))
       );
+
+      setIsLoading(false);
     } catch (error) {
-      console.error('Erro ao buscar tipos de consulta:', error);
+      console.error('Erro ao buscar dados:', error);
       Swal.fire({
         icon: 'error',
         title: 'Erro',
-        text: 'Erro ao buscar tipos de consulta. Por favor, tente novamente.',
+        text: 'Erro ao buscar dados. Por favor, tente novamente.',
       });
     }
   };
 
   useEffect(() => {
-    fetchPatients();
-    fetchDoctors();
-    fetchTiposConsulta();
+    fetchData();
   }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEvent({ ...event, [name]: value });
+    setEvent((prevEvent) => ({ ...prevEvent, [name]: value }));
   };
 
   const handleSelectChange = (selectedOption, action) => {
-    setEvent({ ...event, [action.name]: selectedOption ? selectedOption.value : '' });
+    setEvent((prevEvent) => ({
+      ...prevEvent,
+      [action.name]: selectedOption ? selectedOption.value : '',
+    }));
+  };
+
+  const updatePreAgendaStatus = async (preAgendaId) => {
+    try {
+      await axios.put(`http://localhost:5000/pre-agendamentos/atualizar/${preAgendaId}`, {
+        status: 'Concluído',
+      });
+      console.log(`Pré-agenda com ID ${preAgendaId} atualizada para "Concluído".`);
+    } catch (error) {
+      console.error('Erro ao atualizar status da pré-agenda:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao atualizar o status da pré-agenda. Por favor, verifique manualmente.',
+      });
+    }
   };
 
   const submitEvent = async () => {
@@ -122,6 +132,12 @@ const CreateEventMB = () => {
         tipo_consulta_id: event.type,
         modalidade: event.modalidade,
       });
+
+      // Atualizar o status da pré-agenda para "Concluído"
+      if (state?.preAgendaId) {
+        await updatePreAgendaStatus(state.preAgendaId);
+      }
+
       Swal.fire({
         icon: 'success',
         title: 'Sucesso',
@@ -142,6 +158,10 @@ const CreateEventMB = () => {
     e.preventDefault();
     submitEvent();
   };
+
+  if (isLoading) {
+    return <div className="text-center mt-5">Carregando dados...</div>;
+  }
 
   return (
     <div className="container create-event-container mt-5">
@@ -233,7 +253,10 @@ const CreateEventMB = () => {
                 : null
             }
             onChange={(selectedOption) =>
-              setEvent({ ...event, modalidade: selectedOption ? selectedOption.value : '' })
+              setEvent((prevEvent) => ({
+                ...prevEvent,
+                modalidade: selectedOption ? selectedOption.value : '',
+              }))
             }
             placeholder="Selecione a modalidade"
             isClearable
