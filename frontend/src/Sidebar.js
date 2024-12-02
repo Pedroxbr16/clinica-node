@@ -124,9 +124,9 @@ function Sidebar({ onLogout }) {
         )}
       </ul>
       <div className="sidebar-footer mt-auto">
-      <button onClick={handleEstoque} className="button">
+      {/* <button onClick={handleEstoque} className="button">
           Estoque
-        </button>
+        </button> */}
         <button onClick={handleLogoutClick} className="logout-button">
           Deslogar
         </button>

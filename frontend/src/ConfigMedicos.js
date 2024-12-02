@@ -1,116 +1,112 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import '@fortawesome/fontawesome-free/css/all.min.css';
 
-function Login({ onLogin }) {
-  const [usuario, setUsuario] = useState('');
-  const [senha, setSenha] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-
+const MedicoList = () => {
   const navigate = useNavigate();
+  const [medicos, setMedicos] = useState([]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!usuario || !senha) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Campos obrigatórios',
-        text: 'Por favor, preencha todos os campos.',
-      });
-      return;
-    }
-
-    setLoading(true);
-
+  // Função para buscar médicos
+  const fetchMedicos = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/login', { usuario, senha });
-
-      const { token, role } = response.data;
-
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userType', role);
-      localStorage.setItem('token', token);
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Login bem-sucedido',
-        text: 'Bem-vindo ao sistema!',
-      }).then(() => {
-        onLogin();
-        if (role === 'medico') navigate('/medico-home');
-        else if (role === 'atendente') navigate('/atendente-home');
-        else if (role === 'adm') navigate('/admin-home');
-        else navigate('/');
-      });
+      const response = await axios.get('http://localhost:5000/medicos/medicos');
+      const medicosData = Array.isArray(response.data.data) ? response.data.data : [];
+      setMedicos(medicosData);
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro no login',
-        text: 'Usuário ou senha inválidos. Por favor, tente novamente.',
-      });
-    } finally {
-      setLoading(false);
+      console.error('Erro ao buscar médicos:', error);
     }
   };
 
-  const toggleShowPassword = () => {
-    setShowPassword((prev) => !prev);
+  // Função para excluir médico
+  const handleDelete = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este médico?')) {
+      try {
+        await axios.delete(`http://localhost:5000/medicos/${id}`);
+        fetchMedicos();
+        alert('Médico excluído com sucesso!');
+      } catch (error) {
+        console.error('Erro ao excluir médico:', error);
+        alert('Erro ao excluir médico.');
+      }
+    }
   };
+
+  // Função para redirecionar para a edição do médico
+  const handleEdit = (id) => {
+    navigate(`/medicos/editar/${id}`);
+  };
+
+  useEffect(() => {
+    fetchMedicos();
+  }, []);
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <div className="card shadow p-4" style={{ maxWidth: '400px', width: '100%' }}>
-        <h2 className="text-center mb-4">Clinica Corpart</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="usuario" className="form-label">Usuário</label>
-            <input
-              type="text"
-              className="form-control"
-              id="usuario"
-              placeholder="Insira seu usuário"
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="senha" className="form-label">Senha</label>
-            <div className="input-group">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                className="form-control"
-                id="senha"
-                placeholder="Sua senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                required
-              />
-              <span
-                className="input-group-text"
-                style={{ cursor: 'pointer' }}
-                onClick={toggleShowPassword}
-              >
-                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-              </span>
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="btn btn-success w-100 mb-3"
-            disabled={loading}
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
+    <div className="container medico-container mt-5 p-4">
+      {/* Título acima dos botões */}
+      <h3 className="text-center mb-4">Lista de Médicos</h3>
+
+      {/* Botões de Voltar e Adicionar na mesma linha */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => navigate(-1)}
+        >
+          Voltar
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate('/register/medico')}
+        >
+          Adicionar Novo Médico
+        </button>
+      </div>
+
+      <div className="medico-list table-responsive">
+        <table className="table table-striped table-bordered">
+          <thead className="thead-dark">
+            <tr>
+              <th style={{ position: 'sticky', top: 0 }}>ID</th>
+              <th style={{ position: 'sticky', top: 0 }}>Nome</th>
+              <th style={{ position: 'sticky', top: 0 }}>CRM</th>
+              <th style={{ position: 'sticky', top: 0 }}>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {medicos.length > 0 ? (
+              medicos.map((medico) => (
+                <tr key={medico.id}>
+                  <td>{medico.id}</td>
+                  <td>{medico.usuario}</td>
+                  <td>{medico.crm}</td>
+                  <td>
+                    <button
+                      className="btn btn-warning btn-sm mx-1"
+                      onClick={() => handleEdit(medico.id)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="btn btn-danger btn-sm mx-1"
+                      onClick={() => handleDelete(medico.id)}
+                    >
+                      Excluir
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center">
+                  Nenhum médico encontrado.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
-}
+};
 
-export default Login;
+export default MedicoList;
