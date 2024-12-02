@@ -172,19 +172,19 @@ export default function CreateAccountScreen() {
         maxLength={10}
       />
 
-      <Picker
-        selectedValue={genero}
-        style={styles.input}
-        onValueChange={(itemValue) => {
-          console.log("Atualizando Gênero:", itemValue);
-          setGenero(itemValue);
-        }}
-      >
-        <Picker.Item label="Selecione o gênero" value="" />
-        <Picker.Item label="Masculino" value="Masculino" />
-        <Picker.Item label="Feminino" value="Feminino" />
-        <Picker.Item label="Outro" value="Outro" />
-      </Picker>
+<Picker
+  selectedValue={genero}
+  style={{ height: 60, backgroundColor: "#fff", borderRadius: 10, borderColor: "#ccc", borderWidth: 1, marginBottom: 15 }}
+  onValueChange={(itemValue) => {
+    console.log("Atualizando Gênero:", itemValue);
+    setGenero(itemValue);
+  }}
+>
+  <Picker.Item label="Selecione o gênero" value="" />
+  <Picker.Item label="Masculino" value="Masculino" />
+  <Picker.Item label="Feminino" value="Feminino" />
+  <Picker.Item label="Outro" value="Outro" />
+</Picker>
 
       <Button title="Criar Conta" onPress={handleCreateAccount} />
 

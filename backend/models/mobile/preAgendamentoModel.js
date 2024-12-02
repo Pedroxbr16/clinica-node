@@ -92,6 +92,8 @@ const PreAgendamentoModel = {
         pa.id, 
         pa.user_id, 
         u.name AS nome, 
+        pa.medico_id, 
+        m.usuario AS medico_nome, 
         pa.email, 
         pa.telefone, 
         pa.modalidade, 
@@ -100,10 +102,12 @@ const PreAgendamentoModel = {
       FROM 
         pre_agendamento pa
       LEFT JOIN users u ON pa.user_id = u.id
+      LEFT JOIN medicos m ON pa.medico_id = m.id
       WHERE pa.user_id = ?
     `;
     connection.query(sql, [userId], callback);
   },
+
 };
 
 module.exports = PreAgendamentoModel;

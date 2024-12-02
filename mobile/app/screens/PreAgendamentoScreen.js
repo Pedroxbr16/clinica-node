@@ -6,7 +6,6 @@ import {
   Button,
   StyleSheet,
   Alert,
-  Platform,
   ScrollView,
   KeyboardAvoidingView,
 } from "react-native";
@@ -14,7 +13,6 @@ import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { API_URL } from "@env";
-import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function PreAgendamentoScreen() {
   const route = useRoute();
@@ -25,10 +23,10 @@ export default function PreAgendamentoScreen() {
   const [phone, setPhone] = useState("");
   const [doctor, setDoctor] = useState(null);
   const [modalidade, setModalidade] = useState(null);
-  const [date, setDate] = useState(new Date()); // Data padrão definida
-  const [showDatePicker, setShowDatePicker] = useState(false); // Controle interno da seleção de data
+  const [date, setDate] = useState(new Date());
   const [selectedHorario, setSelectedHorario] = useState(null);
   const [doctorsList, setDoctorsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const horariosFixos = [
     "08:00",
@@ -46,18 +44,42 @@ export default function PreAgendamentoScreen() {
   ];
 
   useEffect(() => {
-    fetchUserData();
-    fetchDoctors();
+    carregarDados();
   }, []);
+
+  const carregarDados = async () => {
+    try {
+      setLoading(true);
+      await fetchUserData();
+      await fetchDoctors();
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error.message);
+      Alert.alert(
+        "Erro",
+        "Não foi possível carregar os dados. Tente novamente mais tarde."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
+      console.log(`Buscando dados do usuário com ID: ${userId}`);
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
+      console.log("Resposta do backend para o usuário:", response.data);
+
       const { email, phone } = response.data;
-      setEmail(email);
-      setPhone(formatPhone(phone));
+
+      setEmail(email || ""); // Define email como string vazia se for null ou undefined
+      setPhone(formatPhone(phone || "")); // Formata o telefone ou define vazio
     } catch (error) {
-      Alert.alert("Erro", "Não foi possível buscar os dados do usuário.");
+      console.error("Erro ao buscar dados do usuário:", error.message);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.message ||
+          "Não foi possível buscar os dados do usuário."
+      );
     }
   };
 
@@ -70,28 +92,22 @@ export default function PreAgendamentoScreen() {
       }));
       setDoctorsList(doctorsData);
     } catch (error) {
+      console.error("Erro ao carregar lista de médicos:", error.message);
       Alert.alert("Erro", "Não foi possível carregar os médicos.");
     }
   };
 
   const formatPhone = (text) => {
     const cleaned = text.replace(/\D/g, "");
+    if (cleaned.length !== 11) {
+      console.warn("Número de telefone com formato inesperado:", text);
+      return text; // Retorna o telefone original se o formato for inesperado
+    }
     const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
     if (match) {
       return `(${match[1]}) ${match[2]}-${match[3]}`;
     }
     return text;
-  };
-
-  const handlePhoneInput = (text) => {
-    setPhone(formatPhone(text));
-  };
-
-  const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
   };
 
   const handlePreCadastro = async () => {
@@ -125,7 +141,7 @@ export default function PreAgendamentoScreen() {
       Alert.alert("Sucesso", "Pré-agendamento realizado com sucesso!");
       navigation.navigate("HomeScreen", { userId, name });
     } catch (error) {
-      console.log(
+      console.error(
         "Erro na resposta do backend:",
         error.response?.data || error.message
       );
@@ -135,6 +151,14 @@ export default function PreAgendamentoScreen() {
       );
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Carregando...</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView style={styles.safeContainer} behavior="height">
@@ -155,10 +179,10 @@ export default function PreAgendamentoScreen() {
           <TextInput
             style={styles.input}
             value={phone}
-            onChangeText={handlePhoneInput}
+            onChangeText={(text) => setPhone(formatPhone(text))}
             placeholder="Digite seu telefone"
             keyboardType="phone-pad"
-            maxLength={15} // Limita a entrada de telefone
+            maxLength={15}
           />
 
           <Text style={styles.label}>Médico</Text>
@@ -261,5 +285,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 8,
     fontWeight: "500",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  ScrollView,
 } from "react-native";
 import axios from "axios";
 import { useRoute } from "@react-navigation/native";
@@ -23,22 +22,20 @@ export default function PreAgendamentosScreen() {
     carregarDados();
   }, []);
 
-  // Função para buscar médicos e criar um mapeamento { id: nome }
   const fetchMedicos = async () => {
     try {
       const response = await axios.get(`${API_URL}/medicos/medicos`);
       const medicosData = response.data.data.reduce((acc, medico) => {
-        acc[medico.id] = medico.usuario; // Mapeia id para nome do médico
+        acc[medico.id] = medico.usuario;
         return acc;
       }, {});
-      setMedicosMap(medicosData); // Atualiza o estado com o mapeamento
+      setMedicosMap(medicosData);
     } catch (error) {
       console.error("Erro ao buscar médicos:", error.message);
       throw error;
     }
   };
 
-  // Função para buscar pré-agendamentos
   const fetchPreAgendamentos = async (userId) => {
     try {
       const response = await axios.get(
@@ -61,12 +58,11 @@ export default function PreAgendamentosScreen() {
     }
   };
 
-  // Função principal para carregar dados
   const carregarDados = async () => {
     try {
       setLoading(true);
-      await fetchMedicos(); // Primeiro busca os médicos
-      const agendamentos = await fetchPreAgendamentos(userId); // Depois busca os pré-agendamentos
+      await fetchMedicos();
+      const agendamentos = await fetchPreAgendamentos(userId);
       setPreAgendamentos(agendamentos);
     } catch (error) {
       Alert.alert(
@@ -78,7 +74,6 @@ export default function PreAgendamentosScreen() {
     }
   };
 
-  // Renderiza cada item da lista de pré-agendamentos
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>
@@ -91,37 +86,43 @@ export default function PreAgendamentosScreen() {
     </View>
   );
 
-  return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Meus Pré-Agendamentos</Text>
-        {loading ? (
-          <ActivityIndicator size="large" color="#007AFF" />
-        ) : preAgendamentos.length === 0 ? (
-          <Text style={styles.emptyText}>
-            Nenhum pré-agendamento encontrado.
-          </Text>
-        ) : (
-          <FlatList
-            data={preAgendamentos}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderItem}
-            contentContainerStyle={styles.listContainer}
-          />
-        )}
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
       </View>
-    </ScrollView>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Meus Pré-Agendamentos</Text>
+      {preAgendamentos.length === 0 ? (
+        <Text style={styles.emptyText}>
+          Nenhum pré-agendamento encontrado.
+        </Text>
+      ) : (
+        <FlatList
+          data={preAgendamentos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: "#fff",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#fff",
   },
   title: {
