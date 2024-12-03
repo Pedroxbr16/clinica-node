@@ -9,6 +9,7 @@ const TipoConsulta = () => {
   const navigate = useNavigate();
 
   const [descricao, setDescricao] = useState('');
+  const [valor, setValor] = useState('');  // Novo campo valor
   const [tiposConsulta, setTiposConsulta] = useState([]);
 
   const fetchTiposConsulta = async () => {
@@ -25,17 +26,18 @@ const TipoConsulta = () => {
   };
 
   const handleAddTipoConsulta = async () => {
-    if (descricao.trim() === '') {
+    if (descricao.trim() === '' || valor.trim() === '') { // Validando ambos os campos
       Swal.fire({
         icon: 'warning',
         title: 'Atenção',
-        text: 'A descrição é obrigatória.',
+        text: 'Descrição e valor são obrigatórios.',
       });
       return;
     }
     try {
-      await axios.post('http://localhost:5000/tipos_consulta/adiciona', { descricao });
+      await axios.post('http://localhost:5000/tipos_consulta/adiciona', { descricao, valor });
       setDescricao('');
+      setValor('');
       fetchTiposConsulta();
       Swal.fire({
         icon: 'success',
@@ -82,12 +84,12 @@ const TipoConsulta = () => {
     }
   };
 
-  const handleEdit = async (id) => {
+  const handleEdit = async (id, currentDescricao, currentValor) => {
     const { value: newDescricao } = await Swal.fire({
       title: 'Editar Tipo de Consulta',
       input: 'text',
       inputLabel: 'Nova descrição',
-      inputValue: '',
+      inputValue: currentDescricao,
       showCancelButton: true,
       customClass: {
         popup: 'swal-modal',
@@ -99,23 +101,41 @@ const TipoConsulta = () => {
         }
       },
     });
-    
 
     if (newDescricao) {
-      try {
-        await axios.put(`http://localhost:5000/tipos_consulta/${id}`, { descricao: newDescricao });
-        fetchTiposConsulta();
-        Swal.fire({
-          icon: 'success',
-          title: 'Sucesso',
-          text: 'Tipo de consulta atualizado com sucesso!',
-        });
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Erro',
-          text: 'Erro ao editar tipo de consulta.',
-        });
+      const { value: newValor } = await Swal.fire({
+        title: 'Editar Valor',
+        input: 'text',
+        inputLabel: 'Novo valor',
+        inputValue: currentValor,
+        showCancelButton: true,
+        customClass: {
+          popup: 'swal-modal',
+          input: 'swal-input',
+        },
+        inputValidator: (value) => {
+          if (!value || value.trim() === '') {
+            return 'O valor é obrigatório!';
+          }
+        },
+      });
+
+      if (newValor) {
+        try {
+          await axios.put(`http://localhost:5000/tipos_consulta/${id}`, { descricao: newDescricao, valor: newValor });
+          fetchTiposConsulta();
+          Swal.fire({
+            icon: 'success',
+            title: 'Sucesso',
+            text: 'Tipo de consulta atualizado com sucesso!',
+          });
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Erro',
+            text: 'Erro ao editar tipo de consulta.',
+          });
+        }
       }
     }
   };
@@ -145,6 +165,17 @@ const TipoConsulta = () => {
           onChange={(e) => setDescricao(e.target.value)}
         />
       </div>
+      <div className="form-group">
+        <label htmlFor="valor">Valor:</label>
+        <input
+          type="text"
+          id="valor"
+          className="form-control"
+          placeholder="Digite o valor da consulta"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+        />
+      </div>
       <button
         className="btn btn-primary w-100 my-3"
         onClick={handleAddTipoConsulta}
@@ -159,6 +190,7 @@ const TipoConsulta = () => {
             <tr>
               <th style={{ position: 'sticky', top: 0 }}>ID</th>
               <th style={{ position: 'sticky', top: 0 }}>Descrição</th>
+              <th style={{ position: 'sticky', top: 0 }}>Valor</th> {/* Exibir valor na tabela */}
               <th style={{ position: 'sticky', top: 0 }}>Ações</th>
             </tr>
           </thead>
@@ -168,10 +200,11 @@ const TipoConsulta = () => {
                 <tr key={tipo.id}>
                   <td>{tipo.id}</td>
                   <td>{tipo.descricao}</td>
+                  <td>{tipo.valor}</td> {/* Exibir valor */}
                   <td>
                     <button
                       className="btn btn-warning btn-sm mx-1"
-                      onClick={() => handleEdit(tipo.id)}
+                      onClick={() => handleEdit(tipo.id, tipo.descricao, tipo.valor)}
                     >
                       Editar
                     </button>
@@ -186,7 +219,7 @@ const TipoConsulta = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="text-center">
+                <td colSpan="4" className="text-center">
                   Nenhum tipo de consulta encontrado.
                 </td>
               </tr>

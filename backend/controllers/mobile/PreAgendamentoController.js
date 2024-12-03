@@ -3,9 +3,9 @@ const PreAgendamentoModel = require('../../models/mobile/preAgendamentoModel');
 const PreAgendamentoController = {
   // Criar um novo pré-agendamento
   create(req, res) {
-    const { userId, doctorId, modalidade, date, phone, email } = req.body;
+    const { userId, doctorId, tipoConsultaId, modalidade, date, phone, email } = req.body;
 
-    if (!userId || !doctorId || !modalidade || !date || !phone) {
+    if (!userId || !doctorId || !tipoConsultaId || !modalidade || !date || !phone) {
       return res.status(400).json({
         success: false,
         message: 'Todos os campos obrigatórios devem ser preenchidos.',
@@ -13,7 +13,7 @@ const PreAgendamentoController = {
     }
 
     PreAgendamentoModel.create(
-      { userId, doctorId, modalidade, date, phone, email },
+      { userId, doctorId, tipoConsultaId, modalidade, date, phone, email },
       (error) => {
         if (error) {
           console.error('Erro ao criar pré-agendamento:', error);

@@ -23,9 +23,11 @@ export default function PreAgendamentoScreen() {
   const [phone, setPhone] = useState("");
   const [doctor, setDoctor] = useState(null);
   const [modalidade, setModalidade] = useState(null);
+  const [selectedTipoConsulta, setSelectedTipoConsulta] = useState(null); // Novo estado
   const [date, setDate] = useState(new Date());
   const [selectedHorario, setSelectedHorario] = useState(null);
   const [doctorsList, setDoctorsList] = useState([]);
+  const [tiposConsultaList, setTiposConsultaList] = useState([]); // Novo estado
   const [loading, setLoading] = useState(true);
 
   const horariosFixos = [
@@ -52,6 +54,7 @@ export default function PreAgendamentoScreen() {
       setLoading(true);
       await fetchUserData();
       await fetchDoctors();
+      await fetchTiposConsulta(); // Busca os tipos de consulta
     } catch (error) {
       console.error("Erro ao carregar dados:", error.message);
       Alert.alert(
@@ -67,8 +70,6 @@ export default function PreAgendamentoScreen() {
     try {
       console.log(`Buscando dados do usuário com ID: ${userId}`);
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
-      console.log("Resposta do backend para o usuário:", response.data);
-
       const { email, phone } = response.data;
 
       setEmail(email || ""); // Define email como string vazia se for null ou undefined
@@ -97,6 +98,20 @@ export default function PreAgendamentoScreen() {
     }
   };
 
+  const fetchTiposConsulta = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/tipos_consulta/lista`);
+      const tiposData = response.data.map((tipo) => ({
+        label: tipo.descricao,
+        value: tipo.id,
+      }));
+      setTiposConsultaList(tiposData);
+    } catch (error) {
+      console.error("Erro ao carregar lista de tipos de consulta:", error.message);
+      Alert.alert("Erro", "Não foi possível carregar os tipos de consulta.");
+    }
+  };
+
   const formatPhone = (text) => {
     const cleaned = text.replace(/\D/g, "");
     if (cleaned.length !== 11) {
@@ -111,7 +126,7 @@ export default function PreAgendamentoScreen() {
   };
 
   const handlePreCadastro = async () => {
-    if (!doctor || !modalidade || !selectedHorario || !email) {
+    if (!doctor || !modalidade || !selectedHorario || !selectedTipoConsulta || !email) {
       Alert.alert("Erro", "Preencha todos os campos antes de realizar o pré-cadastro.");
       return;
     }
@@ -120,14 +135,6 @@ export default function PreAgendamentoScreen() {
       const formattedPhone = phone.replace(/\D/g, "");
       const formattedDate =
         date.toISOString().split("T")[0] + ` ${selectedHorario}`; // Combina a data e o horário
-      console.log("Enviando dados para o backend:", {
-        userId,
-        doctorId: doctor,
-        email,
-        modalidade,
-        date: formattedDate,
-        phone: formattedPhone,
-      });
 
       await axios.post(`${API_URL}/pre-agendamentos/criar`, {
         userId,
@@ -136,6 +143,7 @@ export default function PreAgendamentoScreen() {
         modalidade,
         date: formattedDate,
         phone: formattedPhone,
+        tipoConsultaId: selectedTipoConsulta, // Adicionado ao payload
       });
 
       Alert.alert("Sucesso", "Pré-agendamento realizado com sucesso!");
@@ -221,6 +229,24 @@ export default function PreAgendamentoScreen() {
             </Picker>
           </View>
 
+          <Text style={styles.label}>Tipo de Consulta</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedTipoConsulta}
+              onValueChange={(itemValue) => setSelectedTipoConsulta(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Selecione o tipo de consulta" value={null} />
+              {tiposConsultaList.map((tipo) => (
+                <Picker.Item
+                  key={tipo.value}
+                  label={tipo.label}
+                  value={tipo.value}
+                />
+              ))}
+            </Picker>
+          </View>
+
           <Text style={styles.label}>Horário</Text>
           <View style={styles.pickerContainer}>
             <Picker
@@ -240,7 +266,7 @@ export default function PreAgendamentoScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+} 
 
 const styles = StyleSheet.create({
   safeContainer: {

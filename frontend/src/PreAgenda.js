@@ -26,8 +26,8 @@ function PreAgenda() {
   }, []);
 
   const handleConfirmar = async (preAgenda) => {
-    const { user_id } = preAgenda;
-  
+    const { user_id, tipo_consulta_id } = preAgenda; // Adicionado tipo_consulta_id
+    
     try {
       const userResponse = await axios.get(`http://localhost:5000/user/buscar/${user_id}`);
       console.log('Resposta do backend para /user/buscar:', userResponse.data);
@@ -39,7 +39,7 @@ function PreAgenda() {
         const pacienteResponse = await axios.get(`http://localhost:5000/pacientes/pacientes/cpf/${userCpf}`);
         console.log('Paciente encontrado:', pacienteResponse.data);
   
-        // Navegar para o CreateEventMB com os dados do paciente
+        // Navegar para o CreateEventMB com os dados do paciente e o tipo de consulta
         console.log('Objeto preAgenda:', preAgenda);
         navigate('/createEventMB', {
           state: {
@@ -49,6 +49,7 @@ function PreAgenda() {
             dataDesejada: preAgenda.data_desejada,
             modalidade: preAgenda.modalidade,
             medicoId: preAgenda.medico_id || '',
+            tipoConsultaId: tipo_consulta_id, // Adicionado o tipo de consulta
           },
         });
       } catch (error) {
@@ -95,7 +96,6 @@ function PreAgenda() {
       });
     }
   };
-  
 
   const handleCancelar = async (preAgendaId) => {
     try {

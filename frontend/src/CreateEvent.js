@@ -2,23 +2,25 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 import Swal from 'sweetalert2'; // Importa o SweetAlert2
+import moment from 'moment-timezone'; // Importa o moment-timezone
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/CreateEvent.css';
 
 const CreateEvent = () => {
   const [event, setEvent] = useState({
     title: '',
-    start: new Date().toISOString().slice(0, 16),
-    end: new Date().toISOString().slice(0, 16),
+    start: moment().tz("America/Sao_Paulo").format("YYYY-MM-DDTHH:mm"),
+    end: moment().tz("America/Sao_Paulo").add(1, 'hours').format("YYYY-MM-DDTHH:mm"),
     patient: '',
     doctor: '',
     type: '',
-    modalidade: '', // Novo campo para modalidade
+    modalidade: '',
   });
 
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [types, setTypes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchPatients = async () => {
     try {
@@ -27,10 +29,11 @@ const CreateEvent = () => {
         response.data.map((patient) => ({
           label: patient.nome,
           value: patient.id,
+          email: patient.email,
+          nome: patient.nome,
         }))
       );
     } catch (error) {
-      console.error('Erro ao buscar pacientes:', error);
       Swal.fire({
         icon: 'error',
         title: 'Erro',
@@ -42,15 +45,13 @@ const CreateEvent = () => {
   const fetchDoctors = async () => {
     try {
       const response = await axios.get(`http://localhost:5000/medicos/medicos`);
-      const doctorsData = Array.isArray(response.data.data) ? response.data.data : [];
       setDoctors(
-        doctorsData.map((doctor) => ({
+        response.data.data.map((doctor) => ({
           label: doctor.usuario,
           value: doctor.id,
         }))
       );
     } catch (error) {
-      console.error('Erro ao buscar médicos:', error);
       Swal.fire({
         icon: 'error',
         title: 'Erro',
@@ -62,20 +63,20 @@ const CreateEvent = () => {
   const fetchTiposConsulta = async () => {
     try {
       const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
-      const tiposData = Array.isArray(response.data) ? response.data : [];
       setTypes(
-        tiposData.map((tipo) => ({
-          label: tipo.descricao,
+        response.data.map((tipo) => ({
+          label: `${tipo.descricao} - R$ ${parseFloat(tipo.valor).toFixed(2)}`,
           value: tipo.id,
         }))
       );
     } catch (error) {
-      console.error('Erro ao buscar tipos de consulta:', error);
       Swal.fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro ao buscar tipos de consulta. Por favor, tente novamente.',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,35 +97,65 @@ const CreateEvent = () => {
 
   const submitEvent = async () => {
     try {
-      await axios.post('http://localhost:5000/consultas/adiciona', {
+      const selectedPatient = patients.find((p) => p.value === event.patient);
+      const pacienteEmail = selectedPatient?.email || '';
+      const pacienteNome = selectedPatient?.nome || '';
+
+      const payload = {
         titulo: event.title,
         inicio: event.start,
         fim: event.end,
         paciente_id: event.patient,
         medico_id: event.doctor,
         tipo_consulta_id: event.type,
-        modalidade: event.modalidade, // Enviar modalidade para o backend
-      });
+        modalidade: event.modalidade,
+        pacienteEmail,
+        pacienteNome,
+      };
+
+      console.log('Enviando dados para criação de consulta:', payload);
+
+      await axios.post('http://localhost:5000/consultas/adiciona', payload);
+
       Swal.fire({
         icon: 'success',
         title: 'Sucesso',
         text: 'Consulta agendada com sucesso!',
-        confirmButtonText: 'OK',
       });
     } catch (error) {
-      console.error('Erro ao criar consulta:', error);
+      console.error('Erro ao criar consulta:', error.response?.data || error);
       Swal.fire({
         icon: 'error',
         title: 'Erro',
-        text: 'Ocorreu um erro ao agendar a consulta. Tente novamente.',
+        text: error.response?.data?.error || 'Erro ao agendar a consulta. Tente novamente.',
       });
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!event.patient) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: 'Por favor, selecione um paciente.',
+      });
+      return;
+    }
+    if (!event.doctor) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: 'Por favor, selecione um médico.',
+      });
+      return;
+    }
     submitEvent();
   };
+
+  if (isLoading) {
+    return <div className="text-center mt-5">Carregando dados...</div>;
+  }
 
   return (
     <div className="container create-event-container mt-5">
@@ -206,17 +237,13 @@ const CreateEvent = () => {
           <label>Modalidade:</label>
           <Select
             name="modalidade"
-            options={[
-              { label: 'Presencial', value: 'Presencial' },
-              { label: 'Online', value: 'Online' },
-            ]}
-            value={
-              event.modalidade
-                ? { label: event.modalidade, value: event.modalidade }
-                : null
-            }
+            options={[{ label: 'Presencial', value: 'Presencial' }, { label: 'Online', value: 'Online' }]}
+            value={event.modalidade ? { label: event.modalidade, value: event.modalidade } : null}
             onChange={(selectedOption) =>
-              setEvent({ ...event, modalidade: selectedOption ? selectedOption.value : '' })
+              setEvent((prevEvent) => ({
+                ...prevEvent,
+                modalidade: selectedOption ? selectedOption.value : '',
+              }))
             }
             placeholder="Selecione a modalidade"
             isClearable

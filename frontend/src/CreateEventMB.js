@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Select from 'react-select';
 import Swal from 'sweetalert2';
+import moment from 'moment-timezone'; // Importa o moment-timezone
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/CreateEvent.css';
 
@@ -12,8 +13,8 @@ const CreateEventMB = () => {
 
   const [event, setEvent] = useState({
     title: '',
-    start: '',
-    end: '',
+    start: '', // Será ajustado para o fuso horário
+    end: '',   // Será automaticamente 1 hora após o início
     patient: '',
     doctor: '',
     type: '',
@@ -27,20 +28,22 @@ const CreateEventMB = () => {
 
   // Função para formatar a data no formato compatível com o campo datetime-local
   const formatDateForInput = (dateString) => {
-    const date = new Date(dateString);
-    return date.toISOString().slice(0, 16); // Remove os segundos e o fuso horário
+    const date = moment(dateString).tz("America/Sao_Paulo", true); // Ajusta para o fuso horário de São Paulo/Rio de Janeiro
+    return date.format("YYYY-MM-DDTHH:mm"); // Formato para o input datetime-local
   };
 
   // Preenche o formulário com os dados da pré-agenda ao montar
   useEffect(() => {
-    console.log('Dados recebidos do estado:', state); // Verificar se medicoId está correto
+    console.log('Dados recebidos do estado:', state); // Verificar os dados recebidos
     if (state) {
+      const startDate = state.dataDesejada ? formatDateForInput(state.dataDesejada) : moment().tz("America/Sao_Paulo").format("YYYY-MM-DDTHH:mm");
       setEvent((prevEvent) => ({
         ...prevEvent,
-        start: state.dataDesejada ? formatDateForInput(state.dataDesejada) : new Date().toISOString().slice(0, 16),
-        end: state.dataDesejada ? formatDateForInput(state.dataDesejada) : new Date().toISOString().slice(0, 16),
+        start: startDate,
+        end: moment(startDate).add(1, 'hours').format("YYYY-MM-DDTHH:mm"), // Fim é 1 hora após o início
         patient: state.paciente?.id || '',
-        doctor: state.medicoId || '', // Médico associado
+        doctor: state.medicoId || '',
+        type: state.tipoConsultaId || '', // Preenchendo o tipo de consulta
         modalidade: state.modalidade || '',
       }));
     }
@@ -50,18 +53,18 @@ const CreateEventMB = () => {
   const fetchData = async () => {
     try {
       const [patientsResponse, doctorsResponse, typesResponse] = await Promise.all([
-        axios.get(`http://localhost:5000/pacientes/pacientes`),
-        axios.get(`http://localhost:5000/medicos/medicos`),
-        axios.get(`http://localhost:5000/tipos_consulta/lista`),
+        axios.get('http://localhost:5000/pacientes/pacientes'),
+        axios.get('http://localhost:5000/medicos/medicos'),
+        axios.get('http://localhost:5000/tipos_consulta/lista'),
       ]);
-
+  
       setPatients(
         patientsResponse.data.map((patient) => ({
           label: patient.nome,
           value: patient.id,
         }))
       );
-
+  
       const doctorsData = Array.isArray(doctorsResponse.data.data) ? doctorsResponse.data.data : [];
       setDoctors(
         doctorsData.map((doctor) => ({
@@ -69,15 +72,15 @@ const CreateEventMB = () => {
           value: doctor.id, // ID do médico
         }))
       );
-
+  
       const typesData = Array.isArray(typesResponse.data) ? typesResponse.data : [];
       setTypes(
         typesData.map((type) => ({
-          label: type.descricao,
+          label: `${type.descricao} - R$ ${parseFloat(type.valor).toFixed(2)}`, // Exibe a descrição com o valor formatado
           value: type.id,
         }))
       );
-
+  
       setIsLoading(false);
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
@@ -88,6 +91,7 @@ const CreateEventMB = () => {
       });
     }
   };
+  
 
   useEffect(() => {
     fetchData();
@@ -129,9 +133,11 @@ const CreateEventMB = () => {
         fim: event.end,
         paciente_id: event.patient,
         medico_id: event.doctor,
-        tipo_consulta_id: event.type,
+        tipo_consulta_id: event.type, // Tipo de consulta
         modalidade: event.modalidade,
-      });
+        pacienteEmail: state.paciente?.email, // Adicione o email do paciente
+        pacienteNome: state.paciente?.nome, // Adicione o nome do paciente
+    });
 
       // Atualizar o status da pré-agenda para "Concluído"
       if (state?.preAgendaId) {
@@ -243,15 +249,8 @@ const CreateEventMB = () => {
           <label>Modalidade:</label>
           <Select
             name="modalidade"
-            options={[
-              { label: 'Presencial', value: 'Presencial' },
-              { label: 'Online', value: 'Online' },
-            ]}
-            value={
-              event.modalidade
-                ? { label: event.modalidade, value: event.modalidade }
-                : null
-            }
+            options={[{ label: 'Presencial', value: 'Presencial' }, { label: 'Online', value: 'Online' }]}
+            value={event.modalidade ? { label: event.modalidade, value: event.modalidade } : null}
             onChange={(selectedOption) =>
               setEvent((prevEvent) => ({
                 ...prevEvent,
