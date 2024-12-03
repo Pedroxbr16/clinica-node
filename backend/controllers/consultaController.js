@@ -1,16 +1,20 @@
 const ConsultaModel = require('../models/consultaModels');
 const nodemailer = require('nodemailer');
 
-// Cria uma nova consulta e envia e-mail de confirmação
 exports.createConsulta = async (req, res) => {
     const { titulo, inicio, fim, paciente_id, medico_id, tipo_consulta_id, modalidade, pacienteEmail, pacienteNome } = req.body;
 
-    // Validação de campos obrigatórios
     if (!titulo || !inicio || !fim || !paciente_id || !medico_id || !tipo_consulta_id || !modalidade || !pacienteEmail || !pacienteNome) {
         return res.status(400).json({ error: 'Todos os campos, incluindo nome e e-mail do paciente, são obrigatórios.' });
     }
 
     try {
+        // Buscar informações do tipo de consulta
+        const tipoConsulta = await ConsultaModel.getTipoConsultaById(tipo_consulta_id);
+        if (!tipoConsulta) {
+            return res.status(404).json({ error: 'Tipo de consulta não encontrado.' });
+        }
+
         // Criação da consulta
         const consultaId = await ConsultaModel.createConsulta({
             titulo,
@@ -28,8 +32,8 @@ exports.createConsulta = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'herique.ph14@gmail.com', // Substitua pelo seu e-mail
-                pass: 'kylf mqwp apqs mjhg', // Substitua pela sua senha ou token de aplicativo
+                user: 'herique.ph14@gmail.com',
+                pass: 'kylf mqwp apqs mjhg',
             },
         });
 
@@ -40,16 +44,18 @@ exports.createConsulta = async (req, res) => {
             subject: 'Confirmação de Consulta',
             text: `Olá ${pacienteNome},
 
-                Sua consulta foi agendada com sucesso!
-                Título: ${titulo}
-                Data: ${new Date(inicio).toLocaleDateString()}
-                Horário: ${new Date(inicio).toLocaleTimeString()}
-                Modalidade: ${modalidade}
-                
-                Por favor, ao chegar na clínica, dirija-se à recepção para realizar o pagamento com a atendente. 
-                Estamos à disposição para ajudá-lo com o que for necessário.
+Sua consulta foi agendada com sucesso!
+Título: ${titulo}
+Data: ${new Date(inicio).toLocaleDateString()}
+Horário: ${new Date(inicio).toLocaleTimeString()}
+Modalidade: ${modalidade}
+Tipo de Consulta: ${tipoConsulta.descricao}
+Valor: R$${parseFloat(tipoConsulta.valor).toFixed(2)}
 
-                Obrigado por confiar em nossos serviços!`,
+Por favor, ao chegar na clínica, dirija-se à recepção para realizar o pagamento com a atendente. 
+Estamos à disposição para ajudá-lo com o que for necessário.
+
+Obrigado por confiar em nossos serviços!`,
         };
 
         // Envio do e-mail
@@ -73,6 +79,7 @@ exports.createConsulta = async (req, res) => {
         res.status(500).json({ error: 'Erro ao criar consulta.' });
     }
 };
+
 
 // Obtém todas as consultas
 exports.getConsultas = async (req, res) => {

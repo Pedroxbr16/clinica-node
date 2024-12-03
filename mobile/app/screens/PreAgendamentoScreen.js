@@ -23,11 +23,12 @@ export default function PreAgendamentoScreen() {
   const [phone, setPhone] = useState("");
   const [doctor, setDoctor] = useState(null);
   const [modalidade, setModalidade] = useState(null);
-  const [selectedTipoConsulta, setSelectedTipoConsulta] = useState(null); // Novo estado
+  const [selectedTipoConsulta, setSelectedTipoConsulta] = useState(null);
+  const [selectedTipoConsultaValor, setSelectedTipoConsultaValor] = useState(null); // Estado para armazenar o valor do tipo de consulta
   const [date, setDate] = useState(new Date());
   const [selectedHorario, setSelectedHorario] = useState(null);
   const [doctorsList, setDoctorsList] = useState([]);
-  const [tiposConsultaList, setTiposConsultaList] = useState([]); // Novo estado
+  const [tiposConsultaList, setTiposConsultaList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const horariosFixos = [
@@ -54,7 +55,7 @@ export default function PreAgendamentoScreen() {
       setLoading(true);
       await fetchUserData();
       await fetchDoctors();
-      await fetchTiposConsulta(); // Busca os tipos de consulta
+      await fetchTiposConsulta();
     } catch (error) {
       console.error("Erro ao carregar dados:", error.message);
       Alert.alert(
@@ -68,12 +69,11 @@ export default function PreAgendamentoScreen() {
 
   const fetchUserData = async () => {
     try {
-      console.log(`Buscando dados do usuário com ID: ${userId}`);
       const response = await axios.get(`${API_URL}/user/buscar/${userId}`);
       const { email, phone } = response.data;
 
-      setEmail(email || ""); // Define email como string vazia se for null ou undefined
-      setPhone(formatPhone(phone || "")); // Formata o telefone ou define vazio
+      setEmail(email || ""); 
+      setPhone(formatPhone(phone || "")); 
     } catch (error) {
       console.error("Erro ao buscar dados do usuário:", error.message);
       Alert.alert(
@@ -102,8 +102,9 @@ export default function PreAgendamentoScreen() {
     try {
       const response = await axios.get(`${API_URL}/tipos_consulta/lista`);
       const tiposData = response.data.map((tipo) => ({
-        label: tipo.descricao,
+        label: `${tipo.descricao} - R$${parseFloat(tipo.valor).toFixed(2)}`, // Adiciona o valor ao lado da descrição
         value: tipo.id,
+        valor: tipo.valor, // Mantém o valor para uso interno
       }));
       setTiposConsultaList(tiposData);
     } catch (error) {
@@ -116,7 +117,7 @@ export default function PreAgendamentoScreen() {
     const cleaned = text.replace(/\D/g, "");
     if (cleaned.length !== 11) {
       console.warn("Número de telefone com formato inesperado:", text);
-      return text; // Retorna o telefone original se o formato for inesperado
+      return text; 
     }
     const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
     if (match) {
@@ -134,7 +135,7 @@ export default function PreAgendamentoScreen() {
     try {
       const formattedPhone = phone.replace(/\D/g, "");
       const formattedDate =
-        date.toISOString().split("T")[0] + ` ${selectedHorario}`; // Combina a data e o horário
+        date.toISOString().split("T")[0] + ` ${selectedHorario}`;
 
       await axios.post(`${API_URL}/pre-agendamentos/criar`, {
         userId,
@@ -143,7 +144,7 @@ export default function PreAgendamentoScreen() {
         modalidade,
         date: formattedDate,
         phone: formattedPhone,
-        tipoConsultaId: selectedTipoConsulta, // Adicionado ao payload
+        tipoConsultaId: selectedTipoConsulta, 
       });
 
       Alert.alert("Sucesso", "Pré-agendamento realizado com sucesso!");
@@ -233,7 +234,10 @@ export default function PreAgendamentoScreen() {
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={selectedTipoConsulta}
-              onValueChange={(itemValue) => setSelectedTipoConsulta(itemValue)}
+              onValueChange={(itemValue, itemIndex) => {
+                setSelectedTipoConsulta(itemValue);
+                setSelectedTipoConsultaValor(tiposConsultaList[itemIndex]?.valor); // Atualiza o valor baseado no tipo selecionado
+              }}
               style={styles.picker}
             >
               <Picker.Item label="Selecione o tipo de consulta" value={null} />
@@ -246,6 +250,12 @@ export default function PreAgendamentoScreen() {
               ))}
             </Picker>
           </View>
+
+          {/* {selectedTipoConsultaValor && (
+            <Text style={styles.valorText}>
+              Valor: R${parseFloat(selectedTipoConsultaValor).toFixed(2)}
+            </Text>
+          )} */}
 
           <Text style={styles.label}>Horário</Text>
           <View style={styles.pickerContainer}>
@@ -266,7 +276,7 @@ export default function PreAgendamentoScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-} 
+}
 
 const styles = StyleSheet.create({
   safeContainer: {
@@ -316,5 +326,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  valorText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#333",
   },
 });
