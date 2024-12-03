@@ -9,10 +9,12 @@ const TipoConsulta = () => {
   const navigate = useNavigate();
 
   const [descricao, setDescricao] = useState('');
-  const [valor, setValor] = useState('');  // Novo campo valor
+  const [valor, setValor] = useState(''); // Novo campo valor
   const [tiposConsulta, setTiposConsulta] = useState([]);
+  const [loading, setLoading] = useState(false); // Estado para controlar o carregamento
 
   const fetchTiposConsulta = async () => {
+    setLoading(true);
     try {
       const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
       setTiposConsulta(response.data);
@@ -22,20 +24,28 @@ const TipoConsulta = () => {
         title: 'Erro',
         text: 'Erro ao buscar tipos de consulta.',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddTipoConsulta = async () => {
-    if (descricao.trim() === '' || valor.trim() === '') { // Validando ambos os campos
+    const numericValor = parseFloat(valor).toFixed(2); // Converte para decimal com 2 casas decimais
+  
+    if (descricao.trim() === '' || isNaN(numericValor)) {
       Swal.fire({
         icon: 'warning',
         title: 'Atenção',
-        text: 'Descrição e valor são obrigatórios.',
+        text: 'Descrição e valor são obrigatórios, e o valor deve ser um número válido.',
       });
       return;
     }
+  
     try {
-      await axios.post('http://localhost:5000/tipos_consulta/adiciona', { descricao, valor });
+      await axios.post('http://localhost:5000/tipos_consulta/adiciona', {
+        descricao,
+        valor: numericValor, // Valor como decimal
+      });
       setDescricao('');
       setValor('');
       fetchTiposConsulta();
@@ -52,6 +62,7 @@ const TipoConsulta = () => {
       });
     }
   };
+  
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -67,6 +78,7 @@ const TipoConsulta = () => {
 
     if (result.isConfirmed) {
       try {
+        setLoading(true);
         await axios.delete(`http://localhost:5000/tipos_consulta/${id}`);
         fetchTiposConsulta();
         Swal.fire({
@@ -80,6 +92,8 @@ const TipoConsulta = () => {
           title: 'Erro',
           text: 'Erro ao excluir tipo de consulta.',
         });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -114,15 +128,19 @@ const TipoConsulta = () => {
           input: 'swal-input',
         },
         inputValidator: (value) => {
-          if (!value || value.trim() === '') {
-            return 'O valor é obrigatório!';
+          if (!value || isNaN(parseFloat(value))) {
+            return 'O valor deve ser numérico!';
           }
         },
       });
 
       if (newValor) {
         try {
-          await axios.put(`http://localhost:5000/tipos_consulta/${id}`, { descricao: newDescricao, valor: newValor });
+          setLoading(true);
+          await axios.put(`http://localhost:5000/tipos_consulta/${id}`, {
+            descricao: newDescricao,
+            valor: parseFloat(newValor),
+          });
           fetchTiposConsulta();
           Swal.fire({
             icon: 'success',
@@ -135,6 +153,8 @@ const TipoConsulta = () => {
             title: 'Erro',
             text: 'Erro ao editar tipo de consulta.',
           });
+        } finally {
+          setLoading(false);
         }
       }
     }
@@ -146,10 +166,7 @@ const TipoConsulta = () => {
 
   return (
     <div className="container tipo-consulta-container mt-5 p-4">
-      <button
-        className="btn btn-secondary mb-4"
-        onClick={() => navigate(-1)}
-      >
+      <button className="btn btn-secondary mb-4" onClick={() => navigate(-1)}>
         Voltar
       </button>
 
@@ -171,7 +188,7 @@ const TipoConsulta = () => {
           type="text"
           id="valor"
           className="form-control"
-          placeholder="Digite o valor da consulta"
+          placeholder="Digite o valor da consulta (Ex.: 150.00)"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
         />
@@ -179,54 +196,60 @@ const TipoConsulta = () => {
       <button
         className="btn btn-primary w-100 my-3"
         onClick={handleAddTipoConsulta}
+        disabled={loading}
       >
-        Adicionar
+        {loading ? 'Carregando...' : 'Adicionar'}
       </button>
 
       <h3 className="text-center mb-3">Tipos de Consulta Existentes</h3>
-      <div className="tipo-consulta-list table-responsive">
-        <table className="table table-striped table-bordered">
-          <thead className="thead-dark">
-            <tr>
-              <th style={{ position: 'sticky', top: 0 }}>ID</th>
-              <th style={{ position: 'sticky', top: 0 }}>Descrição</th>
-              <th style={{ position: 'sticky', top: 0 }}>Valor</th> {/* Exibir valor na tabela */}
-              <th style={{ position: 'sticky', top: 0 }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tiposConsulta.length > 0 ? (
-              tiposConsulta.map((tipo) => (
-                <tr key={tipo.id}>
-                  <td>{tipo.id}</td>
-                  <td>{tipo.descricao}</td>
-                  <td>{tipo.valor}</td> {/* Exibir valor */}
-                  <td>
-                    <button
-                      className="btn btn-warning btn-sm mx-1"
-                      onClick={() => handleEdit(tipo.id, tipo.descricao, tipo.valor)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="btn btn-danger btn-sm mx-1"
-                      onClick={() => handleDelete(tipo.id)}
-                    >
-                      Excluir
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
+      {loading ? (
+        <div className="text-center">Carregando...</div>
+      ) : (
+        <div className="tipo-consulta-list table-responsive">
+          <table className="table table-striped table-bordered">
+            <thead className="thead-dark">
               <tr>
-                <td colSpan="4" className="text-center">
-                  Nenhum tipo de consulta encontrado.
-                </td>
+                <th style={{ position: 'sticky', top: 0 }}>ID</th>
+                <th style={{ position: 'sticky', top: 0 }}>Descrição</th>
+                <th style={{ position: 'sticky', top: 0 }}>Valor</th>
+                <th style={{ position: 'sticky', top: 0 }}>Ações</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+  {tiposConsulta.length > 0 ? (
+    tiposConsulta.map((tipo) => (
+      <tr key={tipo.id}>
+        <td>{tipo.id}</td>
+        <td>{tipo.descricao}</td>
+        <td>{Number(tipo.valor) ? Number(tipo.valor).toFixed(2) : 'N/A'}</td> {/* Conversão segura */}
+        <td>
+          <button
+            className="btn btn-warning btn-sm mx-1"
+            onClick={() => handleEdit(tipo.id, tipo.descricao, tipo.valor)}
+          >
+            Editar
+          </button>
+          <button
+            className="btn btn-danger btn-sm mx-1"
+            onClick={() => handleDelete(tipo.id)}
+          >
+            Excluir
+          </button>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="4" className="text-center">
+        Nenhum tipo de consulta encontrado.
+      </td>
+    </tr>
+  )}
+</tbody>
+
+          </table>
+        </div>
+      )}
     </div>
   );
 };
