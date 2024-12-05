@@ -13,6 +13,7 @@ const historicoRoutes = require('../routes/historicoRoutes');
 const Exames = require('../routes/ExameRoutes');
 const users = require('../routes/mobile/usersRoutes');
 const preAgendamentoRoutes = require('../routes/mobile/preAgendamentoRoutes');
+const pagamentoRoutes = require('../routes/pagamentosRoutes');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/consultas', consultaRoutes);
 app.use('/tipos_consulta', tipoConsultaRoutes);
 app.use('/historico', historicoRoutes);
 app.use('/exames', Exames);
+app.use('/pagamentos', pagamentoRoutes);
 
 // rotas do mobile
 app.use('/user', users);

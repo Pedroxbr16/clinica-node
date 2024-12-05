@@ -101,6 +101,9 @@ function Sidebar({ onLogout }) {
                   <Link to="/pre-agenda" className="nav-link text-white">
                     Pré Agendamento
                   </Link>
+                  <Link to="/pagamentos" className="nav-link text-white">
+                     Pagamento
+                  </Link>
                 </li>
               )}
             </ul>

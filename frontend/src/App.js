@@ -24,6 +24,7 @@ import VisualizarHistorico from './VisualizarHistorico';
 import PreAgenda from './PreAgenda'; // Atualize o caminho caso necessário
 import CadastroMB from './CadastroPacientesMB';
 import CreateEventMB from './CreateEventMB';
+import Pagamentos from './Pagamentos';
 import './css/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -96,6 +97,7 @@ function App() {
                 <Route path="/tipos-exame" element={<AddTipoExame />} />
                 <Route path="/tipos-consulta" element={<TiposConsulta />} />
                 <Route path="/pacientes/editar/:id" element={<EditarPaciente />} /> {/* Rota de edição de paciente */}
+                {/* <Route path="/pagamentos" element={<Pagamentos />} /> */}
               </>
             )}
 
@@ -120,6 +122,8 @@ function App() {
                 <Route path="/pre-agenda" element={<PreAgenda />} />
                 <Route path='/CadastroMB' element={<CadastroMB/>}/>
                 <Route path='/CreateEventMB' element={<CreateEventMB/>}/>
+                <Route path="/pagamentos" element={<Pagamentos />} />
+
               </>
             )}
 
