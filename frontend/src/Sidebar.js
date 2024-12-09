@@ -29,10 +29,12 @@ function Sidebar({ onLogout }) {
     onLogout(); // Chama a função de logout do App
     navigate('/login'); // Redireciona para a tela de login
   };
-
   const handleEstoque = () => {
-    navigate('../estoque');
-  }
+    window.open('http://localhost/esotque/front/homeadmEV.php', '_blank');
+};
+
+
+
 
   return (
     <div className="sidebar">
@@ -66,8 +68,8 @@ function Sidebar({ onLogout }) {
               {(userType === 'adm' || userType === 'medico') && (
                 <>
                   <li>
-                    <Link to="/pedido-exames" className="nav-link text-white">
-                      Exames
+                    <Link to="/Guias" className="nav-link text-white">
+                      Guias
                     </Link>
                   </li>
                   <li>
@@ -121,15 +123,18 @@ function Sidebar({ onLogout }) {
                 <Link to="/config" className="nav-link text-white">
                   Configurações
                 </Link>
+                <Link to="/Dash" className="nav-link text-white">
+                  Dashborads
+                </Link>
               </li>
             </ul>
           </li>
         )}
       </ul>
       <div className="sidebar-footer mt-auto">
-      {/* <button onClick={handleEstoque} className="button">
+      <button onClick={handleEstoque} className="button">
           Estoque
-        </button> */}
+        </button>
         <button onClick={handleLogoutClick} className="logout-button">
           Deslogar
         </button>

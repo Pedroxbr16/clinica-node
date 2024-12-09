@@ -10,34 +10,50 @@ const PagamentoScreen = () => {
     metodo: "",
     usuario_id: "",
     paciente_id: "",
+    medico_id: "",
+    tipo_consulta_id: "",
   });
   const [usuarios, setUsuarios] = useState([]);
   const [pacientes, setPacientes] = useState([]);
+  const [medicos, setMedicos] = useState([]);
+  const [tiposConsulta, setTiposConsulta] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchPagamentos();
-    fetchUsuarios();
-    fetchPacientes();
+    fetchData();
   }, []);
 
-  const fetchPagamentos = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/pagamentos/buscar");
-      setPagamentos(response.data);
+      await Promise.all([
+        fetchPagamentos(),
+        fetchUsuarios(),
+        fetchPacientes(),
+        fetchMedicos(),
+        fetchTiposConsulta(),
+      ]);
     } catch (error) {
-      console.error("Erro ao buscar pagamentos:", error.message);
+      console.error("Erro ao carregar os dados:", error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPagamentos = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/pagamentos/buscar");
+      setPagamentos(response.data || []);
+    } catch (error) {
+      console.error("Erro ao buscar pagamentos:", error.message);
     }
   };
 
   const fetchUsuarios = async () => {
     try {
       const response = await axios.get("http://localhost:5000/atendente/atendente");
-      setUsuarios(response.data);
+      setUsuarios(response.data || []);
     } catch (error) {
       console.error("Erro ao buscar usuários:", error.message);
     }
@@ -46,9 +62,36 @@ const PagamentoScreen = () => {
   const fetchPacientes = async () => {
     try {
       const response = await axios.get("http://localhost:5000/pacientes/pacientes");
-      setPacientes(response.data);
+      setPacientes(response.data || []);
     } catch (error) {
       console.error("Erro ao buscar pacientes:", error.message);
+    }
+  };
+
+  const fetchMedicos = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/medicos/medicos");
+      setMedicos(response.data.data || []);
+    } catch (error) {
+      console.error("Erro ao buscar médicos:", error.message);
+    }
+  };
+
+  const fetchTiposConsulta = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/tipos_consulta/lista");
+      setTiposConsulta(
+        response.data.map((tipo) => ({
+          id: tipo.id,
+          descricao: `${tipo.descricao} - R$ ${parseFloat(tipo.valor).toFixed(2)}`,
+        }))
+      );
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: "Erro ao buscar tipos de consulta.",
+      });
     }
   };
 
@@ -58,6 +101,7 @@ const PagamentoScreen = () => {
   };
 
   const handleSubmit = async () => {
+    console.log("Dados do formulário:", formData); // Debugging
     try {
       if (editingId) {
         await axios.put(`http://localhost:5000/pagamentos/${editingId}`, formData);
@@ -74,16 +118,18 @@ const PagamentoScreen = () => {
       console.error("Erro ao salvar pagamento:", error.message);
     }
   };
-
   const handleEdit = (pagamento) => {
     setFormData({
-      metodo: pagamento.metodo,
-      usuario_id: pagamento.usuario_id,
-      paciente_id: pagamento.paciente_id,
+      metodo: pagamento.metodo || "", // Garantir que o valor exista ou definir como vazio
+      usuario_id: pagamento.usuario_id || "",
+      paciente_id: pagamento.paciente_id || "",
+      medico_id: pagamento.medico_id || "",
+      tipo_consulta_id: pagamento.tipo_consulta_id || "",
     });
-    setEditingId(pagamento.id);
-    setShowModal(true);
+    setEditingId(pagamento.id); // Define o ID do item sendo editado
+    setShowModal(true); // Exibe o modal de edição
   };
+  
 
   const handleDelete = async (id) => {
     Swal.fire({
@@ -110,7 +156,13 @@ const PagamentoScreen = () => {
   };
 
   const resetForm = () => {
-    setFormData({ metodo: "", usuario_id: "", paciente_id: "" });
+    setFormData({
+      metodo: "",
+      usuario_id: "",
+      paciente_id: "",
+      medico_id: "",
+      tipo_consulta_id: "",
+    });
     setEditingId(null);
   };
 
@@ -131,6 +183,8 @@ const PagamentoScreen = () => {
               <th>Data</th>
               <th>Usuário</th>
               <th>Paciente</th>
+              <th>Médico</th>
+              <th>Tipo de Consulta</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -143,6 +197,8 @@ const PagamentoScreen = () => {
                   <td>{new Date(pagamento.data).toLocaleString()}</td>
                   <td>{pagamento.usuario_nome}</td>
                   <td>{pagamento.paciente_nome}</td>
+                  <td>{pagamento.medico_nome}</td>
+                  <td>{pagamento.tipo_consulta}</td>
                   <td>
                     <Button
                       variant="warning"
@@ -162,7 +218,7 @@ const PagamentoScreen = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center">
+                <td colSpan="8" className="text-center">
                   Nenhum pagamento encontrado.
                 </td>
               </tr>
@@ -171,7 +227,6 @@ const PagamentoScreen = () => {
         </Table>
       )}
 
-      {/* Modal de Cadastro/Edição */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -221,6 +276,37 @@ const PagamentoScreen = () => {
                 {pacientes.map((paciente) => (
                   <option key={paciente.id} value={paciente.id}>
                     {paciente.nome}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+  <Form.Label>Médico</Form.Label>
+  <Form.Select
+    name="medico_id"
+    value={formData.medico_id}
+    onChange={handleInputChange}
+  >
+    <option value="">Selecione o médico</option>
+    {medicos.map((medico) => (
+      <option key={medico.id} value={medico.id}>
+        {medico.usuario || medico.nome} {/* Exibe usuário ou nome */}
+      </option>
+    ))}
+  </Form.Select>
+</Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Tipo de Consulta</Form.Label>
+              <Form.Select
+                name="tipo_consulta_id"
+                value={formData.tipo_consulta_id}
+                onChange={handleInputChange}
+              >
+                <option value="">Selecione o tipo de consulta</option>
+                {tiposConsulta.map((tipo) => (
+                  <option key={tipo.id} value={tipo.id}>
+                    {tipo.descricao}
                   </option>
                 ))}
               </Form.Select>

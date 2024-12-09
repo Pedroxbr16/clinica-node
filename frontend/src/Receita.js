@@ -1,48 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function PedidoExames() {
-  const [exames, setExames] = useState([]);
-  const [medicos, setMedicos] = useState([]);
-  const [pacientes, setPacientes] = useState([]);
-  const [examesSelecionados, setExamesSelecionados] = useState([]);
+function ReceitaMedica() {
+  const [medicamentos, setMedicamentos] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [pacienteSelecionado, setPacienteSelecionado] = useState('');
   const [medicoSelecionado, setMedicoSelecionado] = useState('');
+  const [medicos, setMedicos] = useState([]);
+  const [pacientes, setPacientes] = useState([]);
 
   useEffect(() => {
-    fetchExames();
     fetchMedicos();
     fetchPacientes();
   }, []);
 
-  const fetchExames = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/exames/exames');
-      setExames(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar exames:', error);
-    }
-  };
-
   const fetchMedicos = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/medicos/medicos");
-      if (response.data && Array.isArray(response.data.data)) {
-        setMedicos(response.data.data); // Certifique-se de que a estrutura dos dados está correta
-      } else {
-        console.error("Formato de dados inesperado para médicos:", response.data);
-        setMedicos([]); // Define como vazio caso o formato esteja incorreto
-      }
+      const response = await axios.get('http://localhost:5000/medicos/medicos');
+      setMedicos(response.data.data);
     } catch (error) {
-      console.error("Erro ao buscar médicos:", error.message);
-      setMedicos([]); // Define como vazio em caso de erro
+      console.error('Erro ao buscar médicos:', error);
     }
   };
-  
 
   const fetchPacientes = async () => {
     try {
@@ -53,24 +34,12 @@ function PedidoExames() {
     }
   };
 
-  const handleExameChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setExamesSelecionados((prevExames) => [...prevExames, value]);
-    } else {
-      setExamesSelecionados((prevExames) =>
-        prevExames.filter((exame) => exame !== value)
-      );
-    }
-  };
-
   const generatePDF = () => {
     const doc = new jsPDF();
 
     // Cabeçalho
     doc.setFontSize(12);
     doc.text("Centro Clínico EXEMPLO - RJ", 20, 20);
-    doc.setFontSize(10);
     doc.text("CNPJ: 11.111.111/0001-11", 20, 25);
     doc.text("Rua QUALQUER UMA NUMERO NINGUEM LIGA ANDAR 12", 20, 30);
 
@@ -79,32 +48,22 @@ function PedidoExames() {
     doc.text(`Médico: ${medicoSelecionado}`, 20, 55);
     doc.text(`Data do Atendimento: ${new Date().toLocaleDateString()}`, 20, 60);
 
+    // Medicamentos Prescritos
+    doc.text("Medicamentos Prescritos:", 20, 80);
+    doc.text(medicamentos, 20, 90, { maxWidth: 170 });
+
     // Observações
     if (observacoes) {
-      doc.text("Observações:", 20, 75);
-      doc.text(observacoes, 20, 80);
+      doc.text("Observações:", 20, 120);
+      doc.text(observacoes, 20, 130, { maxWidth: 170 });
     }
 
-    // Tabela de Exames
-    doc.autoTable({
-      startY: observacoes ? 90 : 75,
-      head: [['Exame(s)']],
-      body: examesSelecionados.map(exame => [exame]),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185] },
-      margin: { left: 20, right: 20 }
-    });
-
-    // Linha e texto para assinatura
-    const yPosition = doc.lastAutoTable.finalY + 30;
+    // Linha e assinatura
+    const yPosition = 150;
     doc.line(20, yPosition, 120, yPosition); // Linha para assinatura
-    doc.text("Assinatura / Carimbo do Médico", 20, yPosition + 10); // Texto abaixo da linha
+    doc.text("Assinatura / Carimbo do Médico", 20, yPosition + 10);
 
-    // Data da assinatura
-    doc.text(`Data: ${new Date().toLocaleDateString()}`, 20, yPosition + 20);
-
-    // Salvar PDF
-    doc.save(`Guia_Exames_${pacienteSelecionado}.pdf`);
+    doc.save(`Receita_Medica_${pacienteSelecionado}.pdf`);
   };
 
   const handleSubmit = (e) => {
@@ -113,8 +72,8 @@ function PedidoExames() {
   };
 
   return (
-    <div className="container pedido-exames">
-      <h2>Guia de Exames</h2>
+    <div className="container">
+      <h2>Receita Médica</h2>
 
       <form onSubmit={handleSubmit} className="row g-3">
         <div className="col-md-12">
@@ -152,22 +111,14 @@ function PedidoExames() {
         </div>
 
         <div className="col-md-12">
-          <h4>Exames Disponíveis:</h4>
-          {exames.map((exame) => (
-            <div className="form-check" key={exame.id}>
-              <input
-                type="checkbox"
-                className="form-check-input"
-                value={exame.nome}
-                id={`exame-${exame.id}`}
-                checked={examesSelecionados.includes(exame.nome)}
-                onChange={handleExameChange}
-              />
-              <label className="form-check-label" htmlFor={`exame-${exame.id}`}>
-                {exame.nome}
-              </label>
-            </div>
-          ))}
+          <label>Medicamentos:</label>
+          <textarea
+            className="form-control"
+            value={medicamentos}
+            onChange={(e) => setMedicamentos(e.target.value)}
+            rows="4"
+            placeholder="Descreva os medicamentos..."
+          />
         </div>
 
         <div className="col-md-12">
@@ -177,12 +128,13 @@ function PedidoExames() {
             value={observacoes}
             onChange={(e) => setObservacoes(e.target.value)}
             rows="4"
+            placeholder="Adicione observações, se necessário..."
           />
         </div>
 
         <div className="col-12">
           <button type="submit" className="btn btn-primary w-100">
-            Gerar Guia de Exame(s) em PDF
+            Gerar Receita Médica em PDF
           </button>
         </div>
       </form>
@@ -190,4 +142,4 @@ function PedidoExames() {
   );
 }
 
-export default PedidoExames;
+export default ReceitaMedica;

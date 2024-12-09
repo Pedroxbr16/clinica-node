@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 require('dotenv').config(); // Carrega as variáveis do .env
+const connection = require('../config/database');
+
 
 const pacienteRoutes = require('../routes/pacienteRoutes'); 
 const medicoRoutes = require('../routes/medicoRoutes');
@@ -57,3 +59,73 @@ app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.url}`);
   next();
 });
+
+app.get("/finance/dashboard", (req, res) => {
+  const { month, year } = req.query;
+
+  // Validação de entrada
+  if (!month || !year) {
+    return res.status(400).json({ error: "Mês e ano são obrigatórios" });
+  }
+
+  // Total da Receita
+  connection.query(
+    `SELECT SUM(tc.valor) AS total
+     FROM consulta c
+     JOIN tipos_consulta tc ON c.tipo_consulta_id = tc.id
+     WHERE MONTH(c.inicio) = ? AND YEAR(c.inicio) = ?`,
+    [month, year],
+    (err, totalRevenueResult) => {
+      if (err) {
+        console.error("Erro ao buscar receita total:", err);
+        return res.status(500).json({ error: "Erro ao buscar receita total" });
+      }
+
+      const totalRevenue = totalRevenueResult[0]?.total || 0;
+
+      // Total de Consultas
+      connection.query(
+        `SELECT COUNT(*) AS total
+         FROM consulta
+         WHERE MONTH(inicio) = ? AND YEAR(inicio) = ?`,
+        [month, year],
+        (err, totalAppointmentsResult) => {
+          if (err) {
+            console.error("Erro ao buscar total de consultas:", err);
+            return res.status(500).json({ error: "Erro ao buscar total de consultas" });
+          }
+
+          const totalAppointments = totalAppointmentsResult[0]?.total || 0;
+
+          // Dados para Gráficos
+          connection.query(
+            `SELECT DAY(c.inicio) AS day, SUM(tc.valor) AS total
+             FROM consulta c
+             JOIN tipos_consulta tc ON c.tipo_consulta_id = tc.id
+             WHERE MONTH(c.inicio) = ? AND YEAR(c.inicio) = ?
+             GROUP BY DAY(c.inicio)`,
+            [month, year],
+            (err, revenueChartData) => {
+              if (err) {
+                console.error("Erro ao buscar dados para gráficos:", err);
+                return res.status(500).json({ error: "Erro ao buscar dados para gráficos" });
+              }
+
+              const labels = revenueChartData.map((row) => `Dia ${row.day}`);
+              const revenue = revenueChartData.map((row) => row.total);
+
+              // Resposta final
+              res.json({
+                totalRevenue,
+                totalAppointments,
+                revenueChartData: revenue,
+                labels,
+              });
+            }
+          );
+        }
+      );
+    }
+  );
+});
+

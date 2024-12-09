@@ -1,15 +1,21 @@
 const PagamentoModel = require('../models/pagamentoModel');
 
 exports.createPagamento = async (req, res) => {
-    const { metodo, usuario_id, paciente_id } = req.body;
+    const { metodo, usuario_id, paciente_id, medico_id, tipo_consulta_id } = req.body;
 
     // Validação
-    if (!metodo || !usuario_id || !paciente_id) {
-        return res.status(400).json({ error: 'Método, usuário e paciente são obrigatórios.' });
+    if (!metodo || !usuario_id || !paciente_id || !medico_id || !tipo_consulta_id) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios: método, usuário, paciente, médico e tipo de consulta.' });
     }
 
     try {
-        const pagamentoId = await PagamentoModel.createPagamento({ metodo, usuario_id, paciente_id });
+        const pagamentoId = await PagamentoModel.createPagamento({
+            metodo,
+            usuario_id,
+            paciente_id,
+            medico_id,
+            tipo_consulta_id,
+        });
         res.status(201).json({ message: 'Pagamento criado com sucesso.', id: pagamentoId });
     } catch (error) {
         console.error('Erro ao criar pagamento:', error);
@@ -29,15 +35,21 @@ exports.getPagamentos = async (req, res) => {
 
 exports.updatePagamento = async (req, res) => {
     const { id } = req.params;
-    const { metodo, usuario_id, paciente_id } = req.body;
+    const { metodo, usuario_id, paciente_id, medico_id, tipo_consulta_id } = req.body;
 
     // Validação
-    if (!metodo || !usuario_id || !paciente_id) {
-        return res.status(400).json({ error: 'Método, usuário e paciente são obrigatórios.' });
+    if (!metodo || !usuario_id || !paciente_id || !medico_id || !tipo_consulta_id) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios: método, usuário, paciente, médico e tipo de consulta.' });
     }
 
     try {
-        const success = await PagamentoModel.updatePagamento(id, { metodo, usuario_id, paciente_id });
+        const success = await PagamentoModel.updatePagamento(id, {
+            metodo,
+            usuario_id,
+            paciente_id,
+            medico_id,
+            tipo_consulta_id,
+        });
         if (!success) {
             return res.status(404).json({ error: 'Pagamento não encontrado.' });
         }

@@ -25,6 +25,10 @@ import PreAgenda from './PreAgenda'; // Atualize o caminho caso necessário
 import CadastroMB from './CadastroPacientesMB';
 import CreateEventMB from './CreateEventMB';
 import Pagamentos from './Pagamentos';
+import Atestado from './Atestado';
+import Receita from './Receita';
+import MenuGuias from './Guias'
+import Dash from './chart';
 import './css/App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -97,6 +101,7 @@ function App() {
                 <Route path="/tipos-exame" element={<AddTipoExame />} />
                 <Route path="/tipos-consulta" element={<TiposConsulta />} />
                 <Route path="/pacientes/editar/:id" element={<EditarPaciente />} /> {/* Rota de edição de paciente */}
+                <Route path="/Dash" element={<Dash />} />
                 {/* <Route path="/pagamentos" element={<Pagamentos />} /> */}
               </>
             )}
@@ -109,7 +114,9 @@ function App() {
                 <Route path="/pacientes/:id/historico" element={<HistoricoPaciente />} />
                 <Route path="/pacientes/:id/editar-historico" element={<EditarHistorico />} />
                 <Route path="/pacientes/:id/visualizar-historico" element={<VisualizarHistorico />} />
-           
+                <Route path="/Atestado" element={<Atestado />} />
+                <Route path="/Receita" element={<Receita />} />
+                <Route path="/Guias" element={<MenuGuias />} />
               </>
             )}
 
