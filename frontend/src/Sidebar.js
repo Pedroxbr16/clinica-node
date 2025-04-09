@@ -100,9 +100,9 @@ function Sidebar({ onLogout }) {
                   <Link to="/create-event" className="nav-link text-white">
                     Criar Agendamento
                   </Link>
-                  <Link to="/pre-agenda" className="nav-link text-white">
+                  {/* <Link to="/pre-agenda" className="nav-link text-white">
                     Pré Agendamento
-                  </Link>
+                  </Link> */}
                   <Link to="/pagamentos" className="nav-link text-white">
                      Pagamento
                   </Link>
@@ -132,9 +132,9 @@ function Sidebar({ onLogout }) {
         )}
       </ul>
       <div className="sidebar-footer mt-auto">
-      <button onClick={handleEstoque} className="button">
+      {/* <button onClick={handleEstoque} className="button">
           Estoque
-        </button>
+        </button> */}
         <button onClick={handleLogoutClick} className="logout-button">
           Deslogar
         </button>

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InputMask from 'react-input-mask';
-import axios from 'axios';
-import Swal from 'sweetalert2'; // Importa o SweetAlert2
+import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/RegisterMedico.css';
 
@@ -21,36 +20,50 @@ function RegisterMedico() {
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = { usuario, crm, dataNascimento, email, celular, cpf, cep, numero, bairro, cidade, estado };
-      const response = await axios.post('http://localhost:5000/medicos/medicos', payload);
+  const estadosBrasileiros = [
+    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
+    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
+    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+  ];
 
-      if (response.status === 200 || response.status === 201) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Cadastro realizado',
-          text: 'Médico cadastrado com sucesso!',
-        }).then(() => navigate('/login'));
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro no cadastro',
-        text: 'Não foi possível registrar o médico. Tente novamente.',
-      });
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const novoMedico = {
+      id: Date.now(),
+      usuario,
+      crm,
+      dataNascimento,
+      email,
+      celular,
+      cpf,
+      cep,
+      numero,
+      bairro,
+      cidade,
+      estado,
+    };
+
+    const medicosSalvos = JSON.parse(localStorage.getItem('medicos')) || [];
+    medicosSalvos.push(novoMedico);
+    localStorage.setItem('medicos', JSON.stringify(medicosSalvos));
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Cadastro realizado',
+      text: 'Médico cadastrado com sucesso!',
+    }).then(() => navigate('/login'));
   };
 
   const handleCepBlur = async () => {
     if (cep.length === 9) {
       try {
-        const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
-        if (response.data && !response.data.erro) {
-          setBairro(response.data.bairro);
-          setCidade(response.data.localidade);
-          setEstado(response.data.uf);
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        if (!data.erro) {
+          setBairro(data.bairro);
+          setCidade(data.localidade);
+          setEstado(data.uf);
         } else {
           Swal.fire({
             icon: 'warning',
@@ -68,20 +81,10 @@ function RegisterMedico() {
     }
   };
 
-  const estadosBrasileiros = [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-  ];
-
   return (
     <div className="register-page d-flex justify-content-center align-items-center vh-100">
       <div className="register-container bg-light p-4 shadow-sm rounded">
-        {/* Botão de Voltar */}
-        <button
-          className="btn btn-secondary mb-4"
-          onClick={() => navigate(-1)}
-        >
+        <button className="btn btn-secondary mb-4" onClick={() => navigate(-1)}>
           Voltar
         </button>
 
@@ -90,10 +93,9 @@ function RegisterMedico() {
         <form onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-md-6 mb-3">
-              <label htmlFor="usuario">Nome</label>
+              <label>Nome</label>
               <input
                 type="text"
-                id="usuario"
                 className="form-control"
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
@@ -102,24 +104,20 @@ function RegisterMedico() {
             </div>
 
             <div className="col-md-6 mb-3">
-              <label htmlFor="crm">CRM</label>
+              <label>CRM</label>
               <input
                 type="text"
-                id="crm"
                 className="form-control"
                 value={crm}
                 onChange={(e) => setCrm(e.target.value)}
                 required
               />
             </div>
-          </div>
 
-          <div className="row">
             <div className="col-md-6 mb-3">
-              <label htmlFor="dataNascimento">Data de Nascimento</label>
+              <label>Data de Nascimento</label>
               <input
                 type="date"
-                id="dataNascimento"
                 className="form-control"
                 value={dataNascimento}
                 onChange={(e) => setDataNascimento(e.target.value)}
@@ -128,25 +126,20 @@ function RegisterMedico() {
             </div>
 
             <div className="col-md-6 mb-3">
-              <label htmlFor="email">Email</label>
+              <label>Email</label>
               <input
                 type="email"
-                id="email"
                 className="form-control"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-          </div>
 
-          <div className="row">
             <div className="col-md-6 mb-3">
-              <label htmlFor="celular">Celular</label>
+              <label>Celular</label>
               <InputMask
                 mask="(99) 99999-9999"
-                type="text"
-                id="celular"
                 className="form-control"
                 value={celular}
                 onChange={(e) => setCelular(e.target.value)}
@@ -155,26 +148,20 @@ function RegisterMedico() {
             </div>
 
             <div className="col-md-6 mb-3">
-              <label htmlFor="cpf">CPF</label>
+              <label>CPF</label>
               <InputMask
                 mask="999.999.999-99"
-                type="text"
-                id="cpf"
                 className="form-control"
                 value={cpf}
                 onChange={(e) => setCpf(e.target.value)}
                 required
               />
             </div>
-          </div>
 
-          <div className="row">
             <div className="col-md-6 mb-3">
-              <label htmlFor="cep">CEP</label>
+              <label>CEP</label>
               <InputMask
                 mask="99999-999"
-                type="text"
-                id="cep"
                 className="form-control"
                 value={cep}
                 onChange={(e) => setCep(e.target.value)}
@@ -184,24 +171,20 @@ function RegisterMedico() {
             </div>
 
             <div className="col-md-6 mb-3">
-              <label htmlFor="numero">Número</label>
+              <label>Número</label>
               <input
                 type="text"
-                id="numero"
                 className="form-control"
                 value={numero}
                 onChange={(e) => setNumero(e.target.value)}
                 required
               />
             </div>
-          </div>
 
-          <div className="row">
             <div className="col-md-6 mb-3">
-              <label htmlFor="bairro">Bairro</label>
+              <label>Bairro</label>
               <input
                 type="text"
-                id="bairro"
                 className="form-control"
                 value={bairro}
                 onChange={(e) => setBairro(e.target.value)}
@@ -210,23 +193,19 @@ function RegisterMedico() {
             </div>
 
             <div className="col-md-6 mb-3">
-              <label htmlFor="cidade">Cidade</label>
+              <label>Cidade</label>
               <input
                 type="text"
-                id="cidade"
                 className="form-control"
                 value={cidade}
                 onChange={(e) => setCidade(e.target.value)}
                 required
               />
             </div>
-          </div>
 
-          <div className="row">
             <div className="col-md-6 mb-3">
-              <label htmlFor="estado">Estado</label>
+              <label>Estado</label>
               <select
-                id="estado"
                 className="form-select"
                 value={estado}
                 onChange={(e) => setEstado(e.target.value)}

@@ -1,32 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import './css/historico.css';
 
 function Pacientes() {
   const [pacientes, setPacientes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const patientsPerPage = 4;
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPacientes = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-        setPacientes(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Erro ao buscar pacientes:', err);
-        setError('Erro ao buscar pacientes. Por favor, tente novamente mais tarde.');
-        setLoading(false);
-      }
-    };
-
-    fetchPacientes();
+    const storedPacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
+    setPacientes(storedPacientes);
+    setLoading(false);
   }, []);
 
   const handleViewHistory = (id) => {
@@ -37,10 +25,9 @@ function Pacientes() {
     navigate(`/pacientes/${id}/historico`);
   };
 
-  const filteredPacientes = pacientes.filter((paciente) => {
-    const searchLower = searchTerm.toLowerCase();
-    return paciente.nome.toLowerCase().includes(searchLower);
-  });
+  const filteredPacientes = pacientes.filter((paciente) =>
+    paciente.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const totalPages = Math.ceil(filteredPacientes.length / patientsPerPage);
   const indexOfLastPatient = currentPage * patientsPerPage;
@@ -75,10 +62,9 @@ function Pacientes() {
         className="search-input"
       />
 
-      {loading && <p>Carregando pacientes...</p>}
-      {error && <p className="error">{error}</p>}
-
-      {!loading && !error && (
+      {loading ? (
+        <p>Carregando pacientes...</p>
+      ) : (
         <>
           <table>
             <thead>
@@ -95,16 +81,10 @@ function Pacientes() {
                     <td>{paciente.nome}</td>
                     <td>{formatDate(paciente.nascimento)}</td>
                     <td>
-                      <button
-                        onClick={() => handleViewHistory(paciente.id)}
-                        className="view-history-button"
-                      >
+                      <button onClick={() => handleViewHistory(paciente.id)} className="view-history-button">
                         Visualizar Histórico
                       </button>
-                      <button
-                        onClick={() => handleCreateHistory(paciente.id)}
-                        className="create-history-button"
-                      >
+                      <button onClick={() => handleCreateHistory(paciente.id)} className="create-history-button">
                         Criar Histórico
                       </button>
                     </td>
@@ -119,19 +99,11 @@ function Pacientes() {
           </table>
 
           <div className="pagination">
-            <button onClick={handleFirstPage} disabled={currentPage === 1}>
-              Primeira
-            </button>
-            <button onClick={handlePreviousPage} disabled={currentPage === 1}>
-              Anterior
-            </button>
+            <button onClick={handleFirstPage} disabled={currentPage === 1}>Primeira</button>
+            <button onClick={handlePreviousPage} disabled={currentPage === 1}>Anterior</button>
             <span>Página {currentPage} de {totalPages}</span>
-            <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-              Próxima
-            </button>
-            <button onClick={handleLastPage} disabled={currentPage === totalPages}>
-              Última
-            </button>
+            <button onClick={handleNextPage} disabled={currentPage === totalPages}>Próxima</button>
+            <button onClick={handleLastPage} disabled={currentPage === totalPages}>Última</button>
           </div>
         </>
       )}
@@ -143,7 +115,7 @@ const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Mês começa em 0
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };

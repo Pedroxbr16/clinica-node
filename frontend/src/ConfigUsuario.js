@@ -1,39 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Usuario = () => {
   const navigate = useNavigate();
-
   const [usuarios, setUsuarios] = useState([]);
 
-  const fetchUsuarios = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/atendente/atendente');
-      console.log(response.data);
-      setUsuarios(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
-      setUsuarios([]);
-    }
+  const fetchUsuarios = () => {
+    const data = JSON.parse(localStorage.getItem('usuarios')) || [];
+    setUsuarios(data);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
-      try {
-        await axios.delete(`http://localhost:5000/atendente/atendente/${id}`);
-        fetchUsuarios();
-        alert('Usuário excluído com sucesso!');
-      } catch (error) {
-        console.error('Erro ao excluir usuário:', error);
-        alert('Erro ao excluir usuário.');
-      }
+      const novosUsuarios = usuarios.filter((usuario) => usuario.id !== id);
+      localStorage.setItem('usuarios', JSON.stringify(novosUsuarios));
+      setUsuarios(novosUsuarios);
+      alert('Usuário excluído com sucesso!');
     }
   };
 
   const handleEdit = (id) => {
-    navigate(`/usuarios/editar/${id}`); // Redireciona para a rota de edição de usuário
+    navigate(`/usuarios/editar/${id}`);
   };
 
   useEffect(() => {
@@ -44,7 +32,6 @@ const Usuario = () => {
     <div className="container mt-5 p-4">
       <h2 className="text-center mb-4">Usuários Existentes</h2>
 
-      {/* Botões de Voltar e Adicionar */}
       <div className="d-flex justify-content-between mb-4">
         <button
           className="btn btn-secondary btn-sm"

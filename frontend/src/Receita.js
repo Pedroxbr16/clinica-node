@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function ReceitaMedica() {
@@ -12,27 +11,11 @@ function ReceitaMedica() {
   const [pacientes, setPacientes] = useState([]);
 
   useEffect(() => {
-    fetchMedicos();
-    fetchPacientes();
+    const storedMedicos = JSON.parse(localStorage.getItem('medicos')) || [];
+    const storedPacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
+    setMedicos(storedMedicos);
+    setPacientes(storedPacientes);
   }, []);
-
-  const fetchMedicos = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/medicos/medicos');
-      setMedicos(response.data.data);
-    } catch (error) {
-      console.error('Erro ao buscar médicos:', error);
-    }
-  };
-
-  const fetchPacientes = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-      setPacientes(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar pacientes:', error);
-    }
-  };
 
   const generatePDF = () => {
     const doc = new jsPDF();
@@ -60,7 +43,7 @@ function ReceitaMedica() {
 
     // Linha e assinatura
     const yPosition = 150;
-    doc.line(20, yPosition, 120, yPosition); // Linha para assinatura
+    doc.line(20, yPosition, 120, yPosition);
     doc.text("Assinatura / Carimbo do Médico", 20, yPosition + 10);
 
     doc.save(`Receita_Medica_${pacienteSelecionado}.pdf`);

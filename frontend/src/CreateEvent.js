@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import Select from 'react-select';
-import Swal from 'sweetalert2'; // Importa o SweetAlert2
-import moment from 'moment-timezone'; // Importa o moment-timezone
+import Swal from 'sweetalert2';
+import moment from 'moment-timezone';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/CreateEvent.css';
 
@@ -22,68 +21,39 @@ const CreateEvent = () => {
   const [types, setTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchPatients = async () => {
-    try {
-      const response = await axios.get(`http://localhost:5000/pacientes/pacientes`);
-      setPatients(
-        response.data.map((patient) => ({
-          label: patient.nome,
-          value: patient.id,
-          email: patient.email,
-          nome: patient.nome,
-        }))
-      );
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar pacientes. Por favor, tente novamente.',
-      });
-    }
-  };
+  const fetchLocalData = () => {
+    const pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
+    const medicos = JSON.parse(localStorage.getItem('medicos')) || [];
+    const tipos = JSON.parse(localStorage.getItem('tipos_consulta')) || [];
 
-  const fetchDoctors = async () => {
-    try {
-      const response = await axios.get(`http://localhost:5000/medicos/medicos`);
-      setDoctors(
-        response.data.data.map((doctor) => ({
-          label: doctor.usuario,
-          value: doctor.id,
-        }))
-      );
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar médicos. Por favor, tente novamente.',
-      });
-    }
-  };
+    setPatients(
+      pacientes.map((p) => ({
+        label: p.nome,
+        value: p.id,
+        email: p.email,
+        nome: p.nome,
+      }))
+    );
 
-  const fetchTiposConsulta = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
-      setTypes(
-        response.data.map((tipo) => ({
-          label: `${tipo.descricao} - R$ ${parseFloat(tipo.valor).toFixed(2)}`,
-          value: tipo.id,
-        }))
-      );
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar tipos de consulta. Por favor, tente novamente.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    setDoctors(
+      medicos.map((d) => ({
+        label: d.usuario,
+        value: d.id,
+      }))
+    );
+
+    setTypes(
+      tipos.map((t) => ({
+        label: `${t.descricao} - R$ ${parseFloat(t.valor).toFixed(2)}`,
+        value: t.id,
+      }))
+    );
+
+    setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchPatients();
-    fetchDoctors();
-    fetchTiposConsulta();
+    fetchLocalData();
   }, []);
 
   const handleInputChange = (e) => {
@@ -95,67 +65,61 @@ const CreateEvent = () => {
     setEvent({ ...event, [action.name]: selectedOption ? selectedOption.value : '' });
   };
 
-  const submitEvent = async () => {
-    try {
-      const selectedPatient = patients.find((p) => p.value === event.patient);
-      const pacienteEmail = selectedPatient?.email || '';
-      const pacienteNome = selectedPatient?.nome || '';
+  const submitEvent = () => {
+    const selectedPatient = patients.find((p) => p.value === event.patient);
+    const pacienteEmail = selectedPatient?.email || '';
+    const pacienteNome = selectedPatient?.nome || '';
 
-      const payload = {
-        titulo: event.title,
-        inicio: event.start,
-        fim: event.end,
-        paciente_id: event.patient,
-        medico_id: event.doctor,
-        tipo_consulta_id: event.type,
-        modalidade: event.modalidade,
-        pacienteEmail,
-        pacienteNome,
-      };
+    const payload = {
+      id: Date.now(),
+      titulo: event.title,
+      inicio: event.start,
+      fim: event.end,
+      paciente_id: event.patient,
+      medico_id: event.doctor,
+      tipo_consulta_id: event.type,
+      modalidade: event.modalidade,
+      pacienteEmail,
+      pacienteNome,
+    };
 
-      console.log('Enviando dados para criação de consulta:', payload);
+    const stored = JSON.parse(localStorage.getItem('consultas')) || [];
+    stored.push(payload);
+    localStorage.setItem('consultas', JSON.stringify(stored));
 
-      await axios.post('http://localhost:5000/consultas/adiciona', payload);
+    Swal.fire({
+      icon: 'success',
+      title: 'Sucesso',
+      text: 'Consulta agendada com sucesso!',
+    });
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Sucesso',
-        text: 'Consulta agendada com sucesso!',
-      });
-    } catch (error) {
-      console.error('Erro ao criar consulta:', error.response?.data || error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: error.response?.data?.error || 'Erro ao agendar a consulta. Tente novamente.',
-      });
-    }
+    setEvent({
+      title: '',
+      start: moment().tz("America/Sao_Paulo").format("YYYY-MM-DDTHH:mm"),
+      end: moment().tz("America/Sao_Paulo").add(1, 'hours').format("YYYY-MM-DDTHH:mm"),
+      patient: '',
+      doctor: '',
+      type: '',
+      modalidade: '',
+    });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!event.patient) {
+
+    if (!event.patient || !event.doctor || !event.type || !event.modalidade) {
       Swal.fire({
         icon: 'warning',
-        title: 'Atenção',
-        text: 'Por favor, selecione um paciente.',
+        title: 'Campos obrigatórios',
+        text: 'Preencha todos os campos antes de agendar.',
       });
       return;
     }
-    if (!event.doctor) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Atenção',
-        text: 'Por favor, selecione um médico.',
-      });
-      return;
-    }
+
     submitEvent();
   };
 
-  if (isLoading) {
-    return <div className="text-center mt-5">Carregando dados...</div>;
-  }
+  if (isLoading) return <div className="text-center mt-5">Carregando dados...</div>;
 
   return (
     <div className="container create-event-container mt-5">
@@ -197,6 +161,7 @@ const CreateEvent = () => {
             />
           </div>
         </div>
+
         <div className="mb-3">
           <label>Paciente:</label>
           <Select
@@ -206,9 +171,9 @@ const CreateEvent = () => {
             onChange={handleSelectChange}
             placeholder="Buscar paciente..."
             isClearable
-            classNamePrefix="select"
           />
         </div>
+
         <div className="mb-3">
           <label>Médico:</label>
           <Select
@@ -218,9 +183,9 @@ const CreateEvent = () => {
             onChange={handleSelectChange}
             placeholder="Buscar médico..."
             isClearable
-            classNamePrefix="select"
           />
         </div>
+
         <div className="mb-3">
           <label>Tipo de Consulta:</label>
           <Select
@@ -230,26 +195,29 @@ const CreateEvent = () => {
             onChange={handleSelectChange}
             placeholder="Selecione um Tipo de Consulta"
             isClearable
-            classNamePrefix="select"
           />
         </div>
+
         <div className="mb-4">
           <label>Modalidade:</label>
           <Select
             name="modalidade"
-            options={[{ label: 'Presencial', value: 'Presencial' }, { label: 'Online', value: 'Online' }]}
+            options={[
+              { label: 'Presencial', value: 'Presencial' },
+              { label: 'Online', value: 'Online' },
+            ]}
             value={event.modalidade ? { label: event.modalidade, value: event.modalidade } : null}
             onChange={(selectedOption) =>
-              setEvent((prevEvent) => ({
-                ...prevEvent,
+              setEvent((prev) => ({
+                ...prev,
                 modalidade: selectedOption ? selectedOption.value : '',
               }))
             }
             placeholder="Selecione a modalidade"
             isClearable
-            classNamePrefix="select"
           />
         </div>
+
         <button type="submit" className="btn btn-primary w-100">
           Agendar
         </button>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Bar, Doughnut } from "react-chartjs-2";
 import "chart.js/auto";
 import { Card, Form, Row, Col, Button } from "react-bootstrap";
@@ -22,35 +21,50 @@ const FinancialDashboard = () => {
     }
   }, [filters]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = () => {
     setLoading(true);
-    try {
-      const response = await axios.get("http://localhost:5000/finance/dashboard", {
-        params: filters,
-      });
 
-      const { totalRevenue, totalAppointments, revenueChartData, labels } =
-        response.data;
+    // Simulação de dados
+    const allData = JSON.parse(localStorage.getItem("financeData")) || [];
 
-      setIndicators({
-        totalRevenue: parseFloat(totalRevenue || 0), // Certifica que é um número
-        totalAppointments: totalAppointments || 0,
-      });
+    const filtered = allData.filter((item) => {
+      const date = new Date(item.date);
+      return (
+        date.getMonth() + 1 === parseInt(filters.month) &&
+        date.getFullYear() === parseInt(filters.year)
+      );
+    });
 
-      setChartData({
-        revenue: revenueChartData.map((val) => parseFloat(val)), // Converte para número
-        labels,
-      });
-    } catch (error) {
-      console.error("Erro ao buscar dados do dashboard:", error);
-    } finally {
-      setLoading(false);
-    }
+    const groupedByDay = {};
+
+    filtered.forEach((item) => {
+      const day = new Date(item.date).getDate();
+      if (!groupedByDay[day]) groupedByDay[day] = 0;
+      groupedByDay[day] += parseFloat(item.amount);
+    });
+
+    const labels = Object.keys(groupedByDay).map((day) => `Dia ${day}`);
+    const revenueChartData = Object.values(groupedByDay);
+
+    const totalRevenue = filtered.reduce((acc, item) => acc + parseFloat(item.amount), 0);
+    const totalAppointments = filtered.length;
+
+    setIndicators({
+      totalRevenue,
+      totalAppointments,
+    });
+
+    setChartData({
+      revenue: revenueChartData,
+      labels,
+    });
+
+    setLoading(false);
   };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prevFilters) => ({ ...prevFilters, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -63,11 +77,7 @@ const FinancialDashboard = () => {
           <Col md={4}>
             <Form.Group>
               <Form.Label>Mês</Form.Label>
-              <Form.Select
-                name="month"
-                value={filters.month}
-                onChange={handleFilterChange}
-              >
+              <Form.Select name="month" value={filters.month} onChange={handleFilterChange}>
                 <option value="">Selecione o mês</option>
                 {[...Array(12)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
@@ -80,13 +90,9 @@ const FinancialDashboard = () => {
           <Col md={4}>
             <Form.Group>
               <Form.Label>Ano</Form.Label>
-              <Form.Select
-                name="year"
-                value={filters.year}
-                onChange={handleFilterChange}
-              >
+              <Form.Select name="year" value={filters.year} onChange={handleFilterChange}>
                 <option value="">Selecione o ano</option>
-                {[...Array(10)].map((_, i) => {
+                {[...Array(5)].map((_, i) => {
                   const year = new Date().getFullYear() - i;
                   return (
                     <option key={year} value={year}>
@@ -98,11 +104,7 @@ const FinancialDashboard = () => {
             </Form.Group>
           </Col>
           <Col md={4} className="d-flex align-items-end">
-            <Button
-              onClick={fetchDashboardData}
-              className="w-100"
-              disabled={loading}
-            >
+            <Button onClick={fetchDashboardData} className="w-100" disabled={loading}>
               {loading ? "Carregando..." : "Atualizar"}
             </Button>
           </Col>
@@ -155,7 +157,7 @@ const FinancialDashboard = () => {
                 {
                   label: "Receita",
                   data: chartData.revenue,
-                  backgroundColor: ["#4caf50", "#2196f3", "#ff9800", "#e91e63"],
+                  backgroundColor: ["#4caf50", "#2196f3", "#ff9800", "#e91e63", "#9c27b0"],
                 },
               ],
             }}

@@ -1,97 +1,64 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Adicionado o `useNavigate` para o botão de voltar
-import Swal from "sweetalert2"; // Importa o SweetAlert2
-import './css/CriarHistorico.css'; // Caminho atualizado
+import { useParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import './css/CriarHistorico.css';
 
 const CriarHistorico = () => {
-  const { id } = useParams(); // Obtém o ID do paciente da URL
-  const navigate = useNavigate(); // Para o botão de voltar
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const [pacienteNome, setPacienteNome] = useState("");
   const [dataConsulta, setDataConsulta] = useState("");
   const [historicoTexto, setHistoricoTexto] = useState("");
 
   useEffect(() => {
-    // Define a data atual automaticamente no formato YYYY-MM-DD
-    const hoje = new Date();
-    const dataFormatada = hoje.toISOString().split("T")[0]; // Formato ISO 8601 (YYYY-MM-DD)
-    setDataConsulta(dataFormatada);
+    const hoje = new Date().toISOString().split("T")[0];
+    setDataConsulta(hoje);
 
-    // Busca o nome do paciente pelo ID
-    const fetchPacienteNome = async () => {
-      try {
-        const response = await fetch(`http://localhost:5000/pacientes/pacientes/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setPacienteNome(data.nome); // Define o nome do paciente
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Erro",
-            text: "Erro ao buscar o nome do paciente.",
-          });
-        }
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Erro",
-          text: "Erro ao conectar com o servidor.",
-        });
-      }
-    };
-
-    fetchPacienteNome();
+    const pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+    const paciente = pacientes.find((p) => p.id.toString() === id);
+    if (paciente) {
+      setPacienteNome(paciente.nome);
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: "Paciente não encontrado no localStorage.",
+      });
+    }
   }, [id]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+
     const historico = {
-      paciente_id: id, // Ainda usamos o ID para criar o histórico
+      id: Date.now(),
+      paciente_id: id,
+      paciente_nome: pacienteNome,
       data_consulta: dataConsulta,
       historico: historicoTexto,
     };
 
-    try {
-      const response = await fetch("http://localhost:5000/historico/historicos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(historico),
-      });
+    const historicos = JSON.parse(localStorage.getItem("historicos")) || [];
+    historicos.push(historico);
+    localStorage.setItem("historicos", JSON.stringify(historicos));
 
-      if (response.ok) {
-        const result = await response.json();
-        Swal.fire({
-          icon: "success",
-          title: "Sucesso",
-          text: `Histórico criado com sucesso! ID: ${result.id}`,
-        });
-        setHistoricoTexto(""); // Limpa o campo do histórico
-      } else {
-        const error = await response.json();
-        Swal.fire({
-          icon: "error",
-          title: "Erro",
-          text: `Erro: ${error.error}`,
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Erro",
-        text: "Erro ao conectar com o servidor.",
-      });
-    }
+    Swal.fire({
+      icon: "success",
+      title: "Sucesso",
+      text: `Histórico salvo com sucesso!`,
+    });
+
+    setHistoricoTexto("");
   };
 
   return (
     <div className="historico-container">
-      {/* Botão de voltar e título */}
       <div className="d-flex align-items-center mb-4">
         <button
           className="btn btn-secondary btn-sm me-3"
           style={{ width: '100px' }}
-          onClick={() => navigate(-1)} // Voltar para a página anterior
+          onClick={() => navigate(-1)}
         >
           Voltar
         </button>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { Table, Button, Modal, Form } from "react-bootstrap";
 
@@ -18,139 +17,83 @@ const PagamentoScreen = () => {
   const [medicos, setMedicos] = useState([]);
   const [tiposConsulta, setTiposConsulta] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    const storedPagamentos = JSON.parse(localStorage.getItem("pagamentos")) || [];
+    const storedUsuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    const storedPacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+    const storedMedicos = JSON.parse(localStorage.getItem("medicos")) || [];
+    const storedTipos = JSON.parse(localStorage.getItem("tiposConsulta")) || [];
+
+    setPagamentos(storedPagamentos);
+    setUsuarios(storedUsuarios);
+    setPacientes(storedPacientes);
+    setMedicos(storedMedicos);
+    setTiposConsulta(
+      storedTipos.map((tipo) => ({
+        id: tipo.id,
+        descricao: `${tipo.descricao} - R$ ${parseFloat(tipo.valor).toFixed(2)}`,
+      }))
+    );
   }, []);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        fetchPagamentos(),
-        fetchUsuarios(),
-        fetchPacientes(),
-        fetchMedicos(),
-        fetchTiposConsulta(),
-      ]);
-    } catch (error) {
-      console.error("Erro ao carregar os dados:", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPagamentos = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/pagamentos/buscar");
-      setPagamentos(response.data || []);
-    } catch (error) {
-      console.error("Erro ao buscar pagamentos:", error.message);
-    }
-  };
-
-  const fetchUsuarios = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/atendente/atendente");
-      setUsuarios(response.data || []);
-    } catch (error) {
-      console.error("Erro ao buscar usuários:", error.message);
-    }
-  };
-
-  const fetchPacientes = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/pacientes/pacientes");
-      setPacientes(response.data || []);
-    } catch (error) {
-      console.error("Erro ao buscar pacientes:", error.message);
-    }
-  };
-
-  const fetchMedicos = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/medicos/medicos");
-      setMedicos(response.data.data || []);
-    } catch (error) {
-      console.error("Erro ao buscar médicos:", error.message);
-    }
-  };
-
-  const fetchTiposConsulta = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/tipos_consulta/lista");
-      setTiposConsulta(
-        response.data.map((tipo) => ({
-          id: tipo.id,
-          descricao: `${tipo.descricao} - R$ ${parseFloat(tipo.valor).toFixed(2)}`,
-        }))
-      );
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Erro",
-        text: "Erro ao buscar tipos de consulta.",
-      });
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleSubmit = async () => {
-    console.log("Dados do formulário:", formData); // Debugging
-    try {
-      if (editingId) {
-        await axios.put(`http://localhost:5000/pagamentos/${editingId}`, formData);
-        Swal.fire("Sucesso", "Pagamento atualizado com sucesso!", "success");
-      } else {
-        await axios.post("http://localhost:5000/pagamentos/criar", formData);
-        Swal.fire("Sucesso", "Pagamento criado com sucesso!", "success");
-      }
-      fetchPagamentos();
-      setShowModal(false);
-      resetForm();
-    } catch (error) {
-      Swal.fire("Erro", "Não foi possível salvar o pagamento!", "error");
-      console.error("Erro ao salvar pagamento:", error.message);
-    }
+  const getNomeById = (arr, id) => {
+    const found = arr.find((item) => item.id.toString() === id?.toString());
+    return found?.usuario || found?.nome || "Desconhecido";
   };
+
+  const handleSubmit = () => {
+    const updated = [...pagamentos];
+    if (editingId) {
+      const index = updated.findIndex((p) => p.id === editingId);
+      updated[index] = { ...updated[index], ...formData };
+    } else {
+      const novo = {
+        id: Date.now(),
+        data: new Date().toISOString(),
+        ...formData,
+      };
+      updated.push(novo);
+    }
+
+    setPagamentos(updated);
+    localStorage.setItem("pagamentos", JSON.stringify(updated));
+    setShowModal(false);
+    resetForm();
+    Swal.fire("Sucesso", "Pagamento salvo com sucesso!", "success");
+  };
+
   const handleEdit = (pagamento) => {
     setFormData({
-      metodo: pagamento.metodo || "", // Garantir que o valor exista ou definir como vazio
+      metodo: pagamento.metodo || "",
       usuario_id: pagamento.usuario_id || "",
       paciente_id: pagamento.paciente_id || "",
       medico_id: pagamento.medico_id || "",
       tipo_consulta_id: pagamento.tipo_consulta_id || "",
     });
-    setEditingId(pagamento.id); // Define o ID do item sendo editado
-    setShowModal(true); // Exibe o modal de edição
+    setEditingId(pagamento.id);
+    setShowModal(true);
   };
-  
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     Swal.fire({
       title: "Tem certeza?",
-      text: "Você não poderá reverter esta ação!",
+      text: "Esta ação não poderá ser desfeita!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
       confirmButtonText: "Sim, excluir!",
       cancelButtonText: "Cancelar",
-    }).then(async (result) => {
+    }).then((result) => {
       if (result.isConfirmed) {
-        try {
-          await axios.delete(`http://localhost:5000/pagamentos/${id}`);
-          Swal.fire("Excluído!", "O pagamento foi excluído com sucesso.", "success");
-          fetchPagamentos();
-        } catch (error) {
-          Swal.fire("Erro", "Não foi possível excluir o pagamento!", "error");
-          console.error("Erro ao deletar pagamento:", error.message);
-        }
+        const atualizados = pagamentos.filter((p) => p.id !== id);
+        setPagamentos(atualizados);
+        localStorage.setItem("pagamentos", JSON.stringify(atualizados));
+        Swal.fire("Excluído!", "Pagamento removido com sucesso.", "success");
       }
     });
   };
@@ -172,77 +115,66 @@ const PagamentoScreen = () => {
       <Button className="mb-3" onClick={() => setShowModal(true)}>
         Novo Pagamento
       </Button>
-      {loading ? (
-        <p>Carregando...</p>
-      ) : (
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Método</th>
-              <th>Data</th>
-              <th>Usuário</th>
-              <th>Paciente</th>
-              <th>Médico</th>
-              <th>Tipo de Consulta</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagamentos.length > 0 ? (
-              pagamentos.map((pagamento) => (
-                <tr key={pagamento.id}>
-                  <td>{pagamento.id}</td>
-                  <td>{pagamento.metodo}</td>
-                  <td>{new Date(pagamento.data).toLocaleString()}</td>
-                  <td>{pagamento.usuario_nome}</td>
-                  <td>{pagamento.paciente_nome}</td>
-                  <td>{pagamento.medico_nome}</td>
-                  <td>{pagamento.tipo_consulta}</td>
-                  <td>
-                    <Button
-                      variant="warning"
-                      className="me-2"
-                      onClick={() => handleEdit(pagamento)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={() => handleDelete(pagamento.id)}
-                    >
-                      Excluir
-                    </Button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="text-center">
-                  Nenhum pagamento encontrado.
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Método</th>
+            <th>Data</th>
+            <th>Usuário</th>
+            <th>Paciente</th>
+            <th>Médico</th>
+            <th>Tipo de Consulta</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pagamentos.length > 0 ? (
+            pagamentos.map((pagamento) => (
+              <tr key={pagamento.id}>
+                <td>{pagamento.id}</td>
+                <td>{pagamento.metodo}</td>
+                <td>{new Date(pagamento.data).toLocaleString()}</td>
+                <td>{getNomeById(usuarios, pagamento.usuario_id)}</td>
+                <td>{getNomeById(pacientes, pagamento.paciente_id)}</td>
+                <td>{getNomeById(medicos, pagamento.medico_id)}</td>
+                <td>
+                  {
+                    tiposConsulta.find(
+                      (t) => t.id.toString() === pagamento.tipo_consulta_id?.toString()
+                    )?.descricao || "-"
+                  }
+                </td>
+                <td>
+                  <Button variant="warning" className="me-2" onClick={() => handleEdit(pagamento)}>
+                    Editar
+                  </Button>
+                  <Button variant="danger" onClick={() => handleDelete(pagamento.id)}>
+                    Excluir
+                  </Button>
                 </td>
               </tr>
-            )}
-          </tbody>
-        </Table>
-      )}
+            ))
+          ) : (
+            <tr>
+              <td colSpan="8" className="text-center">
+                Nenhum pagamento encontrado.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>
-            {editingId ? "Editar Pagamento" : "Novo Pagamento"}
-          </Modal.Title>
+          <Modal.Title>{editingId ? "Editar Pagamento" : "Novo Pagamento"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Método</Form.Label>
-              <Form.Select
-                name="metodo"
-                value={formData.metodo}
-                onChange={handleInputChange}
-              >
-                <option value="">Selecione o método</option>
+              <Form.Select name="metodo" value={formData.metodo} onChange={handleInputChange}>
+                <option value="">Selecione</option>
                 <option value="dinheiro">Dinheiro</option>
                 <option value="cartao_credito">Cartão de Crédito</option>
                 <option value="cartao_debito">Cartão de Débito</option>
@@ -252,50 +184,37 @@ const PagamentoScreen = () => {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Usuário</Form.Label>
-              <Form.Select
-                name="usuario_id"
-                value={formData.usuario_id}
-                onChange={handleInputChange}
-              >
-                <option value="">Selecione o usuário</option>
-                {usuarios.map((usuario) => (
-                  <option key={usuario.id} value={usuario.id}>
-                    {usuario.nome || usuario.usuario}
+              <Form.Select name="usuario_id" value={formData.usuario_id} onChange={handleInputChange}>
+                <option value="">Selecione</option>
+                {usuarios.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.usuario || u.nome}
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Paciente</Form.Label>
-              <Form.Select
-                name="paciente_id"
-                value={formData.paciente_id}
-                onChange={handleInputChange}
-              >
-                <option value="">Selecione o paciente</option>
-                {pacientes.map((paciente) => (
-                  <option key={paciente.id} value={paciente.id}>
-                    {paciente.nome}
+              <Form.Select name="paciente_id" value={formData.paciente_id} onChange={handleInputChange}>
+                <option value="">Selecione</option>
+                {pacientes.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nome}
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">
-  <Form.Label>Médico</Form.Label>
-  <Form.Select
-    name="medico_id"
-    value={formData.medico_id}
-    onChange={handleInputChange}
-  >
-    <option value="">Selecione o médico</option>
-    {medicos.map((medico) => (
-      <option key={medico.id} value={medico.id}>
-        {medico.usuario || medico.nome} {/* Exibe usuário ou nome */}
-      </option>
-    ))}
-  </Form.Select>
-</Form.Group>
-
+              <Form.Label>Médico</Form.Label>
+              <Form.Select name="medico_id" value={formData.medico_id} onChange={handleInputChange}>
+                <option value="">Selecione</option>
+                {medicos.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.usuario || m.nome}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Tipo de Consulta</Form.Label>
               <Form.Select
@@ -303,10 +222,10 @@ const PagamentoScreen = () => {
                 value={formData.tipo_consulta_id}
                 onChange={handleInputChange}
               >
-                <option value="">Selecione o tipo de consulta</option>
-                {tiposConsulta.map((tipo) => (
-                  <option key={tipo.id} value={tipo.id}>
-                    {tipo.descricao}
+                <option value="">Selecione</option>
+                {tiposConsulta.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.descricao}
                   </option>
                 ))}
               </Form.Select>

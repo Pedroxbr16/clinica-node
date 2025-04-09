@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function PedidoExames() {
@@ -14,78 +13,40 @@ function PedidoExames() {
   const [medicoSelecionado, setMedicoSelecionado] = useState('');
 
   useEffect(() => {
-    fetchExames();
-    fetchMedicos();
-    fetchPacientes();
+    const storedExames = JSON.parse(localStorage.getItem('exames')) || [];
+    const storedMedicos = JSON.parse(localStorage.getItem('medicos')) || [];
+    const storedPacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
+
+    setExames(storedExames);
+    setMedicos(storedMedicos);
+    setPacientes(storedPacientes);
   }, []);
-
-  const fetchExames = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/exames/exames');
-      setExames(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar exames:', error);
-    }
-  };
-
-  const fetchMedicos = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/medicos/medicos");
-      if (response.data && Array.isArray(response.data.data)) {
-        setMedicos(response.data.data); // Certifique-se de que a estrutura dos dados está correta
-      } else {
-        console.error("Formato de dados inesperado para médicos:", response.data);
-        setMedicos([]); // Define como vazio caso o formato esteja incorreto
-      }
-    } catch (error) {
-      console.error("Erro ao buscar médicos:", error.message);
-      setMedicos([]); // Define como vazio em caso de erro
-    }
-  };
-  
-
-  const fetchPacientes = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-      setPacientes(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar pacientes:', error);
-    }
-  };
 
   const handleExameChange = (e) => {
     const { value, checked } = e.target;
-    if (checked) {
-      setExamesSelecionados((prevExames) => [...prevExames, value]);
-    } else {
-      setExamesSelecionados((prevExames) =>
-        prevExames.filter((exame) => exame !== value)
-      );
-    }
+    setExamesSelecionados(prev =>
+      checked ? [...prev, value] : prev.filter(exame => exame !== value)
+    );
   };
 
   const generatePDF = () => {
     const doc = new jsPDF();
 
-    // Cabeçalho
     doc.setFontSize(12);
     doc.text("Centro Clínico EXEMPLO - RJ", 20, 20);
     doc.setFontSize(10);
     doc.text("CNPJ: 11.111.111/0001-11", 20, 25);
     doc.text("Rua QUALQUER UMA NUMERO NINGUEM LIGA ANDAR 12", 20, 30);
 
-    // Informações do Paciente e Médico
     doc.text(`Paciente: ${pacienteSelecionado}`, 20, 50);
     doc.text(`Médico: ${medicoSelecionado}`, 20, 55);
     doc.text(`Data do Atendimento: ${new Date().toLocaleDateString()}`, 20, 60);
 
-    // Observações
     if (observacoes) {
       doc.text("Observações:", 20, 75);
       doc.text(observacoes, 20, 80);
     }
 
-    // Tabela de Exames
     doc.autoTable({
       startY: observacoes ? 90 : 75,
       head: [['Exame(s)']],
@@ -95,15 +56,11 @@ function PedidoExames() {
       margin: { left: 20, right: 20 }
     });
 
-    // Linha e texto para assinatura
     const yPosition = doc.lastAutoTable.finalY + 30;
-    doc.line(20, yPosition, 120, yPosition); // Linha para assinatura
-    doc.text("Assinatura / Carimbo do Médico", 20, yPosition + 10); // Texto abaixo da linha
-
-    // Data da assinatura
+    doc.line(20, yPosition, 120, yPosition);
+    doc.text("Assinatura / Carimbo do Médico", 20, yPosition + 10);
     doc.text(`Data: ${new Date().toLocaleDateString()}`, 20, yPosition + 20);
 
-    // Salvar PDF
     doc.save(`Guia_Exames_${pacienteSelecionado}.pdf`);
   };
 
@@ -126,10 +83,8 @@ function PedidoExames() {
             required
           >
             <option value="">Selecione um paciente</option>
-            {pacientes.map((paciente) => (
-              <option key={paciente.id} value={paciente.nome}>
-                {paciente.nome}
-              </option>
+            {pacientes.map(p => (
+              <option key={p.id} value={p.nome}>{p.nome}</option>
             ))}
           </select>
         </div>
@@ -143,9 +98,9 @@ function PedidoExames() {
             required
           >
             <option value="">Selecione um médico</option>
-            {medicos.map((medico) => (
-              <option key={medico.id} value={medico.usuario || medico.nome}>
-                {medico.usuario || medico.nome}
+            {medicos.map(m => (
+              <option key={m.id} value={m.usuario || m.nome}>
+                {m.usuario || m.nome}
               </option>
             ))}
           </select>
@@ -153,7 +108,7 @@ function PedidoExames() {
 
         <div className="col-md-12">
           <h4>Exames Disponíveis:</h4>
-          {exames.map((exame) => (
+          {exames.map(exame => (
             <div className="form-check" key={exame.id}>
               <input
                 type="checkbox"

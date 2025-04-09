@@ -1,36 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import './css/listagemPaciente.css';
 
 function Pacientes() {
   const [pacientes, setPacientes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1); // Página atual
-  const patientsPerPage = 4; // Número de pacientes por página
+  const [currentPage, setCurrentPage] = useState(1);
+  const patientsPerPage = 4;
 
-  const navigate = useNavigate(); // Hook para redirecionamento
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPacientes = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-        setPacientes(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Erro ao buscar pacientes:', err);
-        setError('Erro ao buscar pacientes. Por favor, tente novamente mais tarde.');
-        setLoading(false);
-      }
-    };
-
-    fetchPacientes();
+    const storedPacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
+    setPacientes(storedPacientes);
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     Swal.fire({
       title: 'Você tem certeza?',
       text: 'Esta ação não pode ser desfeita!',
@@ -38,63 +24,36 @@ function Pacientes() {
       showCancelButton: true,
       confirmButtonText: 'Sim, excluir!',
       cancelButtonText: 'Cancelar',
-    }).then(async (result) => {
+    }).then((result) => {
       if (result.isConfirmed) {
-        try {
-          await axios.delete(`http://localhost:5000/pacientes/${id}`);
-          setPacientes((prevPacientes) =>
-            prevPacientes.filter((paciente) => paciente.id !== id)
-          );
-          Swal.fire('Excluído!', 'Paciente foi excluído com sucesso.', 'success');
-        } catch (err) {
-          console.error('Erro ao excluir paciente:', err);
-          Swal.fire('Erro!', 'Erro ao excluir paciente. Por favor, tente novamente.', 'error');
-        }
+        const updatedPacientes = pacientes.filter((paciente) => paciente.id !== id);
+        setPacientes(updatedPacientes);
+        localStorage.setItem('pacientes', JSON.stringify(updatedPacientes));
+        Swal.fire('Excluído!', 'Paciente foi excluído com sucesso.', 'success');
       }
     });
   };
 
   const handleEdit = (id) => {
-    navigate(`/pacientes/editar/${id}`); // Redireciona para a tela de edição com o ID do paciente
+    navigate(`/pacientes/editar/${id}`);
   };
 
-  // Função de filtro aprimorada
   const filteredPacientes = pacientes.filter((paciente) => {
     const searchLower = searchTerm.toLowerCase();
-
-    // Verifica nome, CPF e e-mail
-    const nome = paciente.nome.toLowerCase();
-    const cpf = paciente.cpf.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
-    const email = paciente.email.toLowerCase();
-
+    const nome = paciente.nome?.toLowerCase() || '';
+    const cpf = paciente.cpf?.replace(/\D/g, '') || '';
+    const email = paciente.email?.toLowerCase() || '';
     return (
-      nome.includes(searchLower) || 
-      cpf.includes(searchLower.replace(/\D/g, '')) || // Remover caracteres não numéricos para CPF
+      nome.includes(searchLower) ||
+      cpf.includes(searchLower.replace(/\D/g, '')) ||
       email.includes(searchLower)
     );
   });
 
-  // Paginação
   const totalPages = Math.ceil(filteredPacientes.length / patientsPerPage);
   const indexOfLastPatient = currentPage * patientsPerPage;
   const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
   const currentPatients = filteredPacientes.slice(indexOfFirstPatient, indexOfLastPatient);
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const handleFirstPage = () => {
-    setCurrentPage(1); // Vai para a primeira página
-  };
-
-  const handleLastPage = () => {
-    setCurrentPage(totalPages); // Vai para a última página
-  };
 
   return (
     <div className="container">
@@ -108,10 +67,9 @@ function Pacientes() {
         className="search-input"
       />
 
-      {loading && <p>Carregando pacientes...</p>}
-      {error && <p className="error">{error}</p>}
-
-      {!loading && !error && (
+      {pacientes.length === 0 ? (
+        <p>Nenhum paciente cadastrado.</p>
+      ) : (
         <>
           <table>
             <thead>
@@ -149,21 +107,18 @@ function Pacientes() {
             </tbody>
           </table>
 
-          {/* Paginação */}
           <div className="pagination">
-            <button onClick={handleFirstPage} disabled={currentPage === 1}>
+            <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
               Primeira
             </button>
-            <button onClick={handlePreviousPage} disabled={currentPage === 1}>
+            <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
               Anterior
             </button>
-            <span>
-              Página {currentPage} de {totalPages}
-            </span>
-            <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+            <span>Página {currentPage} de {totalPages}</span>
+            <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>
               Próxima
             </button>
-            <button onClick={handleLastPage} disabled={currentPage === totalPages}>
+            <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
               Última
             </button>
           </div>

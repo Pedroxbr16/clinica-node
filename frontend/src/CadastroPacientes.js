@@ -68,16 +68,16 @@ function CadastroPacientes() {
     'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
   ];
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
+  
     if (!formData.cpf && !formData.cnpj) {
       Swal.fire('Erro', 'CPF ou CNPJ deve ser informado.', 'error');
       return;
     }
-
+  
     const removeNonNumeric = (value) => value.replace(/\D/g, '');
-
+  
     const processedData = { ...formData };
     const fieldsToClean = ['cpf', 'cnpj', 'cep', 'telefone', 'celular'];
     fieldsToClean.forEach(field => {
@@ -85,25 +85,19 @@ function CadastroPacientes() {
         processedData[field] = removeNonNumeric(processedData[field]);
       }
     });
-
-    const data = new FormData();
-    Object.keys(processedData).forEach(key => {
-      data.append(key, processedData[key]);
-    });
-
-    try {
-      const response = await axios.post('http://localhost:5000/pacientes/pacientes', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      Swal.fire('Sucesso', 'Cadastro realizado com sucesso!', 'success');
-      resetForm();
-    } catch (error) {
-      console.error('Erro ao enviar dados:', error);
-      Swal.fire('Erro', 'Erro ao cadastrar. Por favor, tente novamente.', 'error');
-    }
+  
+    // Gera ID único para o paciente
+    processedData.id = crypto.randomUUID();
+  
+    // Salva no localStorage
+    const pacientesSalvos = JSON.parse(localStorage.getItem('pacientes')) || [];
+    pacientesSalvos.push(processedData);
+    localStorage.setItem('pacientes', JSON.stringify(pacientesSalvos));
+  
+    Swal.fire('Sucesso', 'Paciente cadastrado com sucesso!', 'success');
+    resetForm();
   };
+  
 
   const resetForm = () => {
     setFormData({

@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import axios from 'axios';
 import Modal from 'react-modal';
-import Swal from 'sweetalert2'; // Importando SweetAlert
+import Swal from 'sweetalert2';
 import 'moment/locale/pt-br';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './css/agenda.css';
 
 moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
-
 Modal.setAppElement('#root');
 
 const Agenda = () => {
@@ -25,90 +23,29 @@ const Agenda = () => {
     paciente_id: '',
     medico_id: '',
     tipo_consulta_id: '',
-    modalidade: '', // Adicionado campo para modalidade
+    modalidade: '',
   });
-  const [pacientes, setPacientes] = useState([]);
-  const [medicos, setMedicos] = useState([]);
-  const [tiposConsulta, setTiposConsulta] = useState([]);
   const [selectedMedico, setSelectedMedico] = useState('');
 
-  // Função para buscar consultas
-  const fetchConsultas = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/consultas/lista');
-      const consultasData = Array.isArray(response.data) ? response.data : [];
-      const mappedEvents = consultasData.map((consulta) => ({
-        title: consulta.titulo,
-        start: new Date(consulta.inicio),
-        end: new Date(consulta.fim),
-        id: consulta.id,
-        paciente_id: consulta.paciente_id,
-        medico_id: consulta.medico_id,
-        tipo_consulta_id: consulta.tipo_consulta_id,
-        modalidade: consulta.modalidade, // Adicionar modalidade à consulta
-      }));
-      setEvents(mappedEvents);
-      setFilteredEvents(mappedEvents);
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar consultas. Tente novamente mais tarde.',
-      });
-    }
-  };
-
-  // Funções para buscar pacientes, médicos e tipos de consulta
-  const fetchPacientes = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-      setPacientes(response.data);
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar pacientes. Tente novamente mais tarde.',
-      });
-    }
-  };
-
-  const fetchMedicos = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/medicos/medicos');
-      setMedicos(response.data.data);
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar médicos. Tente novamente mais tarde.',
-      });
-    }
-  };
-
-  const fetchTiposConsulta = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
-      const tiposData = Array.isArray(response.data) ? response.data : [];
-      setTiposConsulta(
-        tiposData.map((tipo) => ({
-          label: tipo.descricao,
-          value: tipo.id,
-        }))
-      );
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao buscar tipos de consulta. Tente novamente mais tarde.',
-      });
-    }
+  const fetchConsultas = () => {
+    const stored = localStorage.getItem('consultas');
+    const consultasData = stored ? JSON.parse(stored) : [];
+    const mappedEvents = consultasData.map((consulta) => ({
+      title: consulta.titulo,
+      start: new Date(consulta.inicio),
+      end: new Date(consulta.fim),
+      id: consulta.id,
+      paciente_id: consulta.paciente_id,
+      medico_id: consulta.medico_id,
+      tipo_consulta_id: consulta.tipo_consulta_id,
+      modalidade: consulta.modalidade,
+    }));
+    setEvents(mappedEvents);
+    setFilteredEvents(mappedEvents);
   };
 
   useEffect(() => {
     fetchConsultas();
-    fetchPacientes();
-    fetchMedicos();
-    fetchTiposConsulta();
   }, []);
 
   useEffect(() => {
@@ -129,59 +66,41 @@ const Agenda = () => {
       paciente_id: event.paciente_id,
       medico_id: event.medico_id,
       tipo_consulta_id: event.tipo_consulta_id,
-      modalidade: event.modalidade, // Adicionar modalidade ao evento selecionado
+      modalidade: event.modalidade,
     });
     setShowModal(true);
   };
 
-  const handleDelete = async () => {
-    try {
-      await axios.delete(`http://localhost:5000/consultas/${selectedEvent.id}`);
-      setEvents(events.filter((event) => event.id !== selectedEvent.id));
-      setShowModal(false);
-      Swal.fire({
-        icon: 'success',
-        title: 'Excluído',
-        text: 'Consulta excluída com sucesso!',
-      });
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao excluir consulta. Tente novamente.',
-      });
-    }
+  const saveToStorage = (newEvents) => {
+    const formatted = newEvents.map(ev => ({
+      ...ev,
+      titulo: ev.title,
+      inicio: ev.start,
+      fim: ev.end,
+    }));
+    localStorage.setItem('consultas', JSON.stringify(formatted));
   };
 
-  const handleEdit = async () => {
-    try {
-      const updatedEvent = {
-        titulo: editedEvent.title,
-        inicio: new Date(editedEvent.start),
-        fim: new Date(editedEvent.end),
-        paciente_id: editedEvent.paciente_id,
-        medico_id: editedEvent.medico_id,
-        tipo_consulta_id: editedEvent.tipo_consulta_id,
-        modalidade: editedEvent.modalidade, // Adicionado campo modalidade
-      };
-      const response = await axios.put(`http://localhost:5000/consultas/${selectedEvent.id}`, updatedEvent);
+  const handleDelete = () => {
+    const updated = events.filter(ev => ev.id !== selectedEvent.id);
+    setEvents(updated);
+    setFilteredEvents(updated);
+    saveToStorage(updated);
+    setShowModal(false);
+    Swal.fire('Sucesso', 'Consulta excluída.', 'success');
+  };
 
-      if (response.status === 200) {
-        setEvents(events.map((event) => (event.id === selectedEvent.id ? { ...event, ...updatedEvent } : event)));
-        setShowModal(false);
-        Swal.fire({
-          icon: 'success',
-          title: 'Alterações Salvas',
-          text: 'As alterações foram salvas com sucesso!',
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Erro ao salvar as alterações. Tente novamente.',
-      });
-    }
+  const handleEdit = () => {
+    const updated = events.map(ev =>
+      ev.id === selectedEvent.id
+        ? { ...ev, ...editedEvent, start: new Date(editedEvent.start), end: new Date(editedEvent.end) }
+        : ev
+    );
+    setEvents(updated);
+    setFilteredEvents(updated);
+    saveToStorage(updated);
+    setShowModal(false);
+    Swal.fire('Sucesso', 'Consulta atualizada.', 'success');
   };
 
   const handleInputChange = (e) => {
@@ -189,18 +108,18 @@ const Agenda = () => {
     setEditedEvent({ ...editedEvent, [name]: value });
   };
 
-  // Função para definir o estilo do evento baseado na modalidade
   const eventStyleGetter = (event) => {
-    const backgroundColor = event.modalidade === 'Online' ? '#ff7f7f' : '#007bff'; // Vermelho para online, azul para presencial
-    const style = {
-      backgroundColor,
-      borderRadius: '5px',
-      opacity: 0.8,
-      color: 'white',
-      border: '0px',
-      display: 'block',
+    const backgroundColor = event.modalidade === 'Online' ? '#ff7f7f' : '#007bff';
+    return {
+      style: {
+        backgroundColor,
+        borderRadius: '5px',
+        opacity: 0.8,
+        color: 'white',
+        border: '0px',
+        display: 'block',
+      },
     };
-    return { style };
   };
 
   return (
@@ -216,10 +135,8 @@ const Agenda = () => {
           style={{ marginLeft: '10px', padding: '8px', borderRadius: '4px' }}
         >
           <option value="">Todos</option>
-          {medicos.map((medico) => (
-            <option key={medico.id} value={medico.id}>
-              {medico.usuario}
-            </option>
+          {[...new Set(events.map(ev => ev.medico_id))].map((id, index) => (
+            <option key={index} value={id}>Médico {id}</option>
           ))}
         </select>
       </div>
@@ -242,7 +159,7 @@ const Agenda = () => {
           showMore: (total) => `+ ver mais (${total})`,
         }}
         onSelectEvent={handleEventClick}
-        eventPropGetter={eventStyleGetter} // Aplica o estilo personalizado
+        eventPropGetter={eventStyleGetter}
       />
 
       <Modal
@@ -265,192 +182,18 @@ const Agenda = () => {
             handleEdit();
           }}
         >
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <strong>Título</strong>
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={editedEvent.title}
-              onChange={handleInputChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <strong>Paciente</strong>
-            </label>
-            <select
-              name="paciente_id"
-              value={editedEvent.paciente_id}
-              onChange={handleInputChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            >
-              <option value="">Selecione um paciente</option>
-              {pacientes.map((paciente) => (
-                <option key={paciente.id} value={paciente.id}>
-                  {paciente.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <strong>Médico</strong>
-            </label>
-            <select
-              name="medico_id"
-              value={editedEvent.medico_id}
-              onChange={handleInputChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            >
-              <option value="">Selecione um médico</option>
-              {medicos.map((medico) => (
-                <option key={medico.id} value={medico.id}>
-                  {medico.usuario}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <strong>Tipo de Consulta</strong>
-            </label>
-            <select
-              name="tipo_consulta_id"
-              value={editedEvent.tipo_consulta_id}
-              onChange={handleInputChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            >
-              <option value="">Selecione um tipo de consulta</option>
-              {tiposConsulta.map((tipo) => (
-                <option key={tipo.value} value={tipo.value}>
-                  {tipo.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <strong>Modalidade</strong>
-            </label>
-            <select
-              name="modalidade"
-              value={editedEvent.modalidade}
-              onChange={handleInputChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            >
-              <option value="">Selecione a modalidade</option>
-              <option value="Online">Online</option>
-              <option value="Presencial">Presencial</option>
-            </select>
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <strong>Data de Início</strong>
-            </label>
-            <input
-              type="datetime-local"
-              name="start"
-              value={editedEvent.start}
-              onChange={handleInputChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <strong>Data de Fim</strong>
-            </label>
-            <input
-              type="datetime-local"
-              name="end"
-              value={editedEvent.end}
-              onChange={handleInputChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-            <button
-              type="submit"
-              style={{
-                backgroundColor: '#007bff',
-                color: '#fff',
-                padding: '10px 15px',
-                borderRadius: '4px',
-                border: 'none',
-              }}
-            >
-              Salvar Alterações
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              style={{
-                backgroundColor: '#dc3545',
-                color: '#fff',
-                padding: '10px 15px',
-                borderRadius: '4px',
-                border: 'none',
-              }}
-            >
-              Excluir
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              style={{
-                backgroundColor: '#6c757d',
-                color: '#fff',
-                padding: '10px 15px',
-                borderRadius: '4px',
-                border: 'none',
-              }}
-            >
-              Fechar
-            </button>
+          <input type="text" name="title" value={editedEvent.title} onChange={handleInputChange} required className="form-control mb-2" placeholder="Título" />
+          <input type="datetime-local" name="start" value={editedEvent.start} onChange={handleInputChange} required className="form-control mb-2" />
+          <input type="datetime-local" name="end" value={editedEvent.end} onChange={handleInputChange} required className="form-control mb-2" />
+          <select name="modalidade" value={editedEvent.modalidade} onChange={handleInputChange} required className="form-control mb-2">
+            <option value="">Selecione a modalidade</option>
+            <option value="Online">Online</option>
+            <option value="Presencial">Presencial</option>
+          </select>
+          <div className="d-flex justify-content-between mt-3">
+            <button type="submit" className="btn btn-primary">Salvar</button>
+            <button type="button" className="btn btn-danger" onClick={handleDelete}>Excluir</button>
+            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Fechar</button>
           </div>
         </form>
       </Modal>
