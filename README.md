@@ -1,50 +1,65 @@
-# Welcome to your Expo app 👋
+# 🧩 Projeto Clinica - Fullstack com Docker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Este repositório contém o sistema completo da ONG, com arquitetura dividida em **Frontend**, **Backend**, **Mobile** e banco de dados **MySQL**, tudo orquestrado com **Docker**.
 
-## Get started
+---
 
-1. Install dependencies
+## 🚀 Como Rodar com Docker
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Clone o repositório
 
 ```bash
-npm run reset-project
+git clone https://github.com/PEM-Tech/ONG.git
+cd ONG
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Suba os containers
 
-## Learn more
+```bash
+docker compose up --build
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Acesse os serviços
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Serviço       | URL                   |
+|---------------|-----------------------|
+| Frontend      | http://localhost:3000 |
+| Backend       | http://localhost:5000 |
+| phpMyAdmin    | http://localhost:8080 |
+| Mobile (Expo) | http://localhost:19000 |
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 🛠️ Rodar sem Docker (usando Makefile)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 📦 Pré-requisitos
+
+- Node.js
+- npm
+- Make (via WSL ou terminal com suporte)
+- Docker Desktop (opcional, para usar docker)
+
+### 🤖 Comandos disponíveis
+
+| Comando `make`             | Descrição                                               |
+|----------------------------|---------------------------------------------------------|
+| `make install`             | Instala dependências do frontend, backend e mobile      |
+| `make dev`                 | Inicia frontend e backend em janelas separadas          |
+| `make mobile`              | Inicia o app mobile com Expo                            |
+| `make build`               | Faz o build do frontend                                 |
+| `make lint`                | Executa o lint em todos os módulos                     |
+| `make test`                | Executa testes em todos os módulos                     |
+| `make restart-backend`     | Reinicia backend manualmente (modo local)               |
+| `make docker-up`           | Sobe tudo com docker-compose                            |
+| `make docker-down`         | Para e remove containers e volumes                      |
+| `make docker-restart-backend` | Reinicia o backend via Docker                        |
+| `make push-https`          | Faz push para o GitHub via HTTPS                        |
+| `make push-ssh`            | Faz push para o GitHub via SSH                          |
+
+---
+
+> 💡 **Dica:** Use `make` para automatizar tarefas durante o desenvolvimento e manter tudo organizado.
+
+---
+
+## 👨‍💻 Desenvolvido por [Pedro Justo](https://github.com/Pedroxbr16)
