@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import ProtectedLayout from "./ProtectedLayout";
+import ProtectedRoute from './ProtectedRoute';
 import Login from './Login';
 import RegisterMedico from './RegisterMedico';
 import RegisterUsuario from './RegisterUsuario';
@@ -65,78 +67,97 @@ function App() {
       <div className="app">
         {isAuthenticated && <Sidebar onLogout={handleLogout} />}
         <div className="content">
-          <Routes>
-            {/* Rota de Login */}
-            <Route
-              path="/login"
-              element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />}
-            />
+        <Routes>
+  {/* Rota de Login */}
+  <Route
+    path="/login"
+    element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />}
+  />
 
-            {/* Rotas acessíveis a todos os usuários autenticados */}
-            <Route
-              path="/"
-              element={isAuthenticated ? <Home /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/agenda"
-              element={isAuthenticated ? <Agenda /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/create-event"
-              element={isAuthenticated ? <CreateEvent /> : <Navigate to="/login" />}
-            />
+  {/* Rotas protegidas com layout */}
+  <Route
+    path="/"
+    element={
+      <ProtectedRoute>
+        <ProtectedLayout>
+          <Home />
+        </ProtectedLayout>
+      </ProtectedRoute>
+    }
+  />
 
-            {/* Rotas para Admin */}
-            {hasPermission(['adm']) && (
-              <>
-                <Route path="/listagemPaciente" element={<ListagemPacientes />} />
-                <Route path="/cadastro" element={<CadastroPacientes />} />
-                <Route path="/config" element={<Config />} />
-                <Route path="/register/medico" element={<RegisterMedico />} />
-                <Route path="/register/usuario" element={<RegisterUsuario />} />
-                <Route path="/medicos" element={<Medico />} />
-                <Route path="/usuarios" element={<Usuario />} />
-                <Route path="/medicos/editar/:id" element={<EditarMedico />} />
-                <Route path="/usuarios/editar/:id" element={<EditarUsuario />} />
-                <Route path="/tipos-exame" element={<AddTipoExame />} />
-                <Route path="/tipos-consulta" element={<TiposConsulta />} />
-                <Route path="/pacientes/editar/:id" element={<EditarPaciente />} /> {/* Rota de edição de paciente */}
-                <Route path="/Dash" element={<Dash />} />
-                {/* <Route path="/pagamentos" element={<Pagamentos />} /> */}
-              </>
-            )}
+  <Route
+    path="/agenda"
+    element={
+      <ProtectedRoute>
+        <ProtectedLayout>
+          <Agenda />
+        </ProtectedLayout>
+      </ProtectedRoute>
+    }
+  />
 
-            {/* Rotas para Médicos */}
-            {hasPermission(['adm', 'medico']) && (
-              <>
-                <Route path="/historico" element={<Historico />} />
-                <Route path="/pedido-exames" element={<PedidoExames />} />
-                <Route path="/pacientes/:id/historico" element={<HistoricoPaciente />} />
-                <Route path="/pacientes/:id/editar-historico" element={<EditarHistorico />} />
-                <Route path="/pacientes/:id/visualizar-historico" element={<VisualizarHistorico />} />
-                <Route path="/Atestado" element={<Atestado />} />
-                <Route path="/Receita" element={<Receita />} />
-                <Route path="/Guias" element={<MenuGuias />} />
-              </>
-            )}
+  <Route
+    path="/create-event"
+    element={
+      <ProtectedRoute>
+        <ProtectedLayout>
+          <CreateEvent />
+        </ProtectedLayout>
+      </ProtectedRoute>
+    }
+  />
 
-            {/* Rotas para Atendentes */}
-            {hasPermission(['adm', 'atendente']) && (
-              <>
-                <Route path="/listagemPaciente" element={<ListagemPacientes />} />
-                <Route path="/cadastro" element={<CadastroPacientes />} />
-                <Route path="/pacientes/editar/:id" element={<EditarPaciente />} /> {/* Rota de edição de paciente */}
-                <Route path="/pre-agenda" element={<PreAgenda />} />
-                <Route path='/CadastroMB' element={<CadastroMB/>}/>
-                <Route path='/CreateEventMB' element={<CreateEventMB/>}/>
-                <Route path="/pagamentos" element={<Pagamentos />} />
+  {/* Admin */}
+  {hasPermission(['adm']) && (
+    <>
+      <Route path="/listagemPaciente" element={<ProtectedRoute><ProtectedLayout><ListagemPacientes /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/cadastro" element={<ProtectedRoute><ProtectedLayout><CadastroPacientes /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/config" element={<ProtectedRoute><ProtectedLayout><Config /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/register/medico" element={<ProtectedRoute><ProtectedLayout><RegisterMedico /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/register/usuario" element={<ProtectedRoute><ProtectedLayout><RegisterUsuario /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/medicos" element={<ProtectedRoute><ProtectedLayout><Medico /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/usuarios" element={<ProtectedRoute><ProtectedLayout><Usuario /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/medicos/editar/:id" element={<ProtectedRoute><ProtectedLayout><EditarMedico /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/usuarios/editar/:id" element={<ProtectedRoute><ProtectedLayout><EditarUsuario /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/tipos-exame" element={<ProtectedRoute><ProtectedLayout><AddTipoExame /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/tipos-consulta" element={<ProtectedRoute><ProtectedLayout><TiposConsulta /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/pacientes/editar/:id" element={<ProtectedRoute><ProtectedLayout><EditarPaciente /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/Dash" element={<ProtectedRoute><ProtectedLayout><Dash /></ProtectedLayout></ProtectedRoute>} />
+    </>
+  )}
 
-              </>
-            )}
+  {/* Médicos */}
+  {hasPermission(['adm', 'medico']) && (
+    <>
+      <Route path="/historico" element={<ProtectedRoute><ProtectedLayout><Historico /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/pedido-exames" element={<ProtectedRoute><ProtectedLayout><PedidoExames /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/pacientes/:id/historico" element={<ProtectedRoute><ProtectedLayout><HistoricoPaciente /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/pacientes/:id/editar-historico" element={<ProtectedRoute><ProtectedLayout><EditarHistorico /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/pacientes/:id/visualizar-historico" element={<ProtectedRoute><ProtectedLayout><VisualizarHistorico /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/Atestado" element={<ProtectedRoute><ProtectedLayout><Atestado /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/Receita" element={<ProtectedRoute><ProtectedLayout><Receita /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/Guias" element={<ProtectedRoute><ProtectedLayout><MenuGuias /></ProtectedLayout></ProtectedRoute>} />
+    </>
+  )}
 
-            {/* Rotas genéricas */}
-            <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
-          </Routes>
+  {/* Atendentes */}
+  {hasPermission(['adm', 'atendente']) && (
+    <>
+      <Route path="/listagemPaciente" element={<ProtectedRoute><ProtectedLayout><ListagemPacientes /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/cadastro" element={<ProtectedRoute><ProtectedLayout><CadastroPacientes /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/pacientes/editar/:id" element={<ProtectedRoute><ProtectedLayout><EditarPaciente /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/pre-agenda" element={<ProtectedRoute><ProtectedLayout><PreAgenda /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/CadastroMB" element={<ProtectedRoute><ProtectedLayout><CadastroMB /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/CreateEventMB" element={<ProtectedRoute><ProtectedLayout><CreateEventMB /></ProtectedLayout></ProtectedRoute>} />
+      <Route path="/pagamentos" element={<ProtectedRoute><ProtectedLayout><Pagamentos /></ProtectedLayout></ProtectedRoute>} />
+    </>
+  )}
+
+  {/* Fallback */}
+  <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+</Routes>
+
         </div>
       </div>
     </Router>

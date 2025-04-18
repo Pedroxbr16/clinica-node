@@ -7,6 +7,8 @@ services:
       - "3000:80"
     depends_on:
       - backend
+    volumes:
+    - ./frontend:/app
 
   backend:
     build: ./backend
@@ -14,6 +16,7 @@ services:
       - "5000:5000"
     environment:
       DB_HOST: db
+      DB_PORT: 3306
       DB_USER: clinica
       DB_PASSWORD: 1234
       DB_NAME: clinica
