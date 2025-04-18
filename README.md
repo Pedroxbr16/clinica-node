@@ -9,8 +9,8 @@ Este repositório contém o sistema completo da ONG, com arquitetura dividida em
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/PEM-Tech/ONG.git
-cd ONG
+git clone https://github.com/Pedroxbr16/clinica-node.git
+cd clinica-node
 ```
 
 ### 2. Suba os containers
