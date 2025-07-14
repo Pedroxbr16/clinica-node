@@ -1,17 +1,11 @@
 version: '3.8'
 
 services:
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
-    volumes:
-    - ./frontend:/app
-
+  # API Node.js (backend)
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile       # se o nome for diferente, especifique aqui
     ports:
       - "5000:5000"
     environment:
@@ -20,9 +14,37 @@ services:
       DB_USER: clinica
       DB_PASSWORD: 1234
       DB_NAME: clinica
+      NODE_ENV: production
     depends_on:
       - db
 
+  # App React compilado e servido pelo Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile       # aponte pro seu Dockerfile do React+Nginx
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  # Mobile Expo (React Native) — dev only
+  mobile:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile       # seu Dockerfile do Expo
+    ports:
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    environment:
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: 0.0.0.0
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+  # Banco de dados MySQL
   db:
     image: mysql:8.0
     restart: always
@@ -36,6 +58,7 @@ services:
     ports:
       - "3306:3306"
 
+  # phpMyAdmin
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     restart: always
@@ -43,26 +66,10 @@ services:
       - db
     environment:
       PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: 1234
+      PMA_USER: root
+      PMA_PASSWORD: 1234
     ports:
       - "8080:80"
-
-  mobile:
-    build: ./mobile
-    volumes:
-      - ./mobile:/app
-      - /app/node_modules
-    command: npx expo start --tunnel
-    ports:
-      - "19000:19000" # Expo bundler
-      - "19001:19001" # LAN
-      - "19002:19002" # DevTools
-    environment:
-      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-    stdin_open: true
-    tty: true
-    depends_on:
-      - backend
 
 volumes:
   mysql_data:

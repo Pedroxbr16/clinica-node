@@ -3,18 +3,18 @@ const router = express.Router();
 const atendenteController = require('../controllers/atendenteController');
 
 // Rota para criar um novo atendente
-router.post('/atendente', atendenteController.criarAtendente);
+router.post('/criar', atendenteController.criarAtendente);
 
 // Rota para listar todos os atendentes
-router.get('/atendente', atendenteController.listarAtendentes);
+router.get('/listar', atendenteController.listarAtendentes);
 
 // Rota para buscar um atendente específico
-router.get('/atendente/:id', atendenteController.buscarAtendentePorId);
+router.get('/buscar/:id', atendenteController.buscarAtendentePorId);
 
 // Rota para atualizar um atendente
-router.put('/atendente/:id', atendenteController.atualizarAtendente);
+router.put('/atualizar/:id', atendenteController.atualizarAtendente);
 
 // Rota para excluir um atendente
-router.delete('/atendente/:id', atendenteController.excluirAtendente);
+router.delete('/excluir/:id', atendenteController.excluirAtendente);
 
 module.exports = router;

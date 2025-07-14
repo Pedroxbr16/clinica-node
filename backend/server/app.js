@@ -37,7 +37,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/pacientes', pacienteRoutes);
 app.use('/medicos', medicoRoutes);
 app.use('/atendente', atendenteRoutes);
-app.use('/api', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/consultas', consultaRoutes);
 app.use('/tipos_consulta', tipoConsultaRoutes);
 app.use('/historico', historicoRoutes);

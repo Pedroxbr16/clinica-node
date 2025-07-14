@@ -16,7 +16,7 @@ cd clinica-node
 ### 2. Suba os containers
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
 ### 3. Acesse os serviços

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Sidebar from './Sidebar';
+import Sidebar from './sidebar'
 import ProtectedLayout from "./ProtectedLayout";
 import ProtectedRoute from './ProtectedRoute';
 import Login from './Login';

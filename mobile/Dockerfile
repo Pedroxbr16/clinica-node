@@ -1,32 +1,33 @@
-# Imagem base com Node e Watchman (essencial pro RN)
-FROM node:18
+FROM node:18-alpine
 
-# Instalações essenciais
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    wget \
-    unzip \
-    python3 \
-    python3-pip \
-    default-jdk \
-    watchman \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Dependências de SO
+RUN apk add --no-cache \
+      bash \
+      git \
+      curl \
+      python3 \
+      openjdk11-jdk
 
-# Define diretório de trabalho
+# Expo CLI global (cacheável)
+RUN npm install --global expo-cli@latest
+
 WORKDIR /app
 
-# Copia arquivos de dependência primeiro para cache de build
+# 1) Copie somente package.json e package-lock.json
 COPY package*.json ./
 
-# Instala dependências do projeto
-RUN npm install -g expo-cli && npm ci
+# 2) Ajuste o npm para redes instáveis
+ENV NPM_CONFIG_FETCH_RETRIES=5 \
+    NPM_CONFIG_FETCH_RETRY_FACTOR=10 \
+    NPM_CONFIG_FETCH_TIMEOUT=600000 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000
 
-# Copia o restante dos arquivos do projeto
+# 3) Instale pacotes com ci
+RUN npm ci
+
+# 4) Copie o restante do projeto
 COPY . .
 
-# Expõe as portas do Expo (LAN, tunnel, web)
 EXPOSE 19000 19001 19002
 
-# Comando padrão para iniciar o Expo com tunnel
-CMD ["npx", "expo", "start", "--tunnel"]
+CMD ["expo", "start", "--tunnel", "--host", "0.0.0.0"]

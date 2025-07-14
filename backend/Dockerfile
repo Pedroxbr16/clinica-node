@@ -1,22 +1,18 @@
+# 1) Use Node oficial
 FROM node:20.14
 
+# 2) Defina o diretório de trabalho
 WORKDIR /app
 
-# Instala netcat corretamente
-RUN apt-get update && apt-get install -y netcat-openbsd
-
-# Copia os arquivos de dependência
+# 3) Copie e instale as dependências
 COPY package*.json ./
 RUN npm install
 
-# Copia os demais arquivos
+# 4) Copie todo o código-fonte
 COPY . .
 
-# Copia e dá permissão ao script de espera pelo banco
-COPY wait-for-db.sh /wait-for-db.sh
-RUN chmod +x /wait-for-db.sh
+# 5) Exponha a porta da aplicação
+EXPOSE 5000
 
-EXPOSE 3001
-
-# Espera o banco subir antes de iniciar
-CMD ["/wait-for-db.sh", "npm", "start"]
+# 6) Inicialize a aplicação
+CMD ["npm", "start"]
