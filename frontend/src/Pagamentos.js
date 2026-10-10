@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { listarAtendentes } from './services/AtendenteService';
+import { buscarMedicos } from './services/MedicoService';
+import { listarPacientes } from './services/PacienteService';
+import { atualizarPagamento, buscarPagamentos, criarPagamento, excluirPagamento } from './services/PagamentoService';
+import { listarTiposConsulta } from './services/TipoConsultaService';
 import Swal from "sweetalert2";
 import { Table, Button, Modal, Form } from "react-bootstrap";
 
@@ -43,8 +47,7 @@ const PagamentoScreen = () => {
 
   const fetchPagamentos = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/pagamentos/buscar");
-      setPagamentos(response.data || []);
+      setPagamentos(await buscarPagamentos());
     } catch (error) {
       console.error("Erro ao buscar pagamentos:", error.message);
     }
@@ -52,8 +55,7 @@ const PagamentoScreen = () => {
 
   const fetchUsuarios = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/atendente/atendente");
-      setUsuarios(response.data || []);
+      setUsuarios(await listarAtendentes());
     } catch (error) {
       console.error("Erro ao buscar usuários:", error.message);
     }
@@ -61,8 +63,7 @@ const PagamentoScreen = () => {
 
   const fetchPacientes = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/pacientes/pacientes");
-      setPacientes(response.data || []);
+      setPacientes(await listarPacientes());
     } catch (error) {
       console.error("Erro ao buscar pacientes:", error.message);
     }
@@ -70,8 +71,7 @@ const PagamentoScreen = () => {
 
   const fetchMedicos = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/medicos/medicos");
-      setMedicos(response.data.data || []);
+      setMedicos(await buscarMedicos());
     } catch (error) {
       console.error("Erro ao buscar médicos:", error.message);
     }
@@ -79,9 +79,9 @@ const PagamentoScreen = () => {
 
   const fetchTiposConsulta = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/tipos_consulta/lista");
+      const response = await listarTiposConsulta();
       setTiposConsulta(
-        response.data.map((tipo) => ({
+        response.map((tipo) => ({
           id: tipo.id,
           descricao: `${tipo.descricao} - R$ ${parseFloat(tipo.valor).toFixed(2)}`,
         }))
@@ -104,10 +104,10 @@ const PagamentoScreen = () => {
     console.log("Dados do formulário:", formData); // Debugging
     try {
       if (editingId) {
-        await axios.put(`http://localhost:5000/pagamentos/${editingId}`, formData);
+        await atualizarPagamento(editingId, formData);
         Swal.fire("Sucesso", "Pagamento atualizado com sucesso!", "success");
       } else {
-        await axios.post("http://localhost:5000/pagamentos/criar", formData);
+        await criarPagamento(formData);
         Swal.fire("Sucesso", "Pagamento criado com sucesso!", "success");
       }
       fetchPagamentos();
@@ -144,7 +144,7 @@ const PagamentoScreen = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:5000/pagamentos/${id}`);
+          await excluirPagamento(id);
           Swal.fire("Excluído!", "O pagamento foi excluído com sucesso.", "success");
           fetchPagamentos();
         } catch (error) {

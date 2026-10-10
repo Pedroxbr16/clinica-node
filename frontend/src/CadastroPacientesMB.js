@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { buscarEnderecoPorCep } from './services/EnderecoService';
+import { criarPaciente } from './services/PacienteService';
+import { atualizarPreAgendamento } from './services/PreAgendamentoService';
 import InputMask from 'react-input-mask';
 import Swal from 'sweetalert2'; // Importação do SweetAlert
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -63,13 +65,13 @@ function CadastroPacientesMB() {
     const cleanedCep = formData.cep.replace(/\D/g, '');
     if (cleanedCep.length === 8) {
       try {
-        const response = await axios.get(`https://viacep.com.br/ws/${cleanedCep}/json/`);
-        if (response.data) {
+        const endereco = await buscarEnderecoPorCep(cleanedCep);
+        if (endereco) {
           setFormData((prevState) => ({
             ...prevState,
-            bairro: response.data.bairro,
-            cidade: response.data.localidade,
-            estado: response.data.uf,
+            bairro: endereco.bairro,
+            cidade: endereco.localidade,
+            estado: endereco.uf,
           }));
         }
       } catch (error) {
@@ -108,15 +110,11 @@ function CadastroPacientesMB() {
     });
 
     try {
-      const response = await axios.post('http://localhost:5000/pacientes/pacientes', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await criarPaciente(data);
 
       // Atualizar status da pré-agenda como "Concluído"
       if (state?.preAgendaId) {
-        await axios.put(`http://localhost:5000/pre-agendamentos/atualizar/${state.preAgendaId}`, {
+        await atualizarPreAgendamento(state.preAgendaId, {
           status: 'Concluído',
         })
         .then(() => {
@@ -132,7 +130,7 @@ function CadastroPacientesMB() {
       Swal.fire('Sucesso', 'Cadastro realizado com sucesso!', 'success');
       resetForm();
 
-      navigate('/CreateEventMB', { state: { pacienteId: response.data.id } });
+      navigate('/CreateEventMB', { state: { pacienteId: response.id } });
     } catch (error) {
       console.error('Erro ao enviar dados:', error);
       Swal.fire('Erro', 'Erro ao cadastrar. Por favor, tente novamente.', 'error');

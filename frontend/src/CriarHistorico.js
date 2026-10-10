@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom"; // Adicionado o `useNavigate` para o botão de voltar
 import Swal from "sweetalert2"; // Importa o SweetAlert2
+import { adicionarHistorico } from './services/HistoricoService';
+import { buscarPacientePorId } from './services/PacienteService';
 import './css/CriarHistorico.css'; // Caminho atualizado
 
 const CriarHistorico = () => {
@@ -19,17 +21,8 @@ const CriarHistorico = () => {
     // Busca o nome do paciente pelo ID
     const fetchPacienteNome = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/pacientes/pacientes/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setPacienteNome(data.nome); // Define o nome do paciente
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Erro",
-            text: "Erro ao buscar o nome do paciente.",
-          });
-        }
+        const paciente = await buscarPacientePorId(id);
+        setPacienteNome(paciente.nome);
       } catch (error) {
         Swal.fire({
           icon: "error",
@@ -51,29 +44,14 @@ const CriarHistorico = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/historico/historicos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(historico),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
+      const result = await adicionarHistorico(historico);
+      {
         Swal.fire({
           icon: "success",
           title: "Sucesso",
           text: `Histórico criado com sucesso! ID: ${result.id}`,
         });
         setHistoricoTexto(""); // Limpa o campo do histórico
-      } else {
-        const error = await response.json();
-        Swal.fire({
-          icon: "error",
-          title: "Erro",
-          text: `Erro: ${error.error}`,
-        });
       }
     } catch (error) {
       Swal.fire({

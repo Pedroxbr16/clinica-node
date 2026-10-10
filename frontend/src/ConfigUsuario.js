@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { excluirAtendente, listarAtendentes } from './services/AtendenteService';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Usuario = () => {
@@ -10,9 +10,7 @@ const Usuario = () => {
 
   const fetchUsuarios = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/atendente/atendente');
-      console.log(response.data);
-      setUsuarios(response.data);
+      setUsuarios(await listarAtendentes());
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       setUsuarios([]);
@@ -22,7 +20,7 @@ const Usuario = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
       try {
-        await axios.delete(`http://localhost:5000/atendente/atendente/${id}`);
+        await excluirAtendente(id);
         fetchUsuarios();
         alert('Usuário excluído com sucesso!');
       } catch (error) {

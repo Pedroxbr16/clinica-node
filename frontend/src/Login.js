@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { login } from './services/AuthService';
 import Swal from 'sweetalert2'; // Importa o SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Login.css';
@@ -28,9 +28,7 @@ function Login({ onLogin }) {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:5000/api/login', { usuario, senha });
-
-            const { token, role } = response.data;
+            const { token, role } = await login({ usuario, senha });
 
             // Salvar token e tipo de usuário no localStorage
             localStorage.setItem('isAuthenticated', 'true');
@@ -52,13 +50,13 @@ function Login({ onLogin }) {
         } catch (error) {
             console.error('Erro na requisição:', error);
 
-            if (error.response && error.response.status === 401) {
+            if (error.status === 401) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Credenciais inválidas',
                     text: 'Usuário ou senha incorretos.',
                 });
-            } else if (error.response && error.response.status === 400) {
+            } else if (error.status === 400) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Campos obrigatórios',

@@ -1,13 +1,14 @@
 const express = require('express');
 const pacienteController = require('../controllers/pacienteController');
 const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
 
 // Configuração do multer para armazenar imagens na pasta 'uploads'
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+  destination: function (_req, _file, cb) {
+    cb(null, path.join(__dirname, '../uploads'));
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
@@ -22,11 +23,11 @@ router.post('/pacientes', upload.single('foto'), pacienteController.createPacien
 // Rota GET para listar pacientes
 router.get('/pacientes', pacienteController.getPacientes);
 
-// Rota GET para obter um paciente específico pelo ID
-router.get('/pacientes/:id', pacienteController.getPacienteById);
-
 // Rota GET para buscar um paciente específico pelo CPF
 router.get('/pacientes/cpf/:cpf', pacienteController.getPacienteByCpf);
+
+// Rota GET para obter um paciente específico pelo ID
+router.get('/pacientes/:id', pacienteController.getPacienteById);
 
 // Rota DELETE para excluir um paciente pelo ID
 router.delete('/pacientes/:id', pacienteController.deletePaciente);

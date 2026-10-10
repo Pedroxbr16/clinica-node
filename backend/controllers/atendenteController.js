@@ -1,90 +1,26 @@
-const AtendenteModel = require('../models/atendenteModels');
+const atendenteService = require('../services/atendenteService');
+const asyncHandler = require('../utils/asyncHandler');
 
-// Função para criar um novo atendente
-exports.criarAtendente = (req, res) => {
-  const { usuario, senha, email, funcao } = req.body;
+const required = (data, fields) => fields.every((field) => data[field]);
 
-  if (!usuario || !senha || !email || !funcao) {
-    return res.status(400).json({ mensagem: 'Todos os campos (usuario, senha, email, funcao) são obrigatórios.' });
-  }
-
-  AtendenteModel.criarAtendente(usuario, senha, email, funcao, (error, insertId) => {
-    if (error) {
-      console.error("Erro ao criar atendente:", error);
-      return res.status(500).json({ mensagem: 'Erro ao criar atendente.' });
-    }
-
-    res.status(201).json({ mensagem: 'Atendente criado com sucesso!', atendenteId: insertId });
-  });
-};
-
-// Função para listar todos os atendentes
-exports.listarAtendentes = (req, res) => {
-  AtendenteModel.listarAtendentes((error, rows) => {
-    if (error) {
-      console.error("Erro ao listar atendentes:", error);
-      return res.status(500).json({ mensagem: 'Erro ao listar atendentes.' });
-    }
-
-    res.status(200).json(rows);
-  });
-};
-
-// Função para buscar um atendente por ID
-exports.buscarAtendentePorId = (req, res) => {
-  const { id } = req.params;
-
-  AtendenteModel.buscarAtendentePorId(id, (error, atendente) => {
-    if (error) {
-      console.error("Erro ao buscar atendente:", error);
-      return res.status(500).json({ mensagem: 'Erro ao buscar atendente.' });
-    }
-
-    if (!atendente) {
-      return res.status(404).json({ mensagem: 'Atendente não encontrado.' });
-    }
-
-    res.status(200).json(atendente);
-  });
-};
-
-// Função para atualizar um atendente
-exports.atualizarAtendente = (req, res) => {
-  const { id } = req.params;
-  const { usuario, senha, email, funcao } = req.body;
-
-  if (!usuario || !email || !funcao) {
-    return res.status(400).json({ mensagem: 'Os campos (usuario, email, funcao) são obrigatórios.' });
-  }
-
-  AtendenteModel.atualizarAtendente(id, usuario, senha, email, funcao, (error, affectedRows) => {
-    if (error) {
-      console.error("Erro ao atualizar atendente:", error);
-      return res.status(500).json({ mensagem: 'Erro ao atualizar atendente.' });
-    }
-
-    if (affectedRows === 0) {
-      return res.status(404).json({ mensagem: 'Atendente não encontrado.' });
-    }
-
-    res.status(200).json({ mensagem: 'Atendente atualizado com sucesso!' });
-  });
-};
-
-// Função para excluir um atendente
-exports.excluirAtendente = (req, res) => {
-  const { id } = req.params;
-
-  AtendenteModel.excluirAtendente(id, (error, affectedRows) => {
-    if (error) {
-      console.error("Erro ao excluir atendente:", error);
-      return res.status(500).json({ mensagem: 'Erro ao excluir atendente.' });
-    }
-
-    if (affectedRows === 0) {
-      return res.status(404).json({ mensagem: 'Atendente não encontrado.' });
-    }
-
-    res.status(200).json({ mensagem: 'Atendente excluído com sucesso!' });
-  });
-};
+exports.criarAtendente = asyncHandler(async (req, res) => {
+  if (!required(req.body, ['usuario', 'senha', 'email', 'funcao'])) return res.status(400).json({ mensagem: 'Todos os campos (usuario, senha, email, funcao) são obrigatórios.' });
+  const atendente = await atendenteService.create(req.body);
+  res.status(201).json({ mensagem: 'Atendente criado com sucesso!', atendenteId: atendente.id });
+});
+exports.listarAtendentes = asyncHandler(async (_req, res) => res.json(await atendenteService.list()));
+exports.buscarAtendentePorId = asyncHandler(async (req, res) => {
+  const atendente = await atendenteService.findById(req.params.id);
+  if (!atendente) return res.status(404).json({ mensagem: 'Atendente não encontrado.' });
+  res.json(atendente);
+});
+exports.atualizarAtendente = asyncHandler(async (req, res) => {
+  if (!required(req.body, ['usuario', 'email', 'funcao'])) return res.status(400).json({ mensagem: 'Os campos (usuario, email, funcao) são obrigatórios.' });
+  const atendente = await atendenteService.update(req.params.id, req.body);
+  if (!atendente) return res.status(404).json({ mensagem: 'Atendente não encontrado.' });
+  res.json({ mensagem: 'Atendente atualizado com sucesso!' });
+});
+exports.excluirAtendente = asyncHandler(async (req, res) => {
+  if (!await atendenteService.remove(req.params.id)) return res.status(404).json({ mensagem: 'Atendente não encontrado.' });
+  res.json({ mensagem: 'Atendente excluído com sucesso!' });
+});

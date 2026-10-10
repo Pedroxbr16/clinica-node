@@ -12,10 +12,10 @@ router.get('/lista', consultaController.getConsultas);
 router.get('/buscar/:id', consultaController.getConsultaById);
 
 // Rota para atualizar uma consulta por ID
-router.put('atualizar/:id', consultaController.updateConsulta);
+router.put('/atualizar/:id', consultaController.updateConsulta);
 
 // Rota para deletar uma consulta por ID
-router.delete('excluir/:id', consultaController.deleteConsulta);
+router.delete('/excluir/:id', consultaController.deleteConsulta);
 
 // Rota para obter horários disponíveis
 router.get('/horarios', consultaController.getHorariosDisponiveis);

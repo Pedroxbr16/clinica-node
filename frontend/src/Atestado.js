@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import axios from 'axios';
+import { buscarMedicos } from './services/MedicoService';
+import { listarPacientes } from './services/PacienteService';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function AtestadoMedico() {
@@ -18,8 +19,7 @@ function AtestadoMedico() {
 
   const fetchMedicos = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/medicos/medicos');
-      setMedicos(response.data.data);
+      setMedicos(await buscarMedicos());
     } catch (error) {
       console.error('Erro ao buscar médicos:', error);
     }
@@ -27,8 +27,7 @@ function AtestadoMedico() {
 
   const fetchPacientes = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-      setPacientes(response.data);
+      setPacientes(await listarPacientes());
     } catch (error) {
       console.error('Erro ao buscar pacientes:', error);
     }

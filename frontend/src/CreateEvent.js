@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { criarConsulta } from './services/ConsultaService';
+import { buscarMedicos } from './services/MedicoService';
+import { listarPacientes } from './services/PacienteService';
+import { listarTiposConsulta } from './services/TipoConsultaService';
 import Select from 'react-select';
 import Swal from 'sweetalert2'; // Importa o SweetAlert2
 import moment from 'moment-timezone'; // Importa o moment-timezone
@@ -24,9 +27,9 @@ const CreateEvent = () => {
 
   const fetchPatients = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/pacientes/pacientes`);
+      const response = await listarPacientes();
       setPatients(
-        response.data.map((patient) => ({
+        response.map((patient) => ({
           label: patient.nome,
           value: patient.id,
           email: patient.email,
@@ -44,9 +47,9 @@ const CreateEvent = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/medicos/medicos`);
+      const response = await buscarMedicos();
       setDoctors(
-        response.data.data.map((doctor) => ({
+        response.map((doctor) => ({
           label: doctor.usuario,
           value: doctor.id,
         }))
@@ -62,9 +65,9 @@ const CreateEvent = () => {
 
   const fetchTiposConsulta = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
+      const response = await listarTiposConsulta();
       setTypes(
-        response.data.map((tipo) => ({
+        response.map((tipo) => ({
           label: `${tipo.descricao} - R$ ${parseFloat(tipo.valor).toFixed(2)}`,
           value: tipo.id,
         }))
@@ -115,7 +118,7 @@ const CreateEvent = () => {
 
       console.log('Enviando dados para criação de consulta:', payload);
 
-      await axios.post('http://localhost:5000/consultas/adiciona', payload);
+      await criarConsulta(payload);
 
       Swal.fire({
         icon: 'success',
@@ -123,11 +126,11 @@ const CreateEvent = () => {
         text: 'Consulta agendada com sucesso!',
       });
     } catch (error) {
-      console.error('Erro ao criar consulta:', error.response?.data || error);
+      console.error('Erro ao criar consulta:', error);
       Swal.fire({
         icon: 'error',
         title: 'Erro',
-        text: error.response?.data?.error || 'Erro ao agendar a consulta. Tente novamente.',
+        text: error.data?.error || error.message || 'Erro ao agendar a consulta. Tente novamente.',
       });
     }
   };

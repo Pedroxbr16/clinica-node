@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { atualizarHistorico, buscarHistoricoPorPaciente, excluirHistorico } from './services/HistoricoService';
+import { buscarPacientePorId } from './services/PacienteService';
 import Swal from "sweetalert2";
 
 function VisualizarHistorico() {
@@ -15,16 +16,11 @@ function VisualizarHistorico() {
     const fetchHistoricos = async () => {
       try {
         // Busca os históricos do paciente
-        const responseHistoricos = await axios.get(
-          `http://localhost:5000/historico/paciente/${id}`
-        );
-        setHistoricos(responseHistoricos.data);
+        setHistoricos(await buscarHistoricoPorPaciente(id));
 
         // Busca o nome do paciente
-        const responsePaciente = await axios.get(
-          `http://localhost:5000/pacientes/pacientes/${id}`
-        );
-        setPacienteNome(responsePaciente.data.nome);
+        const paciente = await buscarPacientePorId(id);
+        setPacienteNome(paciente.nome);
 
         setLoading(false);
       } catch (err) {
@@ -59,7 +55,7 @@ function VisualizarHistorico() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.put(`http://localhost:5000/historico/historicos/${historicoId}`, {
+          await atualizarHistorico(historicoId, {
             historico: result.value,
           });
           Swal.fire({
@@ -95,7 +91,7 @@ function VisualizarHistorico() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:5000/historico/historicos/${historicoId}`);
+          await excluirHistorico(historicoId);
           Swal.fire({
             icon: "success",
             title: "Excluído",

@@ -1,39 +1,38 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-require('dotenv').config(); // Carrega as variáveis do .env
-const connection = require('../config/database');
+require('dotenv').config();
 
-
-const pacienteRoutes = require('../routes/pacienteRoutes'); 
+const connectDatabase = require('../config/database');
+const { seedDatabase } = require('../data/seed');
+const pacienteRoutes = require('../routes/pacienteRoutes');
 const medicoRoutes = require('../routes/medicoRoutes');
 const atendenteRoutes = require('../routes/atendenteRoutes');
 const authRoutes = require('../routes/authRoutes');
 const consultaRoutes = require('../routes/consultaRoutes');
 const tipoConsultaRoutes = require('../routes/tipoConsultaRoutes');
 const historicoRoutes = require('../routes/historicoRoutes');
-const Exames = require('../routes/ExameRoutes');
-const users = require('../routes/mobile/usersRoutes');
+const exameRoutes = require('../routes/ExameRoutes');
+const usersRoutes = require('../routes/mobile/usersRoutes');
 const preAgendamentoRoutes = require('../routes/mobile/preAgendamentoRoutes');
 const pagamentoRoutes = require('../routes/pagamentosRoutes');
+const financeController = require('../controllers/financeController');
 
 const app = express();
+const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000').split(',');
 
-// Middleware para parsear JSON
 app.use(express.json());
-
-// Configuração do CORS
-const corsOrigins = process.env.CORS_ORIGINS.split(','); // Divide as origens configuradas no .env
 app.use(cors({
   origin: corsOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.use((req, _res, next) => {
+  console.log(`[${req.method}] ${req.url}`);
+  next();
+});
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Middleware para servir arquivos estáticos
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Rotas
 app.use('/pacientes', pacienteRoutes);
 app.use('/medicos', medicoRoutes);
 app.use('/atendente', atendenteRoutes);
@@ -41,91 +40,31 @@ app.use('/auth', authRoutes);
 app.use('/consultas', consultaRoutes);
 app.use('/tipos_consulta', tipoConsultaRoutes);
 app.use('/historico', historicoRoutes);
-app.use('/exames', Exames);
+app.use('/exames', exameRoutes);
 app.use('/pagamentos', pagamentoRoutes);
-
-// rotas do mobile
-app.use('/user', users);
+app.use('/user', usersRoutes);
 app.use('/pre-agendamentos', preAgendamentoRoutes);
+app.get('/finance/dashboard', financeController.dashboard);
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
-// Iniciar o servidor
+app.use((error, _req, res, _next) => {
+  console.error(error);
+  if (error.name === 'CastError') return res.status(400).json({ error: 'ID inválido.' });
+  if (error.name === 'ValidationError') return res.status(400).json({ error: error.message });
+  if (error.code === 11000) return res.status(409).json({ error: 'Já existe um registro com este valor único.' });
+  res.status(500).json({ error: 'Erro interno do servidor.' });
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
-
-// Logger básico de requisições
-app.use((req, res, next) => {
-  console.log(`[${req.method}] ${req.url}`);
-  next();
-});
-
-app.get("/finance/dashboard", (req, res) => {
-  const { month, year } = req.query;
-
-  // Validação de entrada
-  if (!month || !year) {
-    return res.status(400).json({ error: "Mês e ano são obrigatórios" });
-  }
-
-  // Total da Receita
-  connection.query(
-    `SELECT SUM(tc.valor) AS total
-     FROM consulta c
-     JOIN tipos_consulta tc ON c.tipo_consulta_id = tc.id
-     WHERE MONTH(c.inicio) = ? AND YEAR(c.inicio) = ?`,
-    [month, year],
-    (err, totalRevenueResult) => {
-      if (err) {
-        console.error("Erro ao buscar receita total:", err);
-        return res.status(500).json({ error: "Erro ao buscar receita total" });
-      }
-
-      const totalRevenue = totalRevenueResult[0]?.total || 0;
-
-      // Total de Consultas
-      connection.query(
-        `SELECT COUNT(*) AS total
-         FROM consulta
-         WHERE MONTH(inicio) = ? AND YEAR(inicio) = ?`,
-        [month, year],
-        (err, totalAppointmentsResult) => {
-          if (err) {
-            console.error("Erro ao buscar total de consultas:", err);
-            return res.status(500).json({ error: "Erro ao buscar total de consultas" });
-          }
-
-          const totalAppointments = totalAppointmentsResult[0]?.total || 0;
-
-          // Dados para Gráficos
-          connection.query(
-            `SELECT DAY(c.inicio) AS day, SUM(tc.valor) AS total
-             FROM consulta c
-             JOIN tipos_consulta tc ON c.tipo_consulta_id = tc.id
-             WHERE MONTH(c.inicio) = ? AND YEAR(c.inicio) = ?
-             GROUP BY DAY(c.inicio)`,
-            [month, year],
-            (err, revenueChartData) => {
-              if (err) {
-                console.error("Erro ao buscar dados para gráficos:", err);
-                return res.status(500).json({ error: "Erro ao buscar dados para gráficos" });
-              }
-
-              const labels = revenueChartData.map((row) => `Dia ${row.day}`);
-              const revenue = revenueChartData.map((row) => row.total);
-
-              // Resposta final
-              res.json({
-                totalRevenue,
-                totalAppointments,
-                revenueChartData: revenue,
-                labels,
-              });
-            }
-          );
-        }
-      );
+connectDatabase()
+  .then(async () => {
+    if (process.env.SEED_DATABASE !== 'false') {
+      const result = await seedDatabase();
+      if (result.seeded) console.log('Dados fictícios inseridos no primeiro uso.');
     }
-  );
-});
-
+    app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+  })
+  .catch((error) => {
+    console.error('Não foi possível iniciar o servidor:', error.message);
+    process.exit(1);
+  });

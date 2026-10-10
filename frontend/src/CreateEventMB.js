@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { criarConsulta } from './services/ConsultaService';
+import { buscarMedicos } from './services/MedicoService';
+import { listarPacientes } from './services/PacienteService';
+import { atualizarPreAgendamento } from './services/PreAgendamentoService';
+import { listarTiposConsulta } from './services/TipoConsultaService';
 import Select from 'react-select';
 import Swal from 'sweetalert2';
 import moment from 'moment-timezone'; // Importa o moment-timezone
@@ -53,19 +57,17 @@ const CreateEventMB = () => {
   const fetchData = async () => {
     try {
       const [patientsResponse, doctorsResponse, typesResponse] = await Promise.all([
-        axios.get('http://localhost:5000/pacientes/pacientes'),
-        axios.get('http://localhost:5000/medicos/medicos'),
-        axios.get('http://localhost:5000/tipos_consulta/lista'),
+        listarPacientes(), buscarMedicos(), listarTiposConsulta(),
       ]);
   
       setPatients(
-        patientsResponse.data.map((patient) => ({
+        patientsResponse.map((patient) => ({
           label: patient.nome,
           value: patient.id,
         }))
       );
   
-      const doctorsData = Array.isArray(doctorsResponse.data.data) ? doctorsResponse.data.data : [];
+      const doctorsData = Array.isArray(doctorsResponse) ? doctorsResponse : [];
       setDoctors(
         doctorsData.map((doctor) => ({
           label: doctor.usuario, // Nome do médico
@@ -73,7 +75,7 @@ const CreateEventMB = () => {
         }))
       );
   
-      const typesData = Array.isArray(typesResponse.data) ? typesResponse.data : [];
+      const typesData = Array.isArray(typesResponse) ? typesResponse : [];
       setTypes(
         typesData.map((type) => ({
           label: `${type.descricao} - R$ ${parseFloat(type.valor).toFixed(2)}`, // Exibe a descrição com o valor formatado
@@ -111,7 +113,7 @@ const CreateEventMB = () => {
 
   const updatePreAgendaStatus = async (preAgendaId) => {
     try {
-      await axios.put(`http://localhost:5000/pre-agendamentos/atualizar/${preAgendaId}`, {
+      await atualizarPreAgendamento(preAgendaId, {
         status: 'Concluído',
       });
       console.log(`Pré-agenda com ID ${preAgendaId} atualizada para "Concluído".`);
@@ -127,7 +129,7 @@ const CreateEventMB = () => {
 
   const submitEvent = async () => {
     try {
-      await axios.post('http://localhost:5000/consultas/adiciona', {
+      await criarConsulta({
         titulo: event.title,
         inicio: event.start,
         fim: event.end,

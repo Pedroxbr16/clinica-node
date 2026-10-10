@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import axios from 'axios';
+import { atualizarConsulta, excluirConsulta, listarConsultas } from './services/ConsultaService';
+import { buscarMedicos } from './services/MedicoService';
+import { listarPacientes } from './services/PacienteService';
+import { listarTiposConsulta } from './services/TipoConsultaService';
 import Modal from 'react-modal';
 import Swal from 'sweetalert2'; // Importando SweetAlert
 import 'moment/locale/pt-br';
@@ -35,8 +38,8 @@ const Agenda = () => {
   // Função para buscar consultas
   const fetchConsultas = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/consultas/lista');
-      const consultasData = Array.isArray(response.data) ? response.data : [];
+      const response = await listarConsultas();
+      const consultasData = Array.isArray(response) ? response : [];
       const mappedEvents = consultasData.map((consulta) => ({
         title: consulta.titulo,
         start: new Date(consulta.inicio),
@@ -61,8 +64,7 @@ const Agenda = () => {
   // Funções para buscar pacientes, médicos e tipos de consulta
   const fetchPacientes = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-      setPacientes(response.data);
+      setPacientes(await listarPacientes());
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -74,8 +76,7 @@ const Agenda = () => {
 
   const fetchMedicos = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/medicos/medicos');
-      setMedicos(response.data.data);
+      setMedicos(await buscarMedicos());
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -87,8 +88,8 @@ const Agenda = () => {
 
   const fetchTiposConsulta = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
-      const tiposData = Array.isArray(response.data) ? response.data : [];
+      const response = await listarTiposConsulta();
+      const tiposData = Array.isArray(response) ? response : [];
       setTiposConsulta(
         tiposData.map((tipo) => ({
           label: tipo.descricao,
@@ -136,7 +137,7 @@ const Agenda = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:5000/consultas/${selectedEvent.id}`);
+      await excluirConsulta(selectedEvent.id);
       setEvents(events.filter((event) => event.id !== selectedEvent.id));
       setShowModal(false);
       Swal.fire({
@@ -164,9 +165,9 @@ const Agenda = () => {
         tipo_consulta_id: editedEvent.tipo_consulta_id,
         modalidade: editedEvent.modalidade, // Adicionado campo modalidade
       };
-      const response = await axios.put(`http://localhost:5000/consultas/${selectedEvent.id}`, updatedEvent);
+      await atualizarConsulta(selectedEvent.id, updatedEvent);
 
-      if (response.status === 200) {
+      {
         setEvents(events.map((event) => (event.id === selectedEvent.id ? { ...event, ...updatedEvent } : event)));
         setShowModal(false);
         Swal.fire({

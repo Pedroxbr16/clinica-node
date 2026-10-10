@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { listarPacientes } from './services/PacienteService';
 import './css/historico.css';
 
 function Pacientes() {
@@ -16,8 +16,7 @@ function Pacientes() {
   useEffect(() => {
     const fetchPacientes = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-        setPacientes(response.data);
+        setPacientes(await listarPacientes());
         setLoading(false);
       } catch (err) {
         console.error('Erro ao buscar pacientes:', err);

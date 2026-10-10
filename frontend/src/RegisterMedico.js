@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InputMask from 'react-input-mask';
-import axios from 'axios';
+import { buscarEnderecoPorCep } from './services/EnderecoService';
+import { criarMedico } from './services/MedicoService';
 import Swal from 'sweetalert2'; // Importa o SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/RegisterMedico.css';
@@ -24,10 +25,10 @@ function RegisterMedico() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { usuario, crm, dataNascimento, email, celular, cpf, cep, numero, bairro, cidade, estado };
-      const response = await axios.post('http://localhost:5000/medicos/medicos', payload);
+      const payload = { usuario, crm, data_nascimento: dataNascimento, email, celular, cpf, cep, numero, bairro, cidade, estado };
+      await criarMedico(payload);
 
-      if (response.status === 200 || response.status === 201) {
+      {
         Swal.fire({
           icon: 'success',
           title: 'Cadastro realizado',
@@ -46,11 +47,11 @@ function RegisterMedico() {
   const handleCepBlur = async () => {
     if (cep.length === 9) {
       try {
-        const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
-        if (response.data && !response.data.erro) {
-          setBairro(response.data.bairro);
-          setCidade(response.data.localidade);
-          setEstado(response.data.uf);
+        const endereco = await buscarEnderecoPorCep(cep);
+        if (endereco) {
+          setBairro(endereco.bairro);
+          setCidade(endereco.localidade);
+          setEstado(endereco.uf);
         } else {
           Swal.fire({
             icon: 'warning',

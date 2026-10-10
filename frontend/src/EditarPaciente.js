@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { atualizarPaciente, buscarPacientePorId } from './services/PacienteService';
 import InputMask from 'react-input-mask';
 import Swal from 'sweetalert2';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -35,19 +35,18 @@ function EditarPaciente() {
   useEffect(() => {
     const fetchPacienteData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/pacientes/pacientes/${pacienteId}`);
-        const dataNascimento = response.data.nascimento
-          ? new Date(response.data.nascimento).toISOString().split('T')[0]
+        const paciente = await buscarPacientePorId(pacienteId);
+        const dataNascimento = paciente.nascimento
+          ? new Date(paciente.nascimento).toISOString().split('T')[0]
           : '';
   
         setFormData({
-          ...response.data,
+          ...paciente,
           nascimento: dataNascimento,
         });
   
-        if (response.data.foto) {
-          console.log('Foto recebida:', response.data.foto); // Verifica a string Base64
-          setFotoPreview(`data:image/png;base64,${response.data.foto}`); // Altere para PNG ou outro formato, se necessário.
+        if (paciente.foto) {
+          setFotoPreview(`data:image/png;base64,${paciente.foto}`);
 
         }
       } catch (error) {
@@ -83,11 +82,7 @@ function EditarPaciente() {
     });
 
     try {
-      await axios.put(`http://localhost:5000/pacientes/pacientes/${pacienteId}`, data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      await atualizarPaciente(pacienteId, data);
       Swal.fire({
         icon: 'success',
         title: 'Sucesso',

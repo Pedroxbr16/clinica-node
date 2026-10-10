@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { criarExame, atualizarExame, excluirExame, listarExames } from './services/ExameService';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2'; // Importando SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -12,8 +12,7 @@ const Exame = () => {
 
   const fetchExames = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/exames/exames');
-      setExames(response.data);
+      setExames(await listarExames());
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -39,7 +38,7 @@ const Exame = () => {
       return;
     }
     try {
-      await axios.post('http://localhost:5000/exames/exames', { nome });
+      await criarExame(nome);
       setNome('');
       fetchExames();
       Swal.fire({
@@ -79,7 +78,7 @@ const Exame = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/exames/exames/${id}`);
+        await excluirExame(id);
         fetchExames();
         Swal.fire({
           icon: 'success',
@@ -122,7 +121,7 @@ const Exame = () => {
 
     if (newNome) {
       try {
-        await axios.put(`http://localhost:5000/exames/exames/${id}`, { nome: newNome });
+        await atualizarExame(id, newNome);
         fetchExames();
         Swal.fire({
           icon: 'success',

@@ -1,6 +1,6 @@
 # 🧩 Projeto Clinica - Fullstack com Docker
 
-Este repositório contém o sistema completo da ONG, com arquitetura dividida em **Frontend**, **Backend**, **Mobile** e banco de dados **MySQL**, tudo orquestrado com **Docker**.
+Este repositório contém o sistema completo da ONG, com arquitetura dividida em **Frontend**, **Backend**, **Mobile** e banco de dados **MongoDB**, tudo orquestrado com **Docker**.
 
 ---
 
@@ -25,8 +25,21 @@ docker compose up -d --build
 |---------------|-----------------------|
 | Frontend      | http://localhost:3000 |
 | Backend       | http://localhost:5000 |
-| phpMyAdmin    | http://localhost:8080 |
+| Mongo Express | http://localhost:8080 |
 | Mobile (Expo) | http://localhost:19000 |
+
+### Dados fictícios
+
+Na primeira inicialização de um MongoDB vazio, o backend insere automaticamente dados fictícios de atendentes, pacientes, médicos, consultas, pagamentos e pré-agendamentos. Para desativar esse comportamento, defina `SEED_DATABASE=false` no ambiente do backend.
+
+Também é possível executar o seed manualmente:
+
+```bash
+cd backend
+npm run seed
+```
+
+Credenciais de demonstração: `admin` / `admin123` e `recepcao` / `recepcao123`.
 
 ---
 

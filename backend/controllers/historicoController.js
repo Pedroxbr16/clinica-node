@@ -1,73 +1,24 @@
-const Historico = require('../models/historicoModel');
+const historicoService = require('../services/historicoService');
+const asyncHandler = require('../utils/asyncHandler');
 
-// Lista todos os históricos
-exports.listarHistoricos = (req, res) => {
-  Historico.findAll((error, results) => {
-    if (error) {
-      console.error('Erro ao listar históricos:', error);
-      res.status(500).json({ error: 'Erro ao listar históricos' });
-    } else {
-      res.json(results);
-    }
-  });
-};
-
-// Adiciona um novo histórico
-exports.adicionarHistorico = (req, res) => {
+exports.listarHistoricos = asyncHandler(async (_req, res) => res.json(await historicoService.list()));
+exports.adicionarHistorico = asyncHandler(async (req, res) => {
   const { paciente_id, data_consulta, historico } = req.body;
-  Historico.create({ paciente_id, data_consulta, historico }, (error, results) => {
-    if (error) {
-      console.error('Erro ao adicionar histórico:', error);
-      res.status(500).json({ error: 'Erro ao adicionar histórico' });
-    } else {
-      res.status(201).json({ id: results.insertId, paciente_id, data_consulta, historico });
-    }
-  });
-};
-
-// Atualiza um histórico existente
-exports.atualizarHistorico = (req, res) => {
-  const { id } = req.params;
-  const { paciente_id, data_consulta, historico } = req.body;
-  Historico.update(id, { paciente_id, data_consulta, historico }, (error, results) => {
-    if (error) {
-      console.error('Erro ao atualizar histórico:', error);
-      res.status(500).json({ error: 'Erro ao atualizar histórico' });
-    } else if (results.affectedRows === 0) {
-      res.status(404).json({ error: 'Histórico não encontrado' });
-    } else {
-      res.json({ id, paciente_id, data_consulta, historico });
-    }
-  });
-};
-
-// Exclui um histórico
-exports.excluirHistorico = (req, res) => {
-  const { id } = req.params;
-  Historico.delete(id, (error, results) => {
-    if (error) {
-      console.error('Erro ao excluir histórico:', error);
-      res.status(500).json({ error: 'Erro ao excluir histórico' });
-    } else if (results.affectedRows === 0) {
-      res.status(404).json({ error: 'Histórico não encontrado' });
-    } else {
-      res.json({ message: 'Histórico excluído com sucesso' });
-    }
-  });
-};
-
-// Busca o histórico de um paciente específico
-exports.buscarHistoricoPorPaciente = (req, res) => {
-  const { pacienteId } = req.params;
-
-  Historico.findByPacienteId(pacienteId, (error, results) => {
-    if (error) {
-      console.error('Erro ao buscar histórico do paciente:', error);
-      res.status(500).json({ error: 'Erro ao buscar histórico do paciente' });
-    } else if (results.length === 0) {
-      res.status(404).json({ error: 'Nenhum histórico encontrado para este paciente' });
-    } else {
-      res.json(results);
-    }
-  });
-};
+  if (!paciente_id || !data_consulta || !historico) return res.status(400).json({ error: 'Paciente, data e histórico são obrigatórios.' });
+  const registro = await historicoService.create({ paciente_id, data_consulta, historico });
+  res.status(201).json({ id: registro.id, paciente_id, data_consulta, historico });
+});
+exports.atualizarHistorico = asyncHandler(async (req, res) => {
+  const registro = await historicoService.update(req.params.id, req.body);
+  if (!registro) return res.status(404).json({ error: 'Histórico não encontrado' });
+  res.json(registro);
+});
+exports.excluirHistorico = asyncHandler(async (req, res) => {
+  if (!await historicoService.remove(req.params.id)) return res.status(404).json({ error: 'Histórico não encontrado' });
+  res.json({ message: 'Histórico excluído com sucesso' });
+});
+exports.buscarHistoricoPorPaciente = asyncHandler(async (req, res) => {
+  const historicos = await historicoService.listByPaciente(req.params.pacienteId);
+  if (!historicos.length) return res.status(404).json({ error: 'Nenhum histórico encontrado para este paciente' });
+  res.json(historicos);
+});

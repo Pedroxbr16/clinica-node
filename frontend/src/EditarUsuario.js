@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { atualizarAtendente, buscarAtendenteById } from './services/AtendenteService';
 import Swal from 'sweetalert2'; // Importa o SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -16,8 +16,7 @@ function EditUsuario() {
   useEffect(() => {
     const fetchUsuario = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/atendente/atendente/${id}`);
-        const data = response.data;
+        const data = await buscarAtendenteById(id);
         setUsuario(data.usuario);
         setSenha(''); // Mantém a senha em branco para segurança
         setEmail(data.email);
@@ -38,9 +37,9 @@ function EditUsuario() {
     e.preventDefault();
     try {
       const payload = { usuario, senha, email, funcao };
-      const response = await axios.put(`http://localhost:5000/atendente/atendente/${id}`, payload);
+      await atualizarAtendente(id, payload);
 
-      if (response.status === 200) {
+      {
         Swal.fire({
           icon: 'success',
           title: 'Sucesso',

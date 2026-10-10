@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import InputMask from 'react-input-mask';
-import axios from 'axios';
+import { buscarEnderecoPorCep } from './services/EnderecoService';
+import { atualizarMedico, buscarMedicoById } from './services/MedicoService';
 import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -25,8 +26,7 @@ function EditarMedico() {
   useEffect(() => {
     const fetchMedicoData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/medicos/medicos/${medicoId}`);
-        const data = response.data.data || response.data;
+        const data = await buscarMedicoById(medicoId);
 
         setUsuario(data.usuario || '');
         setCrm(data.crm || '');
@@ -61,7 +61,7 @@ function EditarMedico() {
       const payload = {
         usuario,
         crm,
-        dataNascimento,
+        data_nascimento: dataNascimento,
         email,
         celular,
         cpf,
@@ -71,7 +71,7 @@ function EditarMedico() {
         cidade,
         estado,
       };
-      await axios.put(`http://localhost:5000/medicos/medicos/${medicoId}`, payload);
+      await atualizarMedico(medicoId, payload);
       Swal.fire({
         icon: 'success',
         title: 'Sucesso',
@@ -93,11 +93,11 @@ function EditarMedico() {
   const handleCepBlur = async () => {
     if (cep.length === 9) {
       try {
-        const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
-        if (response.data && !response.data.erro) {
-          setBairro(response.data.bairro || '');
-          setCidade(response.data.localidade || '');
-          setEstado(response.data.uf || '');
+        const endereco = await buscarEnderecoPorCep(cep);
+        if (endereco) {
+          setBairro(endereco.bairro || '');
+          setCidade(endereco.localidade || '');
+          setEstado(endereco.uf || '');
         } else {
           Swal.fire({
             icon: 'warning',

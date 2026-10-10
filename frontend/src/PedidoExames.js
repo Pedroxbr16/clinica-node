@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import axios from 'axios';
+import { listarExames } from './services/ExameService';
+import { buscarMedicos } from './services/MedicoService';
+import { listarPacientes } from './services/PacienteService';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function PedidoExames() {
@@ -21,8 +23,7 @@ function PedidoExames() {
 
   const fetchExames = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/exames/exames');
-      setExames(response.data);
+      setExames(await listarExames());
     } catch (error) {
       console.error('Erro ao buscar exames:', error);
     }
@@ -30,13 +31,7 @@ function PedidoExames() {
 
   const fetchMedicos = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/medicos/medicos");
-      if (response.data && Array.isArray(response.data.data)) {
-        setMedicos(response.data.data); // Certifique-se de que a estrutura dos dados está correta
-      } else {
-        console.error("Formato de dados inesperado para médicos:", response.data);
-        setMedicos([]); // Define como vazio caso o formato esteja incorreto
-      }
+      setMedicos(await buscarMedicos());
     } catch (error) {
       console.error("Erro ao buscar médicos:", error.message);
       setMedicos([]); // Define como vazio em caso de erro
@@ -46,8 +41,7 @@ function PedidoExames() {
 
   const fetchPacientes = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-      setPacientes(response.data);
+      setPacientes(await listarPacientes());
     } catch (error) {
       console.error('Erro ao buscar pacientes:', error);
     }

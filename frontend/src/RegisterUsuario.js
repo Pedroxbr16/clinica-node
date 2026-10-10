@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { criarAtendente } from './services/AtendenteService';
 import Swal from 'sweetalert2'; // Importa o SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -16,9 +16,9 @@ function RegisterUsuario() {
     e.preventDefault();
     try {
       const payload = { usuario, senha, email, funcao };
-      const response = await axios.post('http://localhost:5000/atendente/atendente', payload);
+      await criarAtendente(payload);
 
-      if (response.status === 200 || response.status === 201) {
+      {
         Swal.fire({
           icon: 'success',
           title: 'Cadastro realizado',

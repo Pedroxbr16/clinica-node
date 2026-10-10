@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { criarTipoConsulta, atualizarTipoConsulta, excluirTipoConsulta, listarTiposConsulta } from './services/TipoConsultaService';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2'; // Importando SweetAlert2
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -16,8 +16,7 @@ const TipoConsulta = () => {
   const fetchTiposConsulta = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/tipos_consulta/lista');
-      setTiposConsulta(response.data);
+      setTiposConsulta(await listarTiposConsulta());
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -42,7 +41,7 @@ const TipoConsulta = () => {
     }
   
     try {
-      await axios.post('http://localhost:5000/tipos_consulta/adiciona', {
+      await criarTipoConsulta({
         descricao,
         valor: numericValor, // Valor como decimal
       });
@@ -79,7 +78,7 @@ const TipoConsulta = () => {
     if (result.isConfirmed) {
       try {
         setLoading(true);
-        await axios.delete(`http://localhost:5000/tipos_consulta/${id}`);
+        await excluirTipoConsulta(id);
         fetchTiposConsulta();
         Swal.fire({
           icon: 'success',
@@ -137,7 +136,7 @@ const TipoConsulta = () => {
       if (newValor) {
         try {
           setLoading(true);
-          await axios.put(`http://localhost:5000/tipos_consulta/${id}`, {
+          await atualizarTipoConsulta(id, {
             descricao: newDescricao,
             valor: parseFloat(newValor),
           });

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { buscarUsuarioMobile } from './services/MobileUserService';
+import { buscarPacientePorCpf } from './services/PacienteService';
+import { atualizarPreAgendamento, listarPreAgendamentos } from './services/PreAgendamentoService';
 import Swal from 'sweetalert2';
 
 function PreAgenda() {
@@ -11,9 +13,7 @@ function PreAgenda() {
 
   const fetchPreAgendas = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/pre-agendamentos/listar');
-      console.log('Resposta da API de pré-agendas:', response.data.data);
-      setPreAgendas(response.data.data);
+      setPreAgendas(await listarPreAgendamentos());
       setLoading(false);
     } catch (error) {
       console.error('Erro ao buscar pré-agendas:', error);
@@ -29,21 +29,18 @@ function PreAgenda() {
     const { user_id, tipo_consulta_id } = preAgenda; // Adicionado tipo_consulta_id
     
     try {
-      const userResponse = await axios.get(`http://localhost:5000/user/buscar/${user_id}`);
-      console.log('Resposta do backend para /user/buscar:', userResponse.data);
-  
-      const userCpf = userResponse.data.cpf;
+      const userResponse = await buscarUsuarioMobile(user_id);
+      const userCpf = userResponse.cpf;
   
       // Verifica se o paciente existe
       try {
-        const pacienteResponse = await axios.get(`http://localhost:5000/pacientes/pacientes/cpf/${userCpf}`);
-        console.log('Paciente encontrado:', pacienteResponse.data);
+        const pacienteResponse = await buscarPacientePorCpf(userCpf);
   
         // Navegar para o CreateEventMB com os dados do paciente e o tipo de consulta
         console.log('Objeto preAgenda:', preAgenda);
         navigate('/createEventMB', {
           state: {
-            paciente: pacienteResponse.data,
+            paciente: pacienteResponse,
             preAgendaId: preAgenda.id,
             cpf: userCpf,
             dataDesejada: preAgenda.data_desejada,
@@ -53,7 +50,7 @@ function PreAgenda() {
           },
         });
       } catch (error) {
-        if (error.response && error.response.status === 404) {
+        if (error.status === 404) {
           console.warn('Paciente não encontrado. Exibindo modal de cadastro...');
           // Exibe alerta para cadastrar o paciente
           Swal.fire({
@@ -99,7 +96,7 @@ function PreAgenda() {
 
   const handleCancelar = async (preAgendaId) => {
     try {
-      await axios.put(`http://localhost:5000/pre-agendamentos/atualizar/${preAgendaId}`, {
+      await atualizarPreAgendamento(preAgendaId, {
         status: 'Cancelado',
       });
       Swal.fire({

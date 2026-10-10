@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { buscarMedicos, excluirMedico } from './services/MedicoService';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -10,9 +10,7 @@ const MedicoList = () => {
   // Função para buscar médicos
   const fetchMedicos = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/medicos/medicos');
-      const medicosData = Array.isArray(response.data.data) ? response.data.data : [];
-      setMedicos(medicosData);
+      setMedicos(await buscarMedicos());
     } catch (error) {
       console.error('Erro ao buscar médicos:', error);
     }
@@ -22,7 +20,7 @@ const MedicoList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este médico?')) {
       try {
-        await axios.delete(`http://localhost:5000/medicos/${id}`);
+        await excluirMedico(id);
         fetchMedicos();
         alert('Médico excluído com sucesso!');
       } catch (error) {

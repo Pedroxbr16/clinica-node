@@ -1,38 +1,30 @@
-version: '3.8'
-
 services:
-  # API Node.js (backend)
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile       # se o nome for diferente, especifique aqui
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_USER: clinica
-      DB_PASSWORD: 1234
-      DB_NAME: clinica
+      MONGODB_URI: mongodb://db:27017/clinica
+      CORS_ORIGINS: http://localhost:3000
       NODE_ENV: production
     depends_on:
       - db
 
-  # App React compilado e servido pelo Nginx
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile       # aponte pro seu Dockerfile do React+Nginx
+      dockerfile: Dockerfile
     ports:
       - "3000:80"
     depends_on:
       - backend
 
-  # Mobile Expo (React Native) — dev only
   mobile:
     build:
       context: ./mobile
-      dockerfile: Dockerfile       # seu Dockerfile do Expo
+      dockerfile: Dockerfile
     ports:
       - "19000:19000"
       - "19001:19001"
@@ -44,32 +36,23 @@ services:
     depends_on:
       - backend
 
-  # Banco de dados MySQL
   db:
-    image: mysql:8.0
+    image: mongo:7
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: clinica
-      MYSQL_USER: clinica
-      MYSQL_PASSWORD: 1234
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mongo_data:/data/db
     ports:
-      - "3306:3306"
+      - "27017:27017"
 
-  # phpMyAdmin
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
+  mongo-express:
+    image: mongo-express:1.0.2-20
     restart: always
     depends_on:
       - db
     environment:
-      PMA_HOST: db
-      PMA_USER: root
-      PMA_PASSWORD: 1234
+      ME_CONFIG_MONGODB_URL: mongodb://db:27017/
     ports:
       - "8080:80"
 
 volumes:
-  mysql_data:
+  mongo_data:

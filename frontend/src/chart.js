@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { buscarDashboardFinanceiro } from './services/FinanceService';
 import { Bar, Doughnut } from "react-chartjs-2";
 import "chart.js/auto";
 import { Card, Form, Row, Col, Button } from "react-bootstrap";
@@ -25,12 +25,8 @@ const FinancialDashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/finance/dashboard", {
-        params: filters,
-      });
-
       const { totalRevenue, totalAppointments, revenueChartData, labels } =
-        response.data;
+        await buscarDashboardFinanceiro(filters);
 
       setIndicators({
         totalRevenue: parseFloat(totalRevenue || 0), // Certifica que é um número

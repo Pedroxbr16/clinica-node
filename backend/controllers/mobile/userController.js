@@ -1,93 +1,29 @@
-const User = require('../../models/mobile/User');
+const userService = require('../../services/mobileUserService');
+const asyncHandler = require('../../utils/asyncHandler');
 
-// Criar um novo usuário
-exports.createUser = (req, res) => {
-  const { name, email, password, cpf, data_de_nascimento, genero } = req.body;
-
-  console.log("Tentativa de criar usuário:", { name, email, cpf });
-
-  User.findUserByEmail(email, (err, existingUser) => {
-    if (err) {
-      console.error("Erro ao verificar e-mail:", err);
-      return res.status(500).json({ message: 'Erro ao verificar e-mail', error: err });
-    }
-
-    if (existingUser) {
-      console.warn("E-mail já cadastrado:", email);
-      return res.status(400).json({ message: 'E-mail já cadastrado.' });
-    }
-
-    User.createUser(name, email, password, cpf, data_de_nascimento, genero, (err, results) => {
-      if (err) {
-        console.error("Erro ao criar usuário:", err);
-        return res.status(500).json({ message: 'Erro ao criar usuário', error: err });
-      }
-
-      console.log("Usuário criado com sucesso! ID:", results.insertId);
-      res.status(201).json({ message: 'Usuário criado com sucesso!', userId: results.insertId });
-    });
-  });
-};
-
-// Login do usuário
-exports.loginUser = (req, res) => {
+exports.createUser = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) return res.status(400).json({ message: 'Nome, e-mail e senha são obrigatórios.' });
+  if (await userService.findByEmail(email)) return res.status(400).json({ message: 'E-mail já cadastrado.' });
+  const user = await userService.create(req.body);
+  res.status(201).json({ message: 'Usuário criado com sucesso!', userId: user.id });
+});
+exports.loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
-  console.log("Tentativa de login:", { email });
-
-  User.authenticateUser(email, password, (err, user) => {
-    if (err) {
-      console.error("Erro ao verificar credenciais:", err);
-      return res.status(500).json({ message: 'Erro ao verificar credenciais', error: err });
-    }
-
-    if (!user) {
-      console.warn("Credenciais inválidas para o e-mail:", email);
-      return res.status(401).json({ message: 'E-mail ou senha incorretos.' });
-    }
-
-    console.log("Login realizado com sucesso para o usuário:", user.id);
-    res.status(200).json({ message: 'Login realizado com sucesso!', user });
-  });
-};
-
-// Atualizar um usuário
-exports.updateUser = (req, res) => {
-  const userId = req.params.id;
-  const { name, email, password, cpf, data_de_nascimento, genero } = req.body;
-
-  console.log("Tentativa de atualizar usuário:", { userId, name, email, cpf });
-
-  User.updateUser(userId, name, email, password, cpf, data_de_nascimento, genero, (err, results) => {
-    if (err) {
-      console.error("Erro ao atualizar usuário:", err);
-      return res.status(500).json({ message: 'Erro ao atualizar usuário.', error: err });
-    }
-
-    if (results.affectedRows === 0) {
-      console.warn("Usuário não encontrado para o ID:", userId);
-      return res.status(404).json({ message: 'Usuário não encontrado.' });
-    }
-
-    console.log("Usuário atualizado com sucesso! ID:", userId);
-    res.status(200).json({ message: 'Usuário atualizado com sucesso!' });
-  });
-};
-
-// Buscar usuário pelo ID
-exports.getUserById = (req, res) => {
-  const userId = req.params.id;
-
-  User.findUserById(userId, (err, user) => {
-    if (err) {
-      console.error('Erro ao buscar usuário:', err);
-      return res.status(500).json({ message: 'Erro ao buscar usuário.', error: err });
-    }
-
-    if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado.' });
-    }
-
-    res.status(200).json(user);
-  });
-};
+  if (!email || !password) return res.status(400).json({ message: 'E-mail e senha são obrigatórios.' });
+  const user = await userService.authenticate(email, password);
+  if (!user) return res.status(401).json({ message: 'E-mail ou senha incorretos.' });
+  user.senha = undefined;
+  user.password = undefined;
+  res.json({ message: 'Login realizado com sucesso!', user });
+});
+exports.updateUser = asyncHandler(async (req, res) => {
+  const user = await userService.update(req.params.id, req.body);
+  if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+  res.json({ message: 'Usuário atualizado com sucesso!' });
+});
+exports.getUserById = asyncHandler(async (req, res) => {
+  const user = await userService.findById(req.params.id);
+  if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+  res.json(user);
+});

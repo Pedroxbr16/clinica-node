@@ -1,14 +1,14 @@
 #!/bin/sh
 
 # Argumentos: host e porta
-HOST="$DB_HOST"
-PORT="$DB_PORT"
+HOST="$MONGODB_HOST"
+PORT="$MONGODB_PORT"
 
 # Valores padrão, caso não estejam no .env
 : "${HOST:=db}"
-: "${PORT:=3306}"
+: "${PORT:=27017}"
 
-echo "⏳ Aguardando o banco MySQL (${HOST}:${PORT}) estar disponível..."
+echo "⏳ Aguardando o MongoDB (${HOST}:${PORT}) estar disponível..."
 
 # Aguarda conexão com o host/porta até estar pronto
 while ! nc -z "$HOST" "$PORT"; do

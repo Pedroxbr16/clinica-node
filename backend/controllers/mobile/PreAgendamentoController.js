@@ -1,153 +1,36 @@
-const PreAgendamentoModel = require('../../models/mobile/preAgendamentoModel');
+const preAgendamentoService = require('../../services/preAgendamentoService');
+const asyncHandler = require('../../utils/asyncHandler');
 
 const PreAgendamentoController = {
-  // Criar um novo pré-agendamento
-  create(req, res) {
-    const { userId, doctorId, tipoConsultaId, modalidade, date, phone, email } = req.body;
-
-    if (!userId || !doctorId || !tipoConsultaId || !modalidade || !date || !phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Todos os campos obrigatórios devem ser preenchidos.',
-      });
-    }
-
-    PreAgendamentoModel.create(
-      { userId, doctorId, tipoConsultaId, modalidade, date, phone, email },
-      (error) => {
-        if (error) {
-          console.error('Erro ao criar pré-agendamento:', error);
-          return res
-            .status(500)
-            .json({ success: false, message: 'Erro ao criar o pré-agendamento.' });
-        }
-        res.status(201).json({ success: true, message: 'Pré-agendamento criado com sucesso!' });
-      }
-    );
-  },
-
-  // Listar todos os pré-agendamentos
-  list(req, res) {
-    PreAgendamentoModel.list((error, results) => {
-      if (error) {
-        console.error('Erro ao listar pré-agendamentos:', error);
-        return res
-          .status(500)
-          .json({ success: false, message: 'Erro ao listar os pré-agendamentos.' });
-      }
-      if (results.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Nenhum pré-agendamento encontrado.',
-        });
-      }
-      res.status(200).json({ success: true, data: results });
-    });
-  },
-
-  // Buscar um pré-agendamento por ID
-  findById(req, res) {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ success: false, message: 'O ID é obrigatório.' });
-    }
-
-    PreAgendamentoModel.findById(id, (error, results) => {
-      if (error) {
-        console.error('Erro ao buscar o pré-agendamento:', error);
-        return res
-          .status(500)
-          .json({ success: false, message: 'Erro ao buscar o pré-agendamento.' });
-      }
-      if (results.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Pré-agendamento não encontrado.',
-        });
-      }
-      res.status(200).json({ success: true, data: results[0] });
-    });
-  },
-
-  // Atualizar um pré-agendamento por ID
-  update(req, res) {
-    const { id } = req.params;
-    const updateFields = req.body;
-
-    if (!id) {
-      return res.status(400).json({ success: false, message: 'O ID é obrigatório.' });
-    }
-
-    PreAgendamentoModel.update(id, updateFields, (error, results) => {
-      if (error) {
-        console.error('Erro ao atualizar o pré-agendamento:', error);
-        return res
-          .status(500)
-          .json({ success: false, message: 'Erro ao atualizar o pré-agendamento.' });
-      }
-      if (results.affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Pré-agendamento não encontrado.',
-        });
-      }
-      res.status(200).json({ success: true, message: 'Pré-agendamento atualizado com sucesso!' });
-    });
-  },
-
-  // Deletar um pré-agendamento por ID
-  delete(req, res) {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ success: false, message: 'O ID é obrigatório.' });
-    }
-
-    PreAgendamentoModel.delete(id, (error, results) => {
-      if (error) {
-        console.error('Erro ao deletar o pré-agendamento:', error);
-        return res
-          .status(500)
-          .json({ success: false, message: 'Erro ao deletar o pré-agendamento.' });
-      }
-      if (results.affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Pré-agendamento não encontrado.',
-        });
-      }
-      res.status(200).json({ success: true, message: 'Pré-agendamento deletado com sucesso!' });
-    });
-  },
-
-  // Buscar pré-agendamentos por usuário
-  findByUserId(req, res) {
-    const { userId } = req.params;
-
-    if (!userId) {
-      return res.status(400).json({ success: false, message: 'O userId é obrigatório.' });
-    }
-
-    PreAgendamentoModel.findByUserId(userId, (error, results) => {
-      if (error) {
-        console.error('Erro ao buscar os pré-agendamentos do usuário:', error);
-        return res
-          .status(500)
-          .json({
-            success: false,
-            message: 'Erro ao buscar os pré-agendamentos do usuário.',
-          });
-      }
-      if (results.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Nenhum pré-agendamento encontrado para este usuário.',
-        });
-      }
-      res.status(200).json({ success: true, data: results });
-    });
-  },
+  create: asyncHandler(async (req, res) => {
+    const { userId, doctorId, tipoConsultaId, modalidade, date, phone } = req.body;
+    if (!userId || !doctorId || !tipoConsultaId || !modalidade || !date || !phone) return res.status(400).json({ success: false, message: 'Todos os campos obrigatórios devem ser preenchidos.' });
+    await preAgendamentoService.create(req.body);
+    res.status(201).json({ success: true, message: 'Pré-agendamento criado com sucesso!' });
+  }),
+  list: asyncHandler(async (_req, res) => {
+    const items = await preAgendamentoService.list();
+    if (!items.length) return res.status(404).json({ success: false, message: 'Nenhum pré-agendamento encontrado.' });
+    res.json({ success: true, data: items });
+  }),
+  findById: asyncHandler(async (req, res) => {
+    const item = await preAgendamentoService.findById(req.params.id);
+    if (!item) return res.status(404).json({ success: false, message: 'Pré-agendamento não encontrado.' });
+    res.json({ success: true, data: item });
+  }),
+  update: asyncHandler(async (req, res) => {
+    if (!await preAgendamentoService.update(req.params.id, req.body)) return res.status(404).json({ success: false, message: 'Pré-agendamento não encontrado.' });
+    res.json({ success: true, message: 'Pré-agendamento atualizado com sucesso!' });
+  }),
+  delete: asyncHandler(async (req, res) => {
+    if (!await preAgendamentoService.remove(req.params.id)) return res.status(404).json({ success: false, message: 'Pré-agendamento não encontrado.' });
+    res.json({ success: true, message: 'Pré-agendamento deletado com sucesso!' });
+  }),
+  findByUserId: asyncHandler(async (req, res) => {
+    const items = await preAgendamentoService.listByUser(req.params.userId);
+    if (!items.length) return res.status(404).json({ success: false, message: 'Nenhum pré-agendamento encontrado para este usuário.' });
+    res.json({ success: true, data: items });
+  }),
 };
 
 module.exports = PreAgendamentoController;

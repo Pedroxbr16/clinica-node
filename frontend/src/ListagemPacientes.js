@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { excluirPaciente, listarPacientes } from './services/PacienteService';
 import Swal from 'sweetalert2';
 import './css/listagemPaciente.css';
 
@@ -17,8 +17,7 @@ function Pacientes() {
   useEffect(() => {
     const fetchPacientes = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/pacientes/pacientes');
-        setPacientes(response.data);
+        setPacientes(await listarPacientes());
         setLoading(false);
       } catch (err) {
         console.error('Erro ao buscar pacientes:', err);
@@ -41,7 +40,7 @@ function Pacientes() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:5000/pacientes/${id}`);
+          await excluirPaciente(id);
           setPacientes((prevPacientes) =>
             prevPacientes.filter((paciente) => paciente.id !== id)
           );
